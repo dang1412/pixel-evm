@@ -32,3 +32,7 @@ Add to `package.json`
 ```
 
 Run `npm run dev`, it will update the `tsconfig.json` file automatically.
+
+
+https://chainlist.org/chain/84532
+https://remix.ethereum.org/
