@@ -1,4 +1,4 @@
-import { BrowserProvider, JsonRpcSigner } from 'ethers'
+import { BrowserProvider, ContractEventPayload, JsonRpcSigner } from 'ethers'
 
 import { RTCConnect, RTCConnect__factory } from '../../typechain-types'
 import { RTCService } from './RTCService'
@@ -24,7 +24,9 @@ export class RTCConnectClients {
     this.signer = await provider.getSigner()
     this.contract = RTCConnect__factory.connect(RTC_CONTRACT_ADDR, this.signer)
 
-    console.log('connected', await this.signer.getAddress())
+    const network = await provider.getNetwork()
+
+    console.log('connected', await this.signer.getAddress(), network.name)
   }
 
   async waitForConnect() {
@@ -36,10 +38,15 @@ export class RTCConnectClients {
 
     console.log('waitForConnect', addr)
 
+    // contract.on(contract.filters.OfferConnect, (e) => {
+
+    // })
+
     // waiting for someone to offer connect to this 'addr'
-    contract.on(contract.filters['OfferConnect(address,address,string)'](undefined, addr), async (from, to, offerCID) => {
+    contract.on(contract.filters.OfferConnect(undefined, addr), async (e: ContractEventPayload) => {
       // 'to' must equal to 'addr'
-      console.log('Got connect offer', from, offerCID)
+      console.log('Got connect offer', e.args.toArray())
+      const [from, to, offerCID] = e.args.toArray() as [string, string, string]
       const rtcService = new RTCService(this.ipfsService, async (cid) => {
         // after uploading answer to IPFS and got the cid, answer the connect
         console.log('Answering onchain', from)
@@ -48,7 +55,7 @@ export class RTCConnectClients {
       })
 
       //
-      console.log('Answering', from)
+      console.log('Answering', from, offerCID)
       const sdp = await this.fetchSDP(offerCID)
       rtcService.receiveOfferThenAnswer(sdp)
 
@@ -65,7 +72,7 @@ export class RTCConnectClients {
       // after uploading answer to IPFS and got the cid, answer the connect
       console.log('Offering onchain', addr)
       await contract.offerConnect(addr, cid)
-      console.log('Offered onchain, waiting for the answer', addr)
+      console.log('Offered onchain, waiting for the answer', addr, cid)
     })
 
     // create channel
@@ -78,7 +85,8 @@ export class RTCConnectClients {
     const currentAddr = await this.signer.getAddress()
 
     // waiting for 'addr' to answer the offer
-    contract.on(contract.filters['AnswerConnect(address,address,string)'](addr, currentAddr), async (from, to, answeredCID) => {
+    contract.on(contract.filters['AnswerConnect(address,address,string)'](addr, currentAddr), async (e: ContractEventPayload) => {
+      const [from, to, answeredCID] = e.args.toArray() as [string, string, string]
       const sdp = await this.fetchSDP(answeredCID)
       console.log('received', sdp)
       await rtcService.receiveSDP(sdp)
@@ -89,5 +97,10 @@ export class RTCConnectClients {
     return this.ipfsService.fetch<RTCSessionDescriptionInit>(cid)
   }
 
-
+  sendAll(val: string) {
+    for (const addr of Object.keys(this.services)) {
+      const service = this.services[addr]
+      service.sendMessage(val)
+    }
+  }
 }

@@ -22,6 +22,10 @@ export default function Page() {
     rtcClients.offerConnectTo(addr)
   }, [addr])
 
+  const send = useCallback(() => {
+    rtcClients.sendAll('Testabcd')
+  }, [])
+
   return (
     <>
       <button onClick={connect}>Connect</button>
@@ -29,6 +33,8 @@ export default function Page() {
       <button onClick={waitForConnect}>Wait for Connect</button>
       <br/>
       <button onClick={requestConnect}>Request to</button><input value={addr} onChange={(e) => setAddr(e.target.value)} />
+      <br/>
+      <button onClick={send}>Test</button>
     </>
   )
 }

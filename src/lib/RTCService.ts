@@ -110,6 +110,7 @@ export class RTCService {
     if (!this.channel) return
 
     this.channel.send(content)
+    // this.channel.send()
     this.onMessage(content)
   }
 }
