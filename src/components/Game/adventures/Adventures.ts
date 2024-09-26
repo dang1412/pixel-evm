@@ -1,30 +1,5 @@
 import { ViewportMap } from '../ViewportMap'
-
-interface AdventureMonster {
-  id: number
-  hp: number
-  // size: number
-}
-
-export interface AdventureStates {
-  // position to id
-  posMonster: {[p: number]: number}
-  // id to position
-  monsterPos: {[id: number]: number}
-  // monsters
-  monsters: {[id: number]: AdventureMonster}
-}
-
-enum ActionType {
-  MOVE,
-  SHOOT
-}
-
-export interface AdventureAction {
-  id: number
-  to: number
-  type: ActionType
-}
+import { ActionType, AdventureAction, AdventureStates } from './types'
 
 function proceedMove(states: AdventureStates, id: number, p: number): boolean {
   const { posMonster, monsterPos } = states
