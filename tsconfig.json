@@ -22,7 +22,8 @@
         "name": "next"
       }
     ],
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "types": ["jest"]
   },
   "include": [
     "next-env.d.ts",

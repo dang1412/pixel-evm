@@ -43,7 +43,7 @@ function encodeMonsters(view: DataView, monsters: AdventureMonster[]): number {
   let offset = 1
   for (const { id, hp, type } of monsters) {
     view.setUint8(offset, id)
-    view.setUint8(offset + 1, (hp & 0x0F << 4) | type & 0x0F)
+    view.setUint8(offset + 1, ((hp & 0x0F) << 4) | type & 0x0F)
     offset += 2
   }
 
