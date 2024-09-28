@@ -12,6 +12,8 @@ export interface AdventureStates {
   monsterPos: {[id: number]: number}
   // monsters
   monsters: {[id: number]: AdventureMonster}
+  // actions
+  actions: AdventureAction[]
 }
 
 export enum ActionType {
@@ -20,7 +22,7 @@ export enum ActionType {
 }
 
 export interface AdventureAction {
-  id: number
-  to: number
-  type: ActionType
+  id: number  // 8bit
+  to: number  // 15bit
+  type: ActionType  // 1bit
 }

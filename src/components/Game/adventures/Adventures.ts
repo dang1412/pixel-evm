@@ -57,7 +57,7 @@ function adventureUpdate(states: AdventureStates, actions: AdventureAction[]): A
 }
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsterPos: {}, monsters: {} }
+  states: AdventureStates = { posMonster: {}, monsterPos: {}, monsters: {}, actions: [] }
   // actionsBuffer: AdventureAction[] = []
 
   constructor(map: ViewportMap) {}
