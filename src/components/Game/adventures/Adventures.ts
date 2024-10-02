@@ -1,84 +1,101 @@
+import { Address, RTCConnectClients } from '@/lib/RTCConnectClients'
 import { ViewportMap } from '../ViewportMap'
 import { ActionType, AdventureAction, AdventureStates } from './types'
-
-function proceedMove(states: AdventureStates, id: number, p: number): boolean {
-  const { posMonster, monsterPos } = states
-  if (posMonster[p] >= 0) {
-    return false
-  }
-
-  // TODO check range
-
-  const curPos = monsterPos[id]
-  if (curPos >= 0) {
-    delete posMonster[curPos]
-  }
-
-  posMonster[p] = id
-  monsterPos[id] = p
-
-  return true
-}
-
-function proceedShoot(states: AdventureStates, id: number, p: number): boolean {
-  const { posMonster, monsterPos, monsters } = states
-
-  if (!(monsterPos[id] >= 0)) return false
-
-  const shotId = posMonster[p]
-  if (shotId >= 0) {
-    const shotMonster = monsters[shotId]
-    shotMonster.hp --
-    if (shotMonster.hp <= 0) {
-      // dead
-      delete posMonster[p]
-      delete monsterPos[shotId]
-      delete monsters[shotId]
-    }
-  }
-
-  return true
-}
-
-function proceedAction(states: AdventureStates, action: AdventureAction): boolean {
-  const func = action.type === ActionType.MOVE ? proceedMove : proceedShoot
-  return func(states, action.id, action.to)
-}
-
-function adventureUpdate(states: AdventureStates, actions: AdventureAction[]): AdventureAction[] {
-  const appliedActions: AdventureAction[] = []
-
-  for (const action of actions) {
-    const rs = proceedAction(states, action)
-    if (rs) appliedActions.push(action)
-  }
-
-  return appliedActions
-}
+import { adventureUpdate } from './gameprocess'
+import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsterPos: {}, monsters: {}, actions: [] }
-  // actionsBuffer: AdventureAction[] = []
+  bufferActions: AdventureAction[] = []
+
+  rtcClients = new RTCConnectClients()
+
+  isServer = false
 
   constructor(map: ViewportMap) {}
 
   // Server functions
 
-  // receiveAction(action: AdventureAction) {
-  //   this.actionsBuffer.push(action)
-  // }
-
-  // resetBuffer() {
-  //   this.actionsBuffer = []
-  // }
-
-  applyActions(actions: AdventureAction[]): AdventureAction[] {
-    const appliedActions = adventureUpdate(this.states, actions)
-
-    return appliedActions
+  receiveAction(action: AdventureAction) {
+    this.bufferActions.push(action)
   }
 
-  drawActions(actions: AdventureAction[]) {
+  resetBuffer() {
+    this.bufferActions = []
+  }
 
+  applyBufferActions() {
+    const updates = adventureUpdate(this.states, this.bufferActions)
+
+    this.resetBuffer()
+
+    // send updates to clients
+    const data = encodeAdventureStates(updates)
+    this.rtcClients.sendAll(data)
+
+    // draw updates actions
+
+    // draw updates states
+  }
+
+  startServer() {
+    this.rtcClients.onReceiveData = (addr, data) => {
+      if (typeof data === 'string') {
+
+      } else {
+        // decode action
+        const action = decodeAction(data)
+        console.log('Receive action', addr, action)
+        this.receiveAction(action)
+      }
+    }
+
+    this.rtcClients.onConnect = (addr) => {
+      console.log('Connected from', addr)
+      // send current game states
+      const data = encodeAdventureStates(this.states)
+      this.rtcClients.sendTo(addr, data)
+    }
+
+    // start listening for connect
+    this.rtcClients.waitForConnect()
+
+    // apply buffer actions periodically
+    setInterval(() => {
+      this.applyBufferActions()
+    }, 1000)
+
+    this.isServer = true
+  }
+
+  // client function
+  connectToServer(addr: Address) {
+    // receive updates from server
+    this.rtcClients.onReceiveData = (addr, data) => {
+      if (typeof data === 'string') {
+
+      } else {
+        // decode updates
+        const updates = decodeAdventureStates(data)
+        console.log('Receive updates', addr, data)
+
+        // draw actions
+
+        // draw updates
+      }
+    }
+
+    // offer connect to addr
+    this.rtcClients.offerConnectTo(addr)
+  }
+
+  async drawActions(actions: AdventureAction[]) {
+  }
+
+  async drawAllStates() {
+    this.drawStates(this.states)
+  }
+
+  async drawStates(states: AdventureStates) {
   }
 }

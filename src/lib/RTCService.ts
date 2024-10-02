@@ -61,7 +61,8 @@ export class RTCService {
   }
 
   // override
-  onMessage(msg: string) {}
+  onMessage(data: string | ArrayBuffer) {}
+  onConnect() {}
 
   /**
    * This function is for receiving SDP offer or answer
@@ -94,6 +95,7 @@ export class RTCService {
     this.channel = channel
     channel.onopen = () => {
       console.log('Channel opened', channel)
+      this.onConnect()
     }
 
     channel.onmessage = (e) => {
@@ -106,11 +108,11 @@ export class RTCService {
     }
   }
 
-  sendMessage(content: string) {
+  sendMessage(content: string | ArrayBuffer) {
     if (!this.channel) return
 
-    this.channel.send(content)
+    this.channel.send(content as ArrayBuffer)
     // this.channel.send()
-    this.onMessage(content)
+    // this.onMessage(content)
   }
 }
