@@ -18,11 +18,13 @@ export interface AdventureStates {
 
 export enum ActionType {
   MOVE,
-  SHOOT
+  SHOOT,
+  ONBOARD,
+  WEAR,
 }
 
 export interface AdventureAction {
   id: number  // 8bit
-  to: number  // 15bit
-  type: ActionType  // 1bit
+  val: number  // 14bit
+  type: ActionType  // 2bit
 }
