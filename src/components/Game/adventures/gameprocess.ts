@@ -1,9 +1,7 @@
-import { ActionType, AdventureAction, AdventureStates } from './types'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from './types'
 
-const DEAD_POSITION = 1 << 14
-
-function proceedMove(states: AdventureStates, updates: AdventureStates, id: number, p: number): boolean {
-  const { posMonster, monsterPos } = states
+function proceedMove(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: number): boolean {
+  const { posMonster, monsters } = states
   // can not move here
   if (posMonster[p] >= 0) {
     return false
@@ -12,46 +10,43 @@ function proceedMove(states: AdventureStates, updates: AdventureStates, id: numb
   // TODO check range
 
   // delete current position
-  const curPos = monsterPos[id]
+  const curPos = monsters[id].pos
   if (curPos >= 0) {
     delete posMonster[curPos]
   }
 
   // update new position
   posMonster[p] = id
-  monsterPos[id] = p
+  monsters[id].pos = p
 
-  updates.monsterPos[id] = p
+  updates.monsters[id] = monsters[id]
 
   return true
 }
 
-function proceedShoot(states: AdventureStates, updates: AdventureStates, id: number, p: number): boolean {
-  const { posMonster, monsterPos, monsters } = states
+function proceedShoot(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: number): boolean {
+  const { posMonster, monsters } = states
 
   // already dead
-  if (!(monsterPos[id] >= 0)) return false
+  if (!monsters[id]) return false
 
   const shotId = posMonster[p]
   if (shotId >= 0) {
     const shotMonster = monsters[shotId]
     shotMonster.hp --
-    updates.monsters[shotId].hp = shotMonster.hp
+    updates.monsters[shotId] = shotMonster
     if (shotMonster.hp <= 0) {
       // dead
       delete posMonster[p]
-      delete monsterPos[shotId]
+      // delete monsterPos[shotId]
       delete monsters[shotId]
-
-      // mark dead
-      updates.monsterPos[shotId] = DEAD_POSITION
     }
   }
 
   return true
 }
 
-function proceedAction(states: AdventureStates, updates: AdventureStates, action: AdventureAction): boolean {
+function proceedAction(states: AdventureStates, updates: AdventureStateUpdates, action: AdventureAction): boolean {
   const func = action.type === ActionType.MOVE ? proceedMove : proceedShoot
   const rs = func(states, updates, action.id, action.val)
   if (rs) {
@@ -61,8 +56,8 @@ function proceedAction(states: AdventureStates, updates: AdventureStates, action
   return rs
 }
 
-export function adventureUpdate(states: AdventureStates, actions: AdventureAction[]): AdventureStates {
-  const updates: AdventureStates = { posMonster: {}, monsterPos: {}, monsters: {}, actions: [] }
+export function adventureUpdate(states: AdventureStates, actions: AdventureAction[]): AdventureStateUpdates {
+  const updates: AdventureStateUpdates = { monsters: {}, actions: [] }
 
   for (const action of actions) {
     const rs = proceedAction(states, updates, action)

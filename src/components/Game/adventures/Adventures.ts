@@ -1,18 +1,20 @@
 import { Address, RTCConnectClients } from '@/lib/RTCConnectClients'
 import { ViewportMap } from '../ViewportMap'
-import { ActionType, AdventureAction, AdventureStates } from './types'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { adventureUpdate } from './gameprocess'
-import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
+// import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
+import { AdventureMonster } from './Monster'
+import { decodeAction, decodeUpdates, encodeStates, encodeUpdates } from './encodes'
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsterPos: {}, monsters: {}, actions: [] }
+  states: AdventureStates = { posMonster: {}, monsters: {} }
   bufferActions: AdventureAction[] = []
 
   rtcClients = new RTCConnectClients()
 
   isServer = false
 
-  constructor(map: ViewportMap) {}
+  constructor(public map: ViewportMap) {}
 
   // Server functions
 
@@ -30,7 +32,7 @@ export class Adventures {
     this.resetBuffer()
 
     // send updates to clients
-    const data = encodeAdventureStates(updates)
+    const data = encodeUpdates(updates)
     this.rtcClients.sendAll(data)
 
     // draw updates actions
@@ -53,7 +55,7 @@ export class Adventures {
     this.rtcClients.onConnect = (addr) => {
       console.log('Connected from', addr)
       // send current game states
-      const data = encodeAdventureStates(this.states)
+      const data = encodeStates(this.states)
       this.rtcClients.sendTo(addr, data)
     }
 
@@ -76,7 +78,7 @@ export class Adventures {
 
       } else {
         // decode updates
-        const updates = decodeAdventureStates(data)
+        const updates = decodeUpdates(data)
         console.log('Receive updates', addr, data)
 
         // draw actions
@@ -85,17 +87,39 @@ export class Adventures {
       }
     }
 
-    // offer connect to addr
+    // offer connect to addrl
     this.rtcClients.offerConnectTo(addr)
   }
 
-  async drawActions(actions: AdventureAction[]) {
+  async drawUpdates(updates: AdventureStateUpdates) {
+    const { monsters, actions } = updates
+    this.drawActions(actions)
+    this.drawMonsters(Object.values(monsters))
   }
 
-  async drawAllStates() {
-    this.drawStates(this.states)
+  private async drawActions(actions: AdventureAction[]) {
   }
 
-  async drawStates(states: AdventureStates) {
+  async syncStates() {
+    const monsters = Object.values(this.states.monsters)
+    await this.drawMonsters(monsters)
   }
+
+  monsterMap: {[id: number]: AdventureMonster} = {}
+  
+  private async drawMonsters(monsterStates: MonsterState[]) {
+    for (const monsterState of monsterStates) {
+      this.drawMonster(monsterState)
+    }
+  }
+
+  private async drawMonster(monsterState: MonsterState) {
+    const monster = this.monsterMap[monsterState.id]
+    if (!monster) {
+      this.monsterMap[monsterState.id] = new AdventureMonster(this.map, monsterState)
+    } else {
+      monster.updateState(monsterState)
+    }
+  }
+
 }

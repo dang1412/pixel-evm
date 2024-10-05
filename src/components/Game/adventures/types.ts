@@ -1,7 +1,9 @@
-export interface AdventureMonster {
+export interface MonsterState {
   id: number  // 8bit
   hp: number  // 4bit
   type: number // 4bit
+  pos: number // 16bit
+  // weapon: number // 8bit
   // size: number
 }
 
@@ -9,10 +11,15 @@ export interface AdventureStates {
   // position to id
   posMonster: {[p: number]: number}
   // id to position
-  monsterPos: {[id: number]: number}
+  // monsterPos: {[id: number]: number}
   // monsters
-  monsters: {[id: number]: AdventureMonster}
+  monsters: {[id: number]: MonsterState}
   // actions
+  // actions: AdventureAction[]
+}
+
+export interface AdventureStateUpdates {
+  monsters: {[id: number]: MonsterState}
   actions: AdventureAction[]
 }
 
