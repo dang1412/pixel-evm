@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { RTCConnectClients } from '../../lib/RTCConnectClient'
+import { Address, RTCConnectClients } from '@/lib/RTCConnectClients'
 
 const rtcClients = new RTCConnectClients()
 
@@ -19,7 +19,7 @@ export default function Page() {
   const [addr, setAddr] = useState('')
 
   const requestConnect = useCallback(() => {
-    rtcClients.offerConnectTo(addr)
+    rtcClients.offerConnectTo(addr as Address)
   }, [addr])
 
   const send = useCallback(() => {
