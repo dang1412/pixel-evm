@@ -23,7 +23,10 @@
       }
     ],
     "moduleResolution": "node",
-    "types": ["jest"]
+    "types": ["jest"],
+    "paths": {
+      "@/*": ["./src/*"] // enables us to use @components/MyComponent
+    }
   },
   "include": [
     "next-env.d.ts",
