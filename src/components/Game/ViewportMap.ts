@@ -4,7 +4,7 @@ import { Minimap } from './Minimap'
 
 const WORLD_WIDTH = 3000
 const WORLD_HEIGHT = 3000
-const PIXEL_SIZE = 30
+export const PIXEL_SIZE = 30
 
 interface PixelArea {
   x: number
@@ -16,13 +16,16 @@ interface PixelArea {
 export class ViewportMap {
   renderer: Renderer
   viewport: Viewport | undefined
-  container: Container | undefined
+  container: Container
 
   wrapper: Container | undefined
   minimap: Minimap | undefined
 
-  constructor() {
+  eventTarget = new EventTarget()
+
+  constructor(public canvas: HTMLCanvasElement) {
     this.renderer = new WebGLRenderer()
+    this.container = new Container()
   }
 
   updateMinimap() {
@@ -41,11 +44,13 @@ export class ViewportMap {
     this.updateMinimap()
   }
 
-  async init(canvas: HTMLCanvasElement) {
-    const screenWidth = canvas.width
-    const screenHeight = canvas.height
-    console.log(screenWidth, screenHeight)
-    await this.renderer.init({ canvas, width: screenWidth, height: screenHeight, antialias: true, backgroundColor: 0xffffff })
+  async init() {
+    const canvas = this.canvas
+
+    const screenWidth = 100
+    const screenHeight = 100
+    await this.renderer.init({ canvas, width: 100, height: 100, antialias: true, backgroundColor: 0xffffff })
+    
     const viewport = this.viewport = new Viewport({
       screenWidth,
       screenHeight,
@@ -106,20 +111,65 @@ export class ViewportMap {
       console.log(width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels)
     })
 
+    // pixel down
     canvas.addEventListener('mousedown', (e) => {
-      const screenX = e.pageX - canvas.offsetLeft
-      const screenY = e.pageY - canvas.offsetTop
-      console.log(screenX, screenY)
+      const [px, py] = this.getPixelXY(e)
+      this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixeldown', {detail: [px, py]}))
+      console.log('Pixel down xy', px, py)
+    })
 
-      // continue calculate pixelX, pixelY follow the above formula
-      const scaled = viewport.scaled
-      const worldX = (screenX - viewport.x) / scaled
-      const worldY = (screenY - viewport.y) / scaled
+    // pixel up
+    canvas.addEventListener('mouseup', (e) => {
+      const [px, py] = this.getPixelXY(e)
+      this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelup', {detail: [px, py]}))
+      console.log('Pixel up xy', px, py)
+    })
 
-      console.log('Pixel xy', Math.floor(worldX / PIXEL_SIZE), Math.floor(worldY / PIXEL_SIZE))
+    // pixel move
+    let curx = -1, cury = -1
+    canvas.addEventListener('mousemove', (e) => {
+      const [px, py] = this.getPixelXY(e)
+      if (curx !== px || cury !== py) {
+        this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelmove', {detail: [px, py]}))
+        curx = px
+        cury = py
+      }
     })
 
     return canvas
+  }
+
+  // subcribe
+  subscribe(type: string, func: (e: CustomEvent) => void) {
+    this.eventTarget.addEventListener(type, func as EventListener)
+
+    return () => this.eventTarget.removeEventListener(type, func as EventListener)
+  }
+
+  // subcribe once
+  subscribeOnce(type: string, func: (e: CustomEvent) => void) {
+    const unsub = this.subscribe(type, (e) => {
+      func(e)
+      unsub()
+    })
+  }
+
+  getPixelXY(e: {pageX: number, pageY: number}): [number, number] {
+    const canvas = this.canvas
+    const viewport = this.viewport
+    if (!viewport) return [0, 0]
+
+    const screenX = e.pageX - canvas.offsetLeft
+    const screenY = e.pageY - canvas.offsetTop
+
+    // continue calculate pixelX, pixelY follow the above formula
+    const scaled = viewport.scaled
+    const worldX = (screenX - viewport.x) / scaled
+    const worldY = (screenY - viewport.y) / scaled
+
+    const [px, py] = [Math.floor(worldX / PIXEL_SIZE), Math.floor(worldY / PIXEL_SIZE)]
+
+    return [px, py]
   }
 
   moveCenter() {
@@ -127,20 +177,43 @@ export class ViewportMap {
     this.updateMinimap()
   }
 
-  async addImage(url: string, area: PixelArea) {
-    if (!this.viewport || !this.container) return
+  markDirty() {
+    if (this.viewport) this.viewport.dirty = true
+  }
 
+  pauseDrag() {
+    if (this.viewport) this.viewport.plugins.pause('drag')
+  }
+
+  resumeDrag() {
+    if (this.viewport) this.viewport.plugins.resume('drag')
+  }
+
+  getPixelSize(): number {
+    return PIXEL_SIZE
+  }
+
+  async addImage(url: string, area: PixelArea): Promise<Container> {
+    if (!this.viewport || !this.container) return new Container()
+
+    // create container
+    const container = new Container()
+
+    container.x = area.x * PIXEL_SIZE
+    container.y = area.y * PIXEL_SIZE
+    
+    // add image
     const texture = await Assets.load(url)
     const image = new Sprite(texture)
-
-    image.x = area.x * PIXEL_SIZE
-    image.y = area.y * PIXEL_SIZE
     image.width = area.w * PIXEL_SIZE
     image.height = area.h * PIXEL_SIZE
+    container.addChild(image)
 
-    this.container.addChild(image)
+    this.container.addChild(container)
 
     this.viewport.dirty = true
+
+    return container
   }
 
   private runUpdate() {
@@ -149,6 +222,7 @@ export class ViewportMap {
     if (this.viewport.dirty) {
       this.renderer.render(this.wrapper)
       this.viewport.dirty = false
+      this.eventTarget.dispatchEvent(new Event('tick'))
     }
 
     requestAnimationFrame(() => this.runUpdate())
@@ -159,9 +233,6 @@ export class ViewportMap {
 
     const g = new Graphics()
     this.viewport.addChild(g)
-    // g.lineStyle(1, 0x888888, 0.4, undefined, true)
-    // g.setStrokeStyle(1)
-    //   .setFillStyle()
 
     const pixelWidth = WORLD_WIDTH / PIXEL_SIZE
     const pixelHeight = WORLD_HEIGHT / PIXEL_SIZE

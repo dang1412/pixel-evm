@@ -16,6 +16,14 @@ export class Adventures {
 
   constructor(public map: ViewportMap) {}
 
+  loadMonsters(monsterStates: MonsterState[]) {
+    console.log('loadMonsters', monsterStates)
+    for (const monsterState of monsterStates) {
+      this.states.monsters[monsterState.id] = monsterState
+    }
+    this.drawMonsters(monsterStates)
+  }
+
   // Server functions
 
   receiveAction(action: AdventureAction) {
@@ -27,7 +35,13 @@ export class Adventures {
   }
 
   applyBufferActions() {
+    if (this.bufferActions.length === 0) return
+
+    console.log('applyBufferActions', this.bufferActions)
     const updates = adventureUpdate(this.states, this.bufferActions)
+
+    console.log(updates)
+    this.drawUpdates(updates)
 
     this.resetBuffer()
 
@@ -65,7 +79,7 @@ export class Adventures {
     // apply buffer actions periodically
     setInterval(() => {
       this.applyBufferActions()
-    }, 1000)
+    }, 500)
 
     this.isServer = true
   }
@@ -116,7 +130,7 @@ export class Adventures {
   private async drawMonster(monsterState: MonsterState) {
     const monster = this.monsterMap[monsterState.id]
     if (!monster) {
-      this.monsterMap[monsterState.id] = new AdventureMonster(this.map, monsterState)
+      this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
     } else {
       monster.updateState(monsterState)
     }
