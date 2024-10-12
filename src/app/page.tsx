@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 
-import { GameMap } from '../components/Game'
+import { GameMap } from '@/components/Game'
 
 const TestConnectLoad = () => import('../components/TestConnect/TestConnect')
 const TestConnect = dynamic(TestConnectLoad, {ssr: false})

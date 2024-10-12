@@ -2,9 +2,9 @@ import { Assets, Container, Graphics, type Renderer, Sprite, WebGLRenderer, WebG
 import { Viewport } from 'pixi-viewport'
 import { Minimap } from './Minimap'
 
-const WORLD_WIDTH = 3000
-const WORLD_HEIGHT = 3000
-export const PIXEL_SIZE = 30
+export const PIXEL_SIZE = 40
+const WORLD_WIDTH = PIXEL_SIZE * 100
+const WORLD_HEIGHT = PIXEL_SIZE * 100
 
 interface PixelArea {
   x: number
@@ -77,7 +77,7 @@ export class ViewportMap {
       })
       .wheel()
       .clamp({direction: 'all'})
-      .clampZoom({minScale: 1, maxScale: 3})
+      .clampZoom({minScale: 1, maxScale: 20})
 
     for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
       const rect = new Graphics()
@@ -193,11 +193,11 @@ export class ViewportMap {
     return PIXEL_SIZE
   }
 
-  async addImage(url: string, area: PixelArea): Promise<Container> {
+  async addImage(url: string, area: PixelArea, container?: Container): Promise<Container> {
     if (!this.viewport || !this.container) return new Container()
 
     // create container
-    const container = new Container()
+    container = container ? container : new Container()
 
     container.x = area.x * PIXEL_SIZE
     container.y = area.y * PIXEL_SIZE

@@ -3,23 +3,40 @@ import { ViewportMap } from '../ViewportMap'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { adventureUpdate } from './gameprocess'
 // import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
-import { AdventureMonster } from './Monster'
+import { AdventureMonster, positionToXY } from './Monster'
 import { decodeAction, decodeUpdates, encodeStates, encodeUpdates } from './encodes'
+
+export enum ActionMode {
+  MOVE,
+  SHOOT
+}
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
   bufferActions: AdventureAction[] = []
 
   rtcClients = new RTCConnectClients()
-
   isServer = false
 
-  constructor(public map: ViewportMap) {}
+  mode = ActionMode.MOVE
+
+  constructor(public map: ViewportMap) {
+    this.map.subscribe('pixeldown', (e) => {
+      const [x, y] = e.detail
+      const pos = y * 100 + x
+      const id = this.states.posMonster[pos]
+      if (id >= 0) {
+        const monster = this.monsterMap[id]
+        if (monster) monster.startControl()
+      }
+    })
+  }
 
   loadMonsters(monsterStates: MonsterState[]) {
     console.log('loadMonsters', monsterStates)
     for (const monsterState of monsterStates) {
       this.states.monsters[monsterState.id] = monsterState
+      this.states.posMonster[monsterState.pos] = monsterState.id
     }
     this.drawMonsters(monsterStates)
   }
@@ -39,9 +56,7 @@ export class Adventures {
 
     console.log('applyBufferActions', this.bufferActions)
     const updates = adventureUpdate(this.states, this.bufferActions)
-
     console.log(updates)
-    this.drawUpdates(updates)
 
     this.resetBuffer()
 
@@ -49,9 +64,8 @@ export class Adventures {
     const data = encodeUpdates(updates)
     this.rtcClients.sendAll(data)
 
-    // draw updates actions
-
     // draw updates states
+    this.drawUpdates(updates)
   }
 
   startServer() {
@@ -95,9 +109,8 @@ export class Adventures {
         const updates = decodeUpdates(data)
         console.log('Receive updates', addr, data)
 
-        // draw actions
-
         // draw updates
+        this.drawUpdates(updates)
       }
     }
 
@@ -112,6 +125,13 @@ export class Adventures {
   }
 
   private async drawActions(actions: AdventureAction[]) {
+    for (const { id, type, val } of actions) {
+      if (type === ActionType.SHOOT) {
+        const monster = this.monsterMap[id]
+        const [x, y] = positionToXY(val)
+        monster.shoot(x, y)
+      }
+    }
   }
 
   async syncStates() {
@@ -120,6 +140,16 @@ export class Adventures {
   }
 
   monsterMap: {[id: number]: AdventureMonster} = {}
+  selectingMonster: AdventureMonster | undefined
+
+  selectMon(monster: AdventureMonster) {
+    if (this.selectingMonster && this.selectingMonster !== monster) {
+      this.selectingMonster.select(false)
+    }
+
+    monster.select(true)
+    this.selectingMonster = monster
+  }
   
   private async drawMonsters(monsterStates: MonsterState[]) {
     for (const monsterState of monsterStates) {
