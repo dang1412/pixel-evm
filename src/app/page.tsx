@@ -1,16 +1,15 @@
+import { Header } from '@/components/layouts/Header'
 import dynamic from 'next/dynamic'
 
-import { GameMap } from '@/components/Game'
+const GameMapLoad = () => import('@/components/Game/GameMap')
+const GameMap = dynamic(GameMapLoad, {ssr: false})
 
-const TestConnectLoad = () => import('../components/TestConnect/TestConnect')
-const TestConnect = dynamic(TestConnectLoad, {ssr: false})
 
 export default function Page() {
 
   return (
     <>
-      <h1>Hello, Pixel Games!</h1>
-      {/* <TestConnect /> */}
+      <Header />
       <GameMap />
     </>
   )

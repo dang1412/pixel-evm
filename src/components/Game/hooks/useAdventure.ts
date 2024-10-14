@@ -28,12 +28,6 @@ export function useAdventure(c: HTMLCanvasElement | null): Adventures | undefine
 
         // Adventure game
         const adventures = new Adventures(vpmap)
-        adventures.loadMonsters([
-          {id: 1, pos: 5055, hp: 10, type: 1},
-          {id: 2, pos: 5052, hp: 8, type: 2},
-        ])
-
-        adventures.startServer()
 
         setAdventures(adventures)
       })()

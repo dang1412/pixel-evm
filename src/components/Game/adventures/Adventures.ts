@@ -4,7 +4,7 @@ import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, Mo
 import { adventureUpdate } from './gameprocess'
 // import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
 import { AdventureMonster, positionToXY } from './Monster'
-import { decodeAction, decodeUpdates, encodeStates, encodeUpdates } from './encodes'
+import { decodeAction, decodeUpdates, encodeAction, encodeStates, encodeUpdates } from './encodes'
 
 export enum ActionMode {
   MOVE,
@@ -17,6 +17,7 @@ export class Adventures {
 
   rtcClients = new RTCConnectClients()
   isServer = false
+  serverAddr = ''
 
   mode = ActionMode.MOVE
 
@@ -34,23 +35,31 @@ export class Adventures {
 
   loadMonsters(monsterStates: MonsterState[]) {
     console.log('loadMonsters', monsterStates)
-    for (const monsterState of monsterStates) {
-      this.states.monsters[monsterState.id] = monsterState
-      this.states.posMonster[monsterState.pos] = monsterState.id
-    }
+    // for (const monsterState of monsterStates) {
+    //   this.states.monsters[monsterState.id] = monsterState
+    //   this.states.posMonster[monsterState.pos] = monsterState.id
+    // }
     this.drawMonsters(monsterStates)
   }
 
   // Server functions
 
   receiveAction(action: AdventureAction) {
-    this.bufferActions.push(action)
+    if (this.isServer) {
+      // server
+      this.bufferActions.push(action)
+    } else if (this.serverAddr) {
+      // client
+      const encode = encodeAction(action)
+      this.rtcClients.sendTo(this.serverAddr as Address, encode)
+    }
   }
 
   resetBuffer() {
     this.bufferActions = []
   }
 
+  // server
   applyBufferActions() {
     if (this.bufferActions.length === 0) return
 
@@ -83,7 +92,7 @@ export class Adventures {
     this.rtcClients.onConnect = (addr) => {
       console.log('Connected from', addr)
       // send current game states
-      const data = encodeStates(this.states)
+      const data = encodeUpdates({monsters: this.states.monsters, actions: []})
       this.rtcClients.sendTo(addr, data)
     }
 
@@ -102,6 +111,7 @@ export class Adventures {
   connectToServer(addr: Address) {
     // receive updates from server
     this.rtcClients.onReceiveData = (addr, data) => {
+      console.log('onReceiveData', addr, typeof data)
       if (typeof data === 'string') {
 
       } else {
@@ -112,6 +122,11 @@ export class Adventures {
         // draw updates
         this.drawUpdates(updates)
       }
+    }
+
+    this.rtcClients.onConnect = (addr) => {
+      console.log('Connect accepted', addr)
+      this.serverAddr = addr
     }
 
     // offer connect to addrl
@@ -153,14 +168,30 @@ export class Adventures {
   
   private async drawMonsters(monsterStates: MonsterState[]) {
     for (const monsterState of monsterStates) {
+      this.updateMonsterState(monsterState)
       this.drawMonster(monsterState)
     }
+  }
+
+  private updateMonsterState(state: MonsterState) {
+    const curState = this.states.monsters[state.id]
+    const oldPos = curState? curState.pos : -1
+    if (oldPos >= 0 && this.states.posMonster[oldPos] === state.id) {
+      // delete old pos
+      delete this.states.posMonster[oldPos]
+    }
+
+    // update state
+    this.states.monsters[state.id] = state
+    this.states.posMonster[state.pos] = state.id
   }
 
   private async drawMonster(monsterState: MonsterState) {
     const monster = this.monsterMap[monsterState.id]
     if (!monster) {
       this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
+      // this.states.monsters[monsterState.id] = monsterState
+      // this.states.posMonster[monsterState.pos] = monsterState.id
     } else {
       monster.updateState(monsterState)
     }

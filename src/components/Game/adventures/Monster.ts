@@ -70,7 +70,6 @@ export class AdventureMonster {
     // unsub when done
     const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py] = e.detail
-      console.log('pixelmove', px, py)
       shadow.x = px * PIXEL_SIZE
       shadow.y = py * PIXEL_SIZE
 
@@ -188,7 +187,6 @@ export class AdventureMonster {
       const unsub = this.map.subscribe('tick', () => {
         x += deltaX / 20
         y += deltaY / 20
-        console.log('move', x, y)
         object.x = x
         object.y = y
         this.map.markDirty()

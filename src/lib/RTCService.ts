@@ -13,7 +13,7 @@ export class RTCService {
       if (ev.candidate) {
         console.log('Candidate', ev.candidate)
       } else {
-        console.log('Gathering done', pc.localDescription)
+        console.log('Gathering done', ev, pc.localDescription)
         // send the local SDP (after creating offer or answer)
         this.sendOfferOrAnswer(JSON.stringify(pc.localDescription))
       }

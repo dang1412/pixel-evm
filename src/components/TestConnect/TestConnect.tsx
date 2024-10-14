@@ -22,8 +22,10 @@ export default function Page() {
     rtcClients.offerConnectTo(addr as Address)
   }, [addr])
 
-  const send = useCallback(() => {
+  const send = useCallback(async () => {
     rtcClients.sendAll('Testabcd')
+    // const rs = await rtcClients.ipfsService.fetch('QmZXGnLhXN5fKfDp9bjUoRtyeFe6W3xrQYMZygemeD7pwM')
+    // console.log('Test', rs)
   }, [])
 
   return (

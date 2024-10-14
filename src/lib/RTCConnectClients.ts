@@ -31,7 +31,7 @@ export class RTCConnectClients {
 
     this.account = await this.signer.getAddress()
 
-    console.log('connected', await this.signer.getAddress(), network.name)
+    console.log('connected', this.account, network.name)
   }
 
   waitForConnect() {
@@ -103,8 +103,6 @@ export class RTCConnectClients {
     }
 
     this.services[addr as Address] = rtcService
-
-    // const currentAddr = await this.signer.getAddress()
 
     // waiting for 'addr' to answer the offer
     contract.on(contract.filters['AnswerConnect(address,address,string)'](addr, this.account), async (e: ContractEventPayload) => {
