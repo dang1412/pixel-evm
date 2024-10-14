@@ -111,30 +111,39 @@ export class ViewportMap {
       console.log(width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels)
     })
 
-    // pixel down
-    canvas.addEventListener('mousedown', (e) => {
+    const mousedown = (e: MouseEvent) => {
       const [px, py] = this.getPixelXY(e)
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixeldown', {detail: [px, py]}))
       console.log('Pixel down xy', px, py)
-    })
+    }
 
-    // pixel up
-    canvas.addEventListener('mouseup', (e) => {
+    const mouseup = (e: MouseEvent) => {
       const [px, py] = this.getPixelXY(e)
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelup', {detail: [px, py]}))
       console.log('Pixel up xy', px, py)
-    })
+    }
 
-    // pixel move
     let curx = -1, cury = -1
-    canvas.addEventListener('mousemove', (e) => {
+    const mousemove = (e: MouseEvent) => {
       const [px, py] = this.getPixelXY(e)
       if (curx !== px || cury !== py) {
         this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelmove', {detail: [px, py]}))
         curx = px
         cury = py
       }
-    })
+    }
+
+    // pixel down
+    canvas.addEventListener('mousedown', mousedown)
+    canvas.addEventListener('pointerdown', mousedown)
+
+    // pixel up
+    canvas.addEventListener('mouseup', mouseup)
+    canvas.addEventListener('pointerup', mouseup)
+
+    // pixel move
+    canvas.addEventListener('mousemove', mousemove)
+    canvas.addEventListener('pointermove', mousemove)
 
     return canvas
   }
