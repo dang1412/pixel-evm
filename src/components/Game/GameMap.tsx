@@ -1,18 +1,18 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
 import { MonsterControl } from './Control'
 import { useAdventure } from './hooks/useAdventure'
-import { Address } from '@/lib/RTCConnectClients'
+import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { MenuModal } from './MenuModal'
+import { ConnectingState } from './ConnectingState'
 
 interface Props {}
 
-const MAP_H = 800
-
 export const GameMap: React.FC<Props> = (props) => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
-  const adventures = useAdventure(canvas)
+  const [adventures, states] = useAdventure(canvas)
 
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
@@ -37,11 +37,19 @@ export const GameMap: React.FC<Props> = (props) => {
 
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(true)
 
+  const [isConnectingStatesOpen, setIsConnectingStatesOpen] = useState(false)
+
+  // open connecting states when any update
+  useEffect(() => {
+    if (states) setIsConnectingStatesOpen(true)
+  }, [states])
+
   return (
     <>
-      <canvas ref={(c) => setCanvas(c)} style={{border: '1px solid #ccc', width: '100%', height: MAP_H}} />
-      <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} />
+      <canvas ref={(c) => setCanvas(c)} className='w-full' style={{border: '1px solid #ccc'}} />
+      <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} openConnectInfo={() => setIsConnectingStatesOpen(true)} />
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
+      {isConnectingStatesOpen && <ConnectingState states={states} onClose={() => setIsConnectingStatesOpen(false)} />}
     </>
   )
 }

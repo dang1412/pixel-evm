@@ -1,19 +1,22 @@
-import { ActionMode } from './adventures/Adventures'
 import { FaGun } from 'react-icons/fa6'
-import { FaRunning } from 'react-icons/fa'
+import { FaConnectdevelop, FaRunning } from 'react-icons/fa'
 import { useState } from 'react'
+import clsx from 'clsx'
+
+import { ActionMode } from './adventures/Adventures'
 
 interface Props {
   onSetMode: (mode: ActionMode) => void
+  openConnectInfo: () => void
 }
 
 function getClass(selected: boolean) {
-  const head = selected ? 'text-white bg-blue-700 hover:bg-blue-800' : 'text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white'
+  const head = selected ? 'text-white bg-blue-700 ' : 'text-blue-700 border border-blue-700'
 
-  return `${head} font-medium rounded-lg p-2.5 text-center inline-flex items-center me-2`
+  return head
 }
 
-export const MonsterControl: React.FC<Props> = ({ onSetMode }) => {
+export const MonsterControl: React.FC<Props> = ({ onSetMode, openConnectInfo }) => {
 
   const [mode, setMode] = useState(ActionMode.MOVE)
 
@@ -28,21 +31,32 @@ export const MonsterControl: React.FC<Props> = ({ onSetMode }) => {
   }
 
   return (
-    <div className='flex fixed bottom-2 left-2'>
-      <button
-        type="button"
-        className={getClass(mode === ActionMode.MOVE)}
-        onClick={setMove}
-      >
-        <FaRunning className='w-12 h-12' />
-      </button>
-      <button 
-        type="button"
-        className={getClass(mode === ActionMode.SHOOT)}
-        onClick={setShoot}
-      >
-        <FaGun className='w-12 h-12' />
-      </button>
+    <div className='fixed flex w-full justify-between items-center bottom-0 p-2'>
+      <div className="flex space-x-2">
+        <button
+          type="button"
+          className={clsx(getClass(mode === ActionMode.MOVE), 'font-medium rounded-lg p-2 hover:bg-blue-700 hover:text-white')}
+          onClick={setMove}
+        >
+          <FaRunning className='w-8 h-8' />
+        </button>
+        <button
+          type="button"
+          className={clsx(getClass(mode === ActionMode.SHOOT), 'font-medium rounded-lg p-2 hover:bg-blue-700 hover:text-white')}
+          onClick={setShoot}
+        >
+          <FaGun className='w-8 h-8' />
+        </button>
+      </div>
+      <div className="flex space-x-2">
+        <button 
+          type="button"
+          className="font-medium rounded-lg p-2"
+          onClick={openConnectInfo}
+        >
+          <FaConnectdevelop className='w-6 h-6' />
+        </button>
+      </div>
     </div>
   )
 }

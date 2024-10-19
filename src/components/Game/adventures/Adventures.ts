@@ -1,4 +1,4 @@
-import { Address, RTCConnectClients } from '@/lib/RTCConnectClients'
+import { Address, RTCConnectClients, RTCConnectState } from '@/lib/RTCConnectClients'
 import { ViewportMap } from '../ViewportMap'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { adventureUpdate } from './gameprocess'
@@ -11,6 +11,10 @@ export enum ActionMode {
   SHOOT
 }
 
+export interface AdventureOptions {
+  onConnectStateChange?: (addr: string, state: RTCConnectState) => void
+}
+
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
   bufferActions: AdventureAction[] = []
@@ -21,7 +25,7 @@ export class Adventures {
 
   mode = ActionMode.MOVE
 
-  constructor(public map: ViewportMap) {
+  constructor(public map: ViewportMap, private options: AdventureOptions = {}) {
     this.map.subscribe('pixeldown', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
@@ -89,11 +93,17 @@ export class Adventures {
       }
     }
 
-    this.rtcClients.onConnect = (addr) => {
-      console.log('Connected from', addr)
-      // send current game states
-      const data = encodeUpdates({monsters: this.states.monsters, actions: []})
-      this.rtcClients.sendTo(addr, data)
+    this.rtcClients.onConnectStateChange = (addr, state) => {
+      console.log('Connect state', addr, state)
+      if (state === RTCConnectState.Connected) {
+        // send current game states
+        const data = encodeUpdates({monsters: this.states.monsters, actions: []})
+        this.rtcClients.sendTo(addr, data)
+      }
+
+      if (this.options.onConnectStateChange) {
+        this.options.onConnectStateChange(addr, state)
+      }
     }
 
     // start listening for connect
@@ -124,9 +134,15 @@ export class Adventures {
       }
     }
 
-    this.rtcClients.onConnect = (addr) => {
-      console.log('Connect accepted', addr)
-      this.serverAddr = addr
+    this.rtcClients.onConnectStateChange = (addr, state) => {
+      if (state === RTCConnectState.Connected) {
+        console.log('Connect accepted', addr)
+        this.serverAddr = addr
+      }
+
+      if (this.options.onConnectStateChange) {
+        this.options.onConnectStateChange(addr, state)
+      }
     }
 
     // offer connect to addrl

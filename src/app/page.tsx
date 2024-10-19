@@ -8,9 +8,11 @@ const GameMap = dynamic(GameMapLoad, {ssr: false})
 export default function Page() {
 
   return (
-    <>
+    <div className='flex flex-col h-lvh'>
       <Header />
-      <GameMap />
-    </>
+      <div className='flex-grow overflow-hidden'>
+        <GameMap />
+      </div>
+    </div>
   )
 }

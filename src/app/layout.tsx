@@ -7,7 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className='h-lvh'>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }
