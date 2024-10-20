@@ -3,13 +3,12 @@ import { useEffect, useState } from 'react'
 import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { Adventures } from '../adventures/Adventures'
 import { ViewportMap } from '../ViewportMap'
+import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
 
-export type AddressesConnectStates = {[addr: Address]: RTCConnectState}
 
-export function useAdventure(c: HTMLCanvasElement | null): [Adventures | undefined, AddressesConnectStates] {
+
+export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc): [Adventures | undefined] {
   const [adventures, setAdventures] = useState<Adventures | undefined>()
-
-  const [addrConnectStates, setAddrConnectStates] = useState<AddressesConnectStates>({})
 
   useEffect(() => {
     if (c) {
@@ -34,14 +33,8 @@ export function useAdventure(c: HTMLCanvasElement | null): [Adventures | undefin
 
         // Adventure game
         const adventures = new Adventures(vpmap, {
-          onConnectStateChange: (addr, state) => {
-            // setConnectingAddr(addr as Address)
-            // setConnectState(state)
-            // if (state === RTCConnectState.Connected) {
-            //   setAddrs(addrs => [...addrs, addr as Address])
-            // }
-            setAddrConnectStates(states => ({...states, [addr]: state}))
-          }
+          sendAll,
+          sendTo
         })
 
         setAdventures(adventures)
@@ -53,5 +46,5 @@ export function useAdventure(c: HTMLCanvasElement | null): [Adventures | undefin
     }
   }, [c])
 
-  return [adventures, addrConnectStates]
+  return [adventures]
 }

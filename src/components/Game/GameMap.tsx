@@ -7,16 +7,43 @@ import { useAdventure } from './hooks/useAdventure'
 import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
+import { useWebRTCConnect } from './hooks/useWebRTCConnects'
 
 interface Props {}
 
 export const GameMap: React.FC<Props> = (props) => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
-  const [adventures, states] = useAdventure(canvas)
+
+  const { offerConnect, sendAll, sendTo, connectStates } = useWebRTCConnect({
+    onConnectStateChange(from, state) {
+      // if (!adventures) return
+      console.log('onConnectStateChange', from, state)
+
+      if (adventures && state === RTCConnectState.Connected && adventures.isServer) {
+        // Send all current states to client
+        adventures.sendStates(from)
+      } 
+    },
+    onReceiveData(from, data) {
+      console.log('onReceiveData', from, data)
+
+      if (typeof data === 'string') {
+
+      } else if (adventures) {
+        if (adventures.isServer) {
+          adventures.receiveActionData(data)
+        } else {
+          adventures.receiveUpdatesData(data)
+        }
+      }
+    },
+  })
+
+  const [adventures] = useAdventure(canvas, sendAll, sendTo)
 
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
-    await adventures.rtcClients.connectWallet()
+    // await adventures.rtcClients.connectWallet()
     adventures.loadMonsters([
       {id: 1, pos: 5055, hp: 10, type: 1},
       {id: 2, pos: 5052, hp: 8, type: 2},
@@ -28,12 +55,13 @@ export const GameMap: React.FC<Props> = (props) => {
   }, [adventures])
 
   const connect = useCallback(async (addr: string) => {
-    if (!adventures) return
-    await adventures.rtcClients.connectWallet()
-    adventures.connectToServer(addr as Address)
+    // if (!adventures) return
+    // await adventures.rtcClients.connectWallet()
+    // adventures.connectToServer(addr as Address)
+    offerConnect(addr as Address)
 
     setIsMenuModalOpen(false)
-  }, [adventures])
+  }, [offerConnect])
 
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(true)
 
@@ -41,15 +69,15 @@ export const GameMap: React.FC<Props> = (props) => {
 
   // open connecting states when any update
   useEffect(() => {
-    if (states) setIsConnectingStatesOpen(true)
-  }, [states])
+    if (connectStates) setIsConnectingStatesOpen(true)
+  }, [connectStates])
 
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='w-full' style={{border: '1px solid #ccc'}} />
       <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} openConnectInfo={() => setIsConnectingStatesOpen(true)} />
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
-      {isConnectingStatesOpen && <ConnectingState states={states} onClose={() => setIsConnectingStatesOpen(false)} />}
+      {isConnectingStatesOpen && <ConnectingState states={connectStates} onClose={() => setIsConnectingStatesOpen(false)} />}
     </>
   )
 }

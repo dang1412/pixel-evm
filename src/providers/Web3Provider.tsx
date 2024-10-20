@@ -1,5 +1,5 @@
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet, baseSepolia } from 'wagmi/chains'
+import { mainnet, baseSepolia, sepolia } from 'wagmi/chains'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 
@@ -10,7 +10,8 @@ const config = createConfig(
     transports: {
       // RPC URL for each chain
       [mainnet.id]: http(),
-      [baseSepolia.id]: http(),
+      [baseSepolia.id]: http('https://base-sepolia.blockpi.network/v1/rpc/public'),
+      [sepolia.id]: http(),
     },
 
     // Required API Keys

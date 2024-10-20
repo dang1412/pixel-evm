@@ -5,6 +5,7 @@ import { adventureUpdate } from './gameprocess'
 // import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
 import { AdventureMonster, positionToXY } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeStates, encodeUpdates } from './encodes'
+import { SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 
 export enum ActionMode {
   MOVE,
@@ -12,20 +13,21 @@ export enum ActionMode {
 }
 
 export interface AdventureOptions {
-  onConnectStateChange?: (addr: string, state: RTCConnectState) => void
+  sendAll: SendAllFunc
+  sendTo: SendToFunc
 }
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
   bufferActions: AdventureAction[] = []
 
-  rtcClients = new RTCConnectClients()
+  // rtcClients = new RTCConnectClients()
   isServer = false
   serverAddr = ''
 
   mode = ActionMode.MOVE
 
-  constructor(public map: ViewportMap, private options: AdventureOptions = {}) {
+  constructor(public map: ViewportMap, private options: AdventureOptions) {
     this.map.subscribe('pixeldown', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
@@ -55,16 +57,16 @@ export class Adventures {
     } else if (this.serverAddr) {
       // client
       const encode = encodeAction(action)
-      this.rtcClients.sendTo(this.serverAddr as Address, encode)
+      this.options.sendTo(this.serverAddr as Address, encode)
     }
   }
 
-  resetBuffer() {
+  private resetBuffer() {
     this.bufferActions = []
   }
 
   // server
-  applyBufferActions() {
+  private applyBufferActions() {
     if (this.bufferActions.length === 0) return
 
     console.log('applyBufferActions', this.bufferActions)
@@ -75,39 +77,57 @@ export class Adventures {
 
     // send updates to clients
     const data = encodeUpdates(updates)
-    this.rtcClients.sendAll(data)
+    this.options.sendAll(data)
 
     // draw updates states
     this.drawUpdates(updates)
   }
 
+  // Server send a client all current states
+  sendStates(addr: Address) {
+    const data = encodeUpdates({monsters: this.states.monsters, actions: []})
+    this.options.sendTo(addr, data)
+  }
+
+  // Server receives action from client
+  receiveActionData(data: ArrayBuffer) {
+    const action = decodeAction(data)
+    this.receiveAction(action)
+  }
+
+  // Client receives updates from server
+  receiveUpdatesData(data: ArrayBuffer) {
+    const updates = decodeUpdates(data)
+    this.drawUpdates(updates)
+  }
+
   startServer() {
-    this.rtcClients.onReceiveData = (addr, data) => {
-      if (typeof data === 'string') {
+    // this.rtcClients.onReceiveData = (addr, data) => {
+    //   if (typeof data === 'string') {
 
-      } else {
-        // decode action
-        const action = decodeAction(data)
-        console.log('Receive action', addr, action)
-        this.receiveAction(action)
-      }
-    }
+    //   } else {
+    //     // decode action
+    //     const action = decodeAction(data)
+    //     console.log('Receive action', addr, action)
+    //     this.receiveAction(action)
+    //   }
+    // }
 
-    this.rtcClients.onConnectStateChange = (addr, state) => {
-      console.log('Connect state', addr, state)
-      if (state === RTCConnectState.Connected) {
-        // send current game states
-        const data = encodeUpdates({monsters: this.states.monsters, actions: []})
-        this.rtcClients.sendTo(addr, data)
-      }
+    // this.rtcClients.onConnectStateChange = (addr, state) => {
+    //   console.log('Connect state', addr, state)
+    //   if (state === RTCConnectState.Connected) {
+    //     // send current game states
+    //     const data = encodeUpdates({monsters: this.states.monsters, actions: []})
+    //     this.rtcClients.sendTo(addr, data)
+    //   }
 
-      if (this.options.onConnectStateChange) {
-        this.options.onConnectStateChange(addr, state)
-      }
-    }
+    //   if (this.options.onConnectStateChange) {
+    //     this.options.onConnectStateChange(addr, state)
+    //   }
+    // }
 
-    // start listening for connect
-    this.rtcClients.waitForConnect()
+    // // start listening for connect
+    // this.rtcClients.waitForConnect()
 
     // apply buffer actions periodically
     setInterval(() => {
@@ -118,36 +138,36 @@ export class Adventures {
   }
 
   // client function
-  connectToServer(addr: Address) {
-    // receive updates from server
-    this.rtcClients.onReceiveData = (addr, data) => {
-      console.log('onReceiveData', addr, typeof data)
-      if (typeof data === 'string') {
+  // connectToServer(addr: Address) {
+  //   // receive updates from server
+  //   this.rtcClients.onReceiveData = (addr, data) => {
+  //     console.log('onReceiveData', addr, typeof data)
+  //     if (typeof data === 'string') {
 
-      } else {
-        // decode updates
-        const updates = decodeUpdates(data)
-        console.log('Receive updates', addr, data)
+  //     } else {
+  //       // decode updates
+  //       const updates = decodeUpdates(data)
+  //       console.log('Receive updates', addr, data)
 
-        // draw updates
-        this.drawUpdates(updates)
-      }
-    }
+  //       // draw updates
+  //       this.drawUpdates(updates)
+  //     }
+  //   }
 
-    this.rtcClients.onConnectStateChange = (addr, state) => {
-      if (state === RTCConnectState.Connected) {
-        console.log('Connect accepted', addr)
-        this.serverAddr = addr
-      }
+  //   this.rtcClients.onConnectStateChange = (addr, state) => {
+  //     if (state === RTCConnectState.Connected) {
+  //       console.log('Connect accepted', addr)
+  //       this.serverAddr = addr
+  //     }
 
-      if (this.options.onConnectStateChange) {
-        this.options.onConnectStateChange(addr, state)
-      }
-    }
+  //     if (this.options.onConnectStateChange) {
+  //       this.options.onConnectStateChange(addr, state)
+  //     }
+  //   }
 
-    // offer connect to addrl
-    this.rtcClients.offerConnectTo(addr)
-  }
+  //   // offer connect to addrl
+  //   this.rtcClients.offerConnectTo(addr)
+  // }
 
   async drawUpdates(updates: AdventureStateUpdates) {
     const { monsters, actions } = updates
