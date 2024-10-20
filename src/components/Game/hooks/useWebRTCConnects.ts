@@ -200,6 +200,9 @@ export function useWebRTCConnect({ onReceiveData, onConnectStateChange: onConnec
         }
       },
     })
+
+    // save the target service
+    services[target] = rtcService
   }, [client, writeContractAsync, onConnectStateChange, onReceiveData])
 
   const sendTo = useCallback((addr: Address, data: string | ArrayBuffer) => {

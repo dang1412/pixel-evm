@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo } from "react"
+import clsx from "clsx"
 
-import { Address, RTCConnectState } from "@/lib/RTCConnectClients";
-import { AddressesConnectStates } from "./hooks/useAdventure";
-import clsx from "clsx";
+import { RTCConnectState } from "@/lib/RTCConnectClients"
+import { AddressesConnectStates } from "./hooks/useWebRTCConnects"
 
 interface Props {
   states: AddressesConnectStates;
@@ -21,8 +21,8 @@ export const ConnectingState: React.FC<Props> = ({ states, onClose }) => {
           className="relative flex flex-col ml-auto w-full max-w-sm p-3 text-gray-500 bg-white rounded-lg shadow"
           role="alert"
         >
-          {stateArr.map(([addr, state]) => (
-            <div className={clsx("flex items-center")}>
+          {stateArr.map(([addr, state], ind) => (
+            <div key={ind} className={clsx("flex items-center")}>
               <div
                 className={clsx(
                   "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 rounded-lg",
@@ -81,9 +81,9 @@ export const ConnectingState: React.FC<Props> = ({ states, onClose }) => {
             >
               <path
                 stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
               />
             </svg>
@@ -91,5 +91,5 @@ export const ConnectingState: React.FC<Props> = ({ states, onClose }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}

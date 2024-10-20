@@ -93,20 +93,20 @@ export class ViewportMap {
     this.runUpdate()
 
     viewport.on('clicked', (e) => {
-      console.log('clicked', e.screen, e.world)
+      // console.log('clicked', e.screen, e.world)
     })
 
     viewport.on('zoomed', () => this.updateMinimap())
     viewport.on('moved', () => this.updateMinimap())
 
     viewport.on('drag-start', (e) => {
-      console.log('drag-start', e.screen, e.world)
+      // console.log('drag-start', e.screen, e.world)
     })
 
     viewport.on('drag-end', (e) => {
       if (!this.viewport) return
 
-      console.log('drag-end', e.screen, e.world)
+      // console.log('drag-end', e.screen, e.world)
       const { width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels } = viewport
       console.log(width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels)
     })
@@ -134,15 +134,15 @@ export class ViewportMap {
     }
 
     // pixel down
-    canvas.addEventListener('mousedown', mousedown)
+    // canvas.addEventListener('mousedown', mousedown)
     canvas.addEventListener('pointerdown', mousedown)
 
     // pixel up
-    canvas.addEventListener('mouseup', mouseup)
+    // canvas.addEventListener('mouseup', mouseup)
     canvas.addEventListener('pointerup', mouseup)
 
     // pixel move
-    canvas.addEventListener('mousemove', mousemove)
+    // canvas.addEventListener('mousemove', mousemove)
     canvas.addEventListener('pointermove', mousemove)
 
     return canvas

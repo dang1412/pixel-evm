@@ -58,6 +58,7 @@ export class Adventures {
       // client
       const encode = encodeAction(action)
       this.options.sendTo(this.serverAddr as Address, encode)
+      console.log('Send action to server', this.serverAddr, encode)
     }
   }
 

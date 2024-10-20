@@ -19,13 +19,18 @@ export const GameMap: React.FC<Props> = (props) => {
       // if (!adventures) return
       console.log('onConnectStateChange', from, state)
 
-      if (adventures && state === RTCConnectState.Connected && adventures.isServer) {
+      if (adventures && state === RTCConnectState.Connected) {
         // Send all current states to client
-        adventures.sendStates(from)
-      } 
+        if (adventures.isServer) {
+          adventures.sendStates(from)
+        } else {
+          // save the server address
+          adventures.serverAddr = from
+        }
+      }
     },
     onReceiveData(from, data) {
-      console.log('onReceiveData', from, data)
+      console.log('onReceiveData', from, data, adventures?.isServer)
 
       if (typeof data === 'string') {
 
@@ -41,6 +46,7 @@ export const GameMap: React.FC<Props> = (props) => {
 
   const [adventures] = useAdventure(canvas, sendAll, sendTo)
 
+  // server run
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
     // await adventures.rtcClients.connectWallet()
@@ -54,12 +60,9 @@ export const GameMap: React.FC<Props> = (props) => {
     setIsMenuModalOpen(false)
   }, [adventures])
 
+  // connect to server
   const connect = useCallback(async (addr: string) => {
-    // if (!adventures) return
-    // await adventures.rtcClients.connectWallet()
-    // adventures.connectToServer(addr as Address)
     offerConnect(addr as Address)
-
     setIsMenuModalOpen(false)
   }, [offerConnect])
 
