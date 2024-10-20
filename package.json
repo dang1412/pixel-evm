@@ -15,7 +15,8 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "hardhat": "^2.22.9",
     "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13"
+    "tailwindcss": "^3.4.13",
+    "vconsole": "^3.15.1"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.59.15",
