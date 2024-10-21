@@ -1,4 +1,6 @@
 import { Container, FederatedPointerEvent, Graphics, Sprite } from 'pixi.js'
+import { sound } from '@pixi/sound'
+
 import { PIXEL_SIZE, ViewportMap } from '../ViewportMap'
 import { ActionType, MonsterState } from './types'
 import { ActionMode, Adventures } from './Adventures'
@@ -23,9 +25,12 @@ export class AdventureMonster {
   maxHp = 10
   isSelecting = false
 
+  prevHP = 0
+
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
     this.map = game.map
+    this.prevHP = state.hp
     this.initialize()
   }
 
@@ -120,9 +125,9 @@ export class AdventureMonster {
     this.map.markDirty()
   }
 
-  updateState(state: MonsterState) {
+  async updateState(state: MonsterState) {
     this.state = state
-    this.draw()
+    await this.draw()
   }
 
   async draw() {
@@ -132,6 +137,7 @@ export class AdventureMonster {
     if (this.imageContainer) {
       // move
       if (this.curX !== tx || this.curY !== ty) {
+        sound.play('move', {volume: 0.5})
         await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
         this.curX = tx
         this.curY = ty
@@ -140,6 +146,10 @@ export class AdventureMonster {
       // hp
       this.drawHp()
     }
+  }
+
+  remove() {
+    this.imageContainer.parent.removeChild(this.imageContainer)
   }
 
   private getRangeDraw(): Graphics {
@@ -154,6 +164,13 @@ export class AdventureMonster {
     const hpdraw = this.getHpDraw()
     hpdraw.clear()
     const hp = this.state.hp
+
+    if (this.prevHP > hp) {
+      // get hurt
+      sound.play('grunt', {volume: 0.4})
+      this.prevHP = hp
+    }
+
     hpdraw.rect(0, -5, PIXEL_SIZE * hp / this.maxHp, 3)
     hpdraw.fill('green')
   }
@@ -169,6 +186,7 @@ export class AdventureMonster {
 
   async shoot(x: number, y: number) {
     const energy = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+    sound.play('shoot', {volume: 0.4})
     await this.moveObject(energy, this.curX, this.curY, x, y)
     energy.parent.removeChild(energy)
   }

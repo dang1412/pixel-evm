@@ -1,11 +1,14 @@
-import { Address, RTCConnectClients, RTCConnectState } from '@/lib/RTCConnectClients'
+import { sound } from '@pixi/sound'
+
+// import { Address, RTCConnectClients, RTCConnectState } from '@/lib/RTCConnectClients'
 import { ViewportMap } from '../ViewportMap'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { adventureUpdate } from './gameprocess'
 // import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
 import { AdventureMonster, positionToXY } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeStates, encodeUpdates } from './encodes'
-import { SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
+import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
+import { Assets, Spritesheet } from 'pixi.js'
 
 export enum ActionMode {
   MOVE,
@@ -37,6 +40,18 @@ export class Adventures {
         if (monster) monster.startControl()
       }
     })
+
+    sound.add('move', '/sounds/whistle.mp3')
+    sound.add('shoot', '/sounds/sword.mp3')
+    sound.add('die', '/sounds/char-die.mp3')
+    sound.add('explode1', '/sounds/explosion3.mp3')
+    sound.add('explode2', '/sounds/explosion4.mp3')
+    sound.add('grunt', '/sounds/grunt2.mp3')
+
+    Assets.load<Spritesheet>('/animations/fire3-0.json')
+    Assets.load<Spritesheet>('/animations/explosion1.json')
+    Assets.load<Spritesheet>('/animations/strike-0.json')
+    Assets.load<Spritesheet>('/animations/smash.json')
   }
 
   loadMonsters(monsterStates: MonsterState[]) {
@@ -103,33 +118,6 @@ export class Adventures {
   }
 
   startServer() {
-    // this.rtcClients.onReceiveData = (addr, data) => {
-    //   if (typeof data === 'string') {
-
-    //   } else {
-    //     // decode action
-    //     const action = decodeAction(data)
-    //     console.log('Receive action', addr, action)
-    //     this.receiveAction(action)
-    //   }
-    // }
-
-    // this.rtcClients.onConnectStateChange = (addr, state) => {
-    //   console.log('Connect state', addr, state)
-    //   if (state === RTCConnectState.Connected) {
-    //     // send current game states
-    //     const data = encodeUpdates({monsters: this.states.monsters, actions: []})
-    //     this.rtcClients.sendTo(addr, data)
-    //   }
-
-    //   if (this.options.onConnectStateChange) {
-    //     this.options.onConnectStateChange(addr, state)
-    //   }
-    // }
-
-    // // start listening for connect
-    // this.rtcClients.waitForConnect()
-
     // apply buffer actions periodically
     setInterval(() => {
       this.applyBufferActions()
@@ -138,52 +126,25 @@ export class Adventures {
     this.isServer = true
   }
 
-  // client function
-  // connectToServer(addr: Address) {
-  //   // receive updates from server
-  //   this.rtcClients.onReceiveData = (addr, data) => {
-  //     console.log('onReceiveData', addr, typeof data)
-  //     if (typeof data === 'string') {
-
-  //     } else {
-  //       // decode updates
-  //       const updates = decodeUpdates(data)
-  //       console.log('Receive updates', addr, data)
-
-  //       // draw updates
-  //       this.drawUpdates(updates)
-  //     }
-  //   }
-
-  //   this.rtcClients.onConnectStateChange = (addr, state) => {
-  //     if (state === RTCConnectState.Connected) {
-  //       console.log('Connect accepted', addr)
-  //       this.serverAddr = addr
-  //     }
-
-  //     if (this.options.onConnectStateChange) {
-  //       this.options.onConnectStateChange(addr, state)
-  //     }
-  //   }
-
-  //   // offer connect to addrl
-  //   this.rtcClients.offerConnectTo(addr)
-  // }
-
-  async drawUpdates(updates: AdventureStateUpdates) {
+  private async drawUpdates(updates: AdventureStateUpdates) {
     const { monsters, actions } = updates
-    this.drawActions(actions)
+    // draw actions shoot
+    await this.drawActions(actions)
+    // draw move, hp...
     this.drawMonsters(Object.values(monsters))
   }
 
   private async drawActions(actions: AdventureAction[]) {
+    const shoots: Promise<void>[] = []
     for (const { id, type, val } of actions) {
       if (type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
         const [x, y] = positionToXY(val)
-        monster.shoot(x, y)
+        shoots.push(monster.shoot(x, y))
       }
     }
+
+    await Promise.all(shoots)
   }
 
   async syncStates() {
@@ -230,8 +191,28 @@ export class Adventures {
       // this.states.monsters[monsterState.id] = monsterState
       // this.states.posMonster[monsterState.pos] = monsterState.id
     } else {
-      monster.updateState(monsterState)
+      if (monsterState.hp === 0) {
+        this.remove(monsterState.id)
+      } else {
+        monster.updateState(monsterState)
+      }
     }
+  }
+
+  private remove(id: number) {
+    // remove from states
+    const removeMonster = this.states.monsters[id]
+    if (removeMonster) {
+      const pos = removeMonster.pos
+      if (this.states.posMonster[pos] === id) {
+        delete this.states.posMonster[pos]
+      }
+      delete this.states.monsters[id]
+    }
+
+    // remove draw
+    const monster = this.monsterMap[id]
+    if (monster) monster.remove()
   }
 
 }
