@@ -1,7 +1,7 @@
 export interface MonsterState {
   id: number  // 8bit
   hp: number  // 4bit
-  type: number // 4bit
+  type: MonsterType // 4bit
   pos: number // 16bit
   // weapon: number // 8bit
   // size: number
@@ -34,4 +34,20 @@ export interface AdventureAction {
   id: number  // 8bit
   val: number  // 14bit
   type: ActionType  // 2bit
+}
+
+export enum MonsterType {
+  AXIE,
+  SONIC,
+  NINE,
+  SHINIC,
+}
+
+export interface MonsterDrawInfo {
+  image: string
+  imageMove: string
+  w: number
+  h: number
+  offX: number
+  offY: number
 }

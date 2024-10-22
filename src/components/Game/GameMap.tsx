@@ -8,6 +8,7 @@ import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
 import { useWebRTCConnect } from './hooks/useWebRTCConnects'
+import { MonsterType } from './adventures/types'
 
 interface Props {}
 
@@ -51,8 +52,10 @@ export const GameMap: React.FC<Props> = (props) => {
     if (!adventures || adventures.isServer) return
     // await adventures.rtcClients.connectWallet()
     adventures.loadMonsters([
-      {id: 1, pos: 5055, hp: 10, type: 1},
-      {id: 2, pos: 5052, hp: 8, type: 2},
+      {id: 1, pos: 5055, hp: 10, type: MonsterType.AXIE},
+      {id: 2, pos: 5052, hp: 8, type: MonsterType.SONIC},
+      {id: 3, pos: 4658, hp: 10, type: MonsterType.NINE},
+      {id: 4, pos: 4050, hp: 10, type: MonsterType.SHINIC},
     ])
 
     adventures.startServer()

@@ -1,9 +1,10 @@
-import { Container, FederatedPointerEvent, Graphics, Sprite } from 'pixi.js'
+import { Assets, Container, FederatedPointerEvent, Graphics, Sprite, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { PIXEL_SIZE, ViewportMap } from '../ViewportMap'
-import { ActionType, MonsterState } from './types'
+import { ActionType, MonsterDrawInfo, MonsterState, MonsterType } from './types'
 import { ActionMode, Adventures } from './Adventures'
+import { getMonsterInfo, monsterInfos } from './constants'
 
 const MAP_W = 100
 const MAP_H = 100
@@ -26,17 +27,32 @@ export class AdventureMonster {
   isSelecting = false
 
   prevHP = 0
+  drawInfo: MonsterDrawInfo
 
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
     this.map = game.map
     this.prevHP = state.hp
+    this.drawInfo = getMonsterInfo(state.type)
     this.initialize()
   }
 
   private async initialize() {
-    const imageContainer = await this.map.addImage('/images/axie.png', { x: this.curX, y: this.curY, w: 1.3, h: 1 }, this.imageContainer)
+    if (this.state.type === MonsterType.SONIC) {
+    this.range = 20
+    } else if (this.state.type === MonsterType.NINE) {
+      this.range = 6
+    } else if (this.state.type === MonsterType.SHINIC) {
+      this.range = 10
+    }
+
+    const { image, w, h, offX, offY } = this.drawInfo
+    const imageContainer = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h }, this.imageContainer)
     imageContainer.interactive = true
+
+    const monsterDraw = this.getMonsterDraw()
+    monsterDraw.x = offX * PIXEL_SIZE
+    monsterDraw.y = offY * PIXEL_SIZE
 
     // hp
     const hp = new Graphics()
@@ -65,11 +81,21 @@ export class AdventureMonster {
 
     this.game.selectMon(this)
 
+    let shadow = new Container()
+    if (this.game.mode === ActionMode.MOVE) {
+      const { imageMove, w, h, offX, offY } = this.drawInfo
+      shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w, h })
+      shadow.alpha = 0.2
+    } else {
+      shadow = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+      shadow.alpha = 0.2
+    }
+
     // add moving shadow
-    const image = this.game.mode === ActionMode.MOVE ? '/images/axie.png' : '/images/energy2.png'
-    const w = this.game.mode === ActionMode.MOVE ? 1.3 : 1
-    const shadow = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h: 1 })
-    shadow.alpha = 0.2
+    // const image = this.game.mode === ActionMode.MOVE ? '/images/axie.png' : '/images/energy2.png'
+    // const w = this.game.mode === ActionMode.MOVE ? 1.3 : 1
+    // const shadow = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h: 1 })
+    // shadow.alpha = 0.2
 
     // subcribe to pixelmove event
     // unsub when done
@@ -138,7 +164,14 @@ export class AdventureMonster {
       // move
       if (this.curX !== tx || this.curY !== ty) {
         sound.play('move', {volume: 0.5})
+        const { imageMove } = this.drawInfo
+        const monsterSprite = this.getMonsterDraw()
+
+        const t_ = monsterSprite.texture
+        monsterSprite.texture = await Assets.load(imageMove)
         await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
+        monsterSprite.texture = t_
+
         this.curX = tx
         this.curY = ty
       }
@@ -158,6 +191,10 @@ export class AdventureMonster {
 
   private getHpDraw(): Graphics {
     return this.imageContainer.getChildAt(1) as Graphics
+  }
+
+  private getMonsterDraw(): Sprite {
+    return this.imageContainer.getChildAt(0) as Sprite
   }
 
   private drawHp() {
