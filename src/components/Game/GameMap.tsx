@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, DragEvent } from 'react'
 
 import { MonsterControl } from './Control'
 import { useAdventure } from './hooks/useAdventure'
@@ -9,8 +9,11 @@ import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
 import { useWebRTCConnect } from './hooks/useWebRTCConnects'
 import { MonsterType } from './adventures/types'
+import { getMonsters } from './adventures/constants'
 
 interface Props {}
+
+const monsters = getMonsters()
 
 export const GameMap: React.FC<Props> = (props) => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -51,11 +54,9 @@ export const GameMap: React.FC<Props> = (props) => {
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
     // await adventures.rtcClients.connectWallet()
-    adventures.loadMonsters([
-      {id: 1, pos: 5055, hp: 10, type: MonsterType.AXIE},
-      {id: 2, pos: 5052, hp: 8, type: MonsterType.SONIC},
-      {id: 3, pos: 4658, hp: 10, type: MonsterType.NINE},
-      {id: 4, pos: 4050, hp: 10, type: MonsterType.SHINIC},
+    adventures.addMonsters([
+      {id: 0, pos: 5055, hp: 10, type: MonsterType.AXIE},
+      {id: 0, pos: 5052, hp: 8, type: MonsterType.SONIC},
     ])
 
     adventures.startServer()
@@ -78,12 +79,21 @@ export const GameMap: React.FC<Props> = (props) => {
     if (connectStates) setIsConnectingStatesOpen(true)
   }, [connectStates])
 
+  const monsterDrag = useCallback((e: DragEvent<HTMLImageElement>, type: MonsterType) => {
+    e.dataTransfer?.setData('monsterType', `${type}`)
+  }, [])
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='w-full' style={{border: '1px solid #ccc'}} />
       <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} openConnectInfo={() => setIsConnectingStatesOpen(true)} />
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
       {isConnectingStatesOpen && <ConnectingState states={connectStates} onClose={() => setIsConnectingStatesOpen(false)} />}
+      <div className='absolute bottom-2 right-12'>
+        {monsters.map(mon => (
+          <img className='h-12 w-14' src={mon[1]} draggable="true" onDragStart={(e) => monsterDrag(e, mon[0])} />
+        ))}
+      </div>
     </>
   )
 }

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 
-import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { Adventures } from '../adventures/Adventures'
-import { ViewportMap } from '../ViewportMap'
+import { ViewportMap, xyToPosition } from '../ViewportMap'
 import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
-
-
+import { MonsterType } from '../adventures/types'
 
 export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc): [Adventures | undefined] {
   const [adventures, setAdventures] = useState<Adventures | undefined>()
@@ -32,12 +30,12 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
         vpmap.moveCenter()
 
         // Adventure game
-        const adventures = new Adventures(vpmap, {
+        const myadventures = new Adventures(vpmap, {
           sendAll,
           sendTo
         })
 
-        setAdventures(adventures)
+        setAdventures(myadventures)
       })()
 
       return () => {

@@ -1,11 +1,11 @@
 import { sound } from '@pixi/sound'
 
 // import { Address, RTCConnectClients, RTCConnectState } from '@/lib/RTCConnectClients'
-import { ViewportMap } from '../ViewportMap'
-import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
+import { positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from './types'
 import { adventureUpdate } from './gameprocess'
 // import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
-import { AdventureMonster, positionToXY } from './Monster'
+import { AdventureMonster } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeStates, encodeUpdates } from './encodes'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { Assets, Spritesheet } from 'pixi.js'
@@ -30,6 +30,9 @@ export class Adventures {
 
   mode = ActionMode.MOVE
 
+  // lastId
+  lastId = 0
+
   constructor(public map: ViewportMap, private options: AdventureOptions) {
     this.map.subscribe('pixeldown', (e) => {
       const [x, y] = e.detail
@@ -52,15 +55,30 @@ export class Adventures {
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
+
+    map.options.onDrop = (data, px, py) => {
+      const type = Number(data.getData('monsterType')) as MonsterType
+      const pos = xyToPosition(px, py)
+      if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+    }
   }
 
-  loadMonsters(monsterStates: MonsterState[]) {
-    console.log('loadMonsters', monsterStates)
-    // for (const monsterState of monsterStates) {
-    //   this.states.monsters[monsterState.id] = monsterState
-    //   this.states.posMonster[monsterState.pos] = monsterState.id
-    // }
-    this.drawMonsters(monsterStates)
+  addMonsters(monsterStates: MonsterState[]) {
+    for (let state of monsterStates) {
+      this.addMonster(state)
+    }
+  }
+
+  addMonster(state: MonsterState) {
+    if (this.isServer) {
+      state.id = ++this.lastId
+      this.updateMonsterState(state)
+      this.drawMonster(state)
+
+      // send to clients
+      const encode = encodeUpdates({monsters: {[state.id]: state}, actions: []})
+      this.options.sendAll(encode)
+    }
   }
 
   // Server functions
@@ -171,6 +189,7 @@ export class Adventures {
     }
   }
 
+  // update state and postion
   private updateMonsterState(state: MonsterState) {
     const curState = this.states.monsters[state.id]
     const oldPos = curState? curState.pos : -1

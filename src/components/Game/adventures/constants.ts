@@ -41,3 +41,9 @@ export function getMonsterInfo(type: MonsterType): MonsterDrawInfo {
     offY: info.offY || 0,
   }
 }
+
+export function getMonsters(): [MonsterType, string][] {
+  return Object.keys(monsterInfos)
+    .map((type) => Number(type) as MonsterType)
+    .map((type) => [type, monsterInfos[type as MonsterType].image || ''])
+}

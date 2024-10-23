@@ -1,16 +1,38 @@
-import { Assets, Container, Graphics, type Renderer, Sprite, WebGLRenderer, WebGPURenderer } from 'pixi.js'
+import { DragEvent } from 'react'
+
+import { Assets, Container, Graphics, type Renderer, Sprite, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+
 import { Minimap } from './Minimap'
 
 export const PIXEL_SIZE = 40
-const WORLD_WIDTH = PIXEL_SIZE * 100
-const WORLD_HEIGHT = PIXEL_SIZE * 100
 
-interface PixelArea {
+const MAP_W = 100
+const MAP_H = 100
+
+const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
+const WORLD_WIDTH = PIXEL_SIZE * MAP_W
+
+export function positionToXY(p: number): [number, number] {
+  const x = p % MAP_W
+  const y = Math.floor(p / MAP_W)
+
+  return [x, y]
+}
+
+export function xyToPosition(x: number, y: number): number {
+  return y * MAP_W + x
+}
+
+export interface PixelArea {
   x: number
   y: number
   w: number
   h: number
+}
+
+export interface ViewportMapOptions {
+  onDrop?: (data: DataTransfer, px: number, py: number) => void
 }
 
 export class ViewportMap {
@@ -23,7 +45,7 @@ export class ViewportMap {
 
   eventTarget = new EventTarget()
 
-  constructor(public canvas: HTMLCanvasElement) {
+  constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.container = new Container()
   }
@@ -144,6 +166,13 @@ export class ViewportMap {
     // pixel move
     // canvas.addEventListener('mousemove', mousemove)
     canvas.addEventListener('pointermove', mousemove)
+
+    canvas.addEventListener('dragover', (e) => e.preventDefault())
+    canvas.addEventListener('drop', (e) => {
+      const [px, py] = this.getPixelXY(e)
+      console.log('Dropped', e.dataTransfer, px, py)
+      if (e.dataTransfer && this.options.onDrop) this.options.onDrop(e.dataTransfer, px, py)
+    })
 
     return canvas
   }

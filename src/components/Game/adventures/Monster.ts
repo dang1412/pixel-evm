@@ -1,20 +1,10 @@
 import { Assets, Container, FederatedPointerEvent, Graphics, Sprite, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
-import { PIXEL_SIZE, ViewportMap } from '../ViewportMap'
+import { PIXEL_SIZE, positionToXY, ViewportMap } from '../ViewportMap'
 import { ActionType, MonsterDrawInfo, MonsterState, MonsterType } from './types'
 import { ActionMode, Adventures } from './Adventures'
 import { getMonsterInfo, monsterInfos } from './constants'
-
-const MAP_W = 100
-const MAP_H = 100
-
-export function positionToXY(p: number): [number, number] {
-  const x = p % MAP_W
-  const y = Math.floor(p / MAP_W)
-
-  return [x, y]
-}
 
 export class AdventureMonster {
   curX: number
