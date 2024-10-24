@@ -139,7 +139,7 @@ export class Adventures {
     // apply buffer actions periodically
     setInterval(() => {
       this.applyBufferActions()
-    }, 500)
+    }, 200)
 
     this.isServer = true
   }

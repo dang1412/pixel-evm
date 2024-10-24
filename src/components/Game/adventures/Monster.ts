@@ -19,12 +19,115 @@ export class AdventureMonster {
   prevHP = 0
   drawInfo: MonsterDrawInfo
 
+  private fireSpeed = 600
+
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
     this.initialize()
+  }
+
+  // start control
+  async startControl() {
+    this.map.pauseDrag()
+    this.game.selectMon(this)
+
+    // let shadow = new Container()
+    if (this.game.mode === ActionMode.MOVE) {
+      await this.startMove()
+    } else {
+      await this.startShoot()
+    }
+
+    this.map.markDirty()
+  }
+
+  private async startShoot() {
+    const shadow = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+    shadow.alpha = 0.2
+    // subcribe to pixelmove event
+    // unsub when done
+    let [tx, ty] = [0, 0]
+    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+
+      // hide shadow when too far
+      if (Math.abs(px - this.curX) > this.range || Math.abs(py - this.curY) > this.range) {
+        shadow.visible = false
+      } else {
+        shadow.x = px * PIXEL_SIZE
+        shadow.y = py * PIXEL_SIZE
+        shadow.visible = true
+        tx = px
+        ty = py
+      }
+
+      this.map.markDirty()
+    })
+
+    const int = setInterval(() => {
+      if (tx === this.curX && ty === this.curY) return
+      const pos = ty * 100 + tx
+      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
+    }, this.fireSpeed)
+
+    // done control
+    const doneShooting = (e: CustomEvent<[number, number]>) => {
+      console.log('doneShooting', e)
+      // remove shadow
+      shadow.parent.removeChild(shadow)
+      // unsubscribe pixelmove
+      unsub()
+      clearInterval(int)
+      this.map.resumeDrag()
+      this.map.markDirty()
+    }
+
+    this.map.subscribeOnce('pixelup', doneShooting)
+  }
+
+  private async startMove() {
+    const { imageMove, w, h } = this.drawInfo
+    const shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w, h })
+    shadow.alpha = 0.2
+
+    // subcribe to pixelmove event
+    // unsub when done
+    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      // hide shadow when too far
+      if (Math.abs(px - this.curX) > this.range || Math.abs(py - this.curY) > this.range) {
+        shadow.visible = false
+      } else {
+        shadow.x = px * PIXEL_SIZE
+        shadow.y = py * PIXEL_SIZE
+        shadow.visible = true
+      }
+
+      this.map.markDirty()
+    })
+
+    // done control
+    const doneControl = (e: CustomEvent<[number, number]>) => {
+      const [x, y] = e.detail
+      const cando = shadow.visible && (x !== this.curX || y !== this.curY)
+      // remove shadow
+      shadow.parent.removeChild(shadow)
+      // unsubscribe pixelmove
+      unsub()
+      this.map.resumeDrag()
+      this.map.markDirty()
+
+      // inform game about the move
+      if (cando) {
+        const pos = y * 100 + x
+        this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
+      }
+    }
+
+    this.map.subscribeOnce('pixelup', doneControl)
   }
 
   private async initialize() {
@@ -61,74 +164,6 @@ export class AdventureMonster {
 
     this.draw()
     this.drawRange()
-
-    this.map.markDirty()
-  }
-
-  // start control
-  async startControl() {
-    this.map.pauseDrag()
-
-    this.game.selectMon(this)
-
-    let shadow = new Container()
-    if (this.game.mode === ActionMode.MOVE) {
-      const { imageMove, w, h, offX, offY } = this.drawInfo
-      shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w, h })
-      shadow.alpha = 0.2
-    } else {
-      shadow = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
-      shadow.alpha = 0.2
-    }
-
-    // add moving shadow
-    // const image = this.game.mode === ActionMode.MOVE ? '/images/axie.png' : '/images/energy2.png'
-    // const w = this.game.mode === ActionMode.MOVE ? 1.3 : 1
-    // const shadow = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h: 1 })
-    // shadow.alpha = 0.2
-
-    // subcribe to pixelmove event
-    // unsub when done
-    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
-      shadow.x = px * PIXEL_SIZE
-      shadow.y = py * PIXEL_SIZE
-
-      // hide shadow when too far
-      if (Math.abs(px - this.curX) > this.range || Math.abs(py - this.curY) > this.range) {
-        // unsub()
-        // doneControl(e)
-        shadow.visible = false
-      } else {
-        shadow.visible = true
-      }
-
-      this.map.markDirty()
-    })
-
-    // done control
-    const doneControl = (e: CustomEvent<[number, number]>) => {
-      console.log('doneControl', e)
-      const [x, y] = e.detail
-      const cando = shadow.visible && (x !== this.curX || y !== this.curY)
-      // remove shadow
-      shadow.parent.removeChild(shadow)
-      // unsubscribe pixelmove
-      unsub()
-      this.map.resumeDrag()
-      // circle.visible = false
-      this.map.markDirty()
-
-      // inform game about the move
-      if (cando) {
-        const pos = y * 100 + x
-        const type = this.game.mode === ActionMode.MOVE ? ActionType.MOVE : ActionType.SHOOT
-        this.game.receiveAction({id: this.state.id, type, val: pos})
-        // this.shoot(x, y)
-      }
-    }
-
-    this.map.subscribeOnce('pixelup', doneControl)
 
     this.map.markDirty()
   }
@@ -230,11 +265,17 @@ export class AdventureMonster {
 
     return new Promise((res) => {
       const unsub = this.map.subscribe('tick', () => {
-        x += deltaX / 20
-        y += deltaY / 20
+        // moving in 15 ticks
+        x += deltaX / 15
+        y += deltaY / 15
+        
+        if (deltaX >= 0 === x >= tarX) x = tarX
+        if (deltaY >= 0 === y >= tarY) y = tarY
+
         object.x = x
         object.y = y
         this.map.markDirty()
+        
         if (x === tarX && y === tarY) {
           unsub()
           res()
