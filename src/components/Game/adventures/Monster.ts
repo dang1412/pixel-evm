@@ -1,4 +1,4 @@
-import { Assets, Container, FederatedPointerEvent, Graphics, Sprite, Texture } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
@@ -12,6 +12,23 @@ function toward(x: number, target: number, delta: number): number {
   const nx = x + dir * delta
 
   return nx > target === dir > 0 ? target : nx
+}
+
+function calculateNextMove(x: number, y: number, tx: number, ty: number, range: number): [number, number] {
+  const disX = Math.abs(tx - x)
+  const disY = Math.abs(ty - y)
+
+  // target is in range
+  if (disX <= range && disY <= range) {
+    return [tx, ty]
+  }
+
+  const [dx, dy] = disX < disY ? [Math.ceil(range * disX / disY), range] : [range, Math.ceil(range * disY / disX)]
+
+  const nx = toward(x, tx, dx)
+  const ny = toward(y, ty, dy)
+
+  return [nx, ny]
 }
 
 export class AdventureMonster {
@@ -106,14 +123,8 @@ export class AdventureMonster {
     // unsub when done
     const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py] = e.detail
-      // hide shadow when too far
-      if (Math.abs(px - this.curX) > this.drawInfo.moveRange || Math.abs(py - this.curY) > this.drawInfo.moveRange) {
-        shadow.visible = false
-      } else {
-        shadow.x = px * PIXEL_SIZE
-        shadow.y = py * PIXEL_SIZE
-        shadow.visible = true
-      }
+      shadow.x = px * PIXEL_SIZE
+      shadow.y = py * PIXEL_SIZE
 
       this.map.markDirty()
     })
@@ -121,7 +132,6 @@ export class AdventureMonster {
     // done control
     const doneControl = (e: CustomEvent<[number, number]>) => {
       const [x, y] = e.detail
-      const cando = shadow.visible && (x !== this.curX || y !== this.curY)
       // remove shadow
       shadow.parent.removeChild(shadow)
       // unsubscribe pixelmove
@@ -130,9 +140,19 @@ export class AdventureMonster {
       this.map.markDirty()
 
       // inform game about the move
-      if (cando) {
-        const pos = y * 100 + x
-        this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
+      if (x !== this.curX || y !== this.curY) {
+        const move = () => {
+          const [nx, ny] = calculateNextMove(this.curX, this.curY, x, y, this.drawInfo.moveRange)
+
+          const pos = ny * 100 + nx
+          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
+
+          if (nx !== x || ny !== y) {
+            setTimeout(move, 800)
+          }
+        }
+
+        move()
       }
     }
 
@@ -140,14 +160,6 @@ export class AdventureMonster {
   }
 
   private async initialize() {
-    // if (this.state.type === MonsterType.SONIC) {
-    // this.range = 12
-    // } else if (this.state.type === MonsterType.SHINIC) {
-    //   this.range = 6
-    // } else if (this.state.type === MonsterType.SHINIC2) {
-    //   this.range = 10
-    // }
-
     const { image, w, h, offX, offY } = this.drawInfo
     const imageContainer = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h }, this.imageContainer)
     imageContainer.interactive = true
@@ -163,9 +175,6 @@ export class AdventureMonster {
 
     imageContainer.addChild(hp) // 1
     imageContainer.addChild(circle) // 2
-
-    // events
-    // imageContainer.on('mousedown', startControl)
 
     this.imageContainer = imageContainer
 
