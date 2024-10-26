@@ -59,7 +59,11 @@ export class Adventures {
     map.options.onDrop = (data, px, py) => {
       const type = Number(data.getData('monsterType')) as MonsterType
       const pos = xyToPosition(px, py)
-      if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+      if (this.isServer) {
+        if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+      } else {
+        this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+      }
     }
   }
 
@@ -86,13 +90,22 @@ export class Adventures {
   receiveAction(action: AdventureAction) {
     if (this.isServer) {
       // server
-      this.bufferActions.push(action)
+      if (action.type === ActionType.ONBOARD) {
+        this.addMonster({id: 0, hp: 10, type: action.id, pos: action.val})
+      } else {
+        this.bufferActions.push(action)
+      }
     } else if (this.serverAddr) {
       // client
-      const encode = encodeAction(action)
-      this.options.sendTo(this.serverAddr as Address, encode)
-      console.log('Send action to server', this.serverAddr, encode)
+      this.sendActionToServer(action)
     }
+  }
+
+  private sendActionToServer(action: AdventureAction) {
+    // client
+    const encode = encodeAction(action)
+    this.options.sendTo(this.serverAddr as Address, encode)
+    console.log('Send action to server', this.serverAddr, encode)
   }
 
   private resetBuffer() {

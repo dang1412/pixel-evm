@@ -235,33 +235,30 @@ export class ViewportMap {
     const container = await this.addImage('', area)
     const sprite = container.getChildAt(0) as Sprite
 
-    return new Promise((res) => {
-      let count = 0
-      const unsub = this.subscribe('tick', () => {
-        if (count % slow === 0) {
-          // next frame
-          const frameNum = count / slow
-          const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
-          
-          console.log('Render animation', frameNum)
-          // update to next frame
-          const t = Texture.from(`${prefix}${frameStr}.png`)
-          sprite.texture = t
-          
-          if (frameNum === frameCount) {
-            // stop animation
-            container.parent.removeChild(container)
-            unsub()
-            res()
-          }
+    let count = 0
+    const unsub = this.subscribe('tick', () => {
+      if (count % slow === 0) {
+        // next frame
+        const frameNum = count / slow
+        const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
+        
+        console.log('Render animation', frameNum)
+        // update to next frame
+        const t = Texture.from(`${prefix}${frameStr}.png`)
+        sprite.texture = t
+        
+        if (frameNum === frameCount) {
+          // stop animation
+          container.parent.removeChild(container)
+          unsub()
         }
-        count ++
-        this.markDirty()
-      })
-
-      // kick-off animation
+      }
+      count ++
       this.markDirty()
     })
+
+    // kick-off animation
+    this.markDirty()
   }
 
   async addImage(url: string, area: PixelArea, container?: Container): Promise<Container> {

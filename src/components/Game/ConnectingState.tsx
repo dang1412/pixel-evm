@@ -15,10 +15,10 @@ export const ConnectingState: React.FC<Props> = ({ states, onClose }) => {
   const stateArr = useMemo(() => Object.entries(states), [states]);
 
   return (
-    <div className="fixed bottom-12 p-3 flex flex-col w-full">
+    <div className="fixed bottom-12 p-3 flex flex-col">
       {!!stateArr.length && (
         <div
-          className="relative flex flex-col ml-auto w-full max-w-sm p-3 text-gray-500 bg-white rounded-lg shadow"
+          className="relative flex flex-col ml-auto max-w-sm p-3 text-gray-500 bg-white rounded-lg shadow"
           role="alert"
         >
           {stateArr.map(([addr, state], ind) => (
@@ -66,30 +66,30 @@ export const ConnectingState: React.FC<Props> = ({ states, onClose }) => {
               </div>
             </div>
           ))}
-          <button
-            type="button"
-            className="absolute right-1 top-1 ms-auto bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
-            onClick={onClose}
-          >
-            <span className="sr-only">Close</span>
-            <svg
-              className="w-3 h-3"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 14"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-              />
-            </svg>
-          </button>
         </div>
       )}
+      <button
+        type="button"
+        className="absolute right-1 top-1 ms-auto bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
+        onClick={onClose}
+      >
+        <span className="sr-only">Close</span>
+        <svg
+          className="w-3 h-3"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 14 14"
+        >
+          <path
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+          />
+        </svg>
+      </button>
     </div>
   )
 }

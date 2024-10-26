@@ -76,7 +76,7 @@ export const GameMap: React.FC<Props> = (props) => {
 
   // open connecting states when any update
   useEffect(() => {
-    if (connectStates) setIsConnectingStatesOpen(true)
+    if (Object.keys(connectStates).length) setIsConnectingStatesOpen(true)
   }, [connectStates])
 
   const monsterDrag = useCallback((e: DragEvent<HTMLImageElement>, type: MonsterType) => {
