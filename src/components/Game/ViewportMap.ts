@@ -1,6 +1,6 @@
 import { DragEvent } from 'react'
 
-import { Assets, Container, Graphics, type Renderer, Sprite, WebGLRenderer } from 'pixi.js'
+import { Assets, Container, Graphics, type Renderer, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
 import { Minimap } from './Minimap'
@@ -231,6 +231,39 @@ export class ViewportMap {
     return PIXEL_SIZE
   }
 
+  async animate(area: PixelArea, frameCount: number, prefix = '', slow = 3): Promise<void> {
+    const container = await this.addImage('', area)
+    const sprite = container.getChildAt(0) as Sprite
+
+    return new Promise((res) => {
+      let count = 0
+      const unsub = this.subscribe('tick', () => {
+        if (count % slow === 0) {
+          // next frame
+          const frameNum = count / slow
+          const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
+          
+          console.log('Render animation', frameNum)
+          // update to next frame
+          const t = Texture.from(`${prefix}${frameStr}.png`)
+          sprite.texture = t
+          
+          if (frameNum === frameCount) {
+            // stop animation
+            container.parent.removeChild(container)
+            unsub()
+            res()
+          }
+        }
+        count ++
+        this.markDirty()
+      })
+
+      // kick-off animation
+      this.markDirty()
+    })
+  }
+
   async addImage(url: string, area: PixelArea, container?: Container): Promise<Container> {
     if (!this.viewport || !this.container) return new Container()
 
@@ -241,8 +274,7 @@ export class ViewportMap {
     container.y = area.y * PIXEL_SIZE
     
     // add image
-    const texture = await Assets.load(url)
-    const image = new Sprite(texture)
+    const image = new Sprite(url ? await Assets.load(url) : undefined)
     image.width = area.w * PIXEL_SIZE
     image.height = area.h * PIXEL_SIZE
     container.addChild(image)

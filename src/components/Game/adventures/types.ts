@@ -39,15 +39,19 @@ export interface AdventureAction {
 export enum MonsterType {
   AXIE,
   SONIC,
-  NINE,
   SHINIC,
+  SHINIC2,
 }
 
-export interface MonsterDrawInfo {
+export interface MonsterInfo {
   image: string
   imageMove: string
   w: number
   h: number
   offX: number
   offY: number
+
+  moveRange: number
+  shootRange: number
+  shootSpeed: number
 }

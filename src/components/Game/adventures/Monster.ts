@@ -1,10 +1,18 @@
 import { Assets, Container, FederatedPointerEvent, Graphics, Sprite, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
-import { PIXEL_SIZE, positionToXY, ViewportMap } from '../ViewportMap'
-import { ActionType, MonsterDrawInfo, MonsterState, MonsterType } from './types'
+import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { ActionType, MonsterInfo, MonsterState, MonsterType } from './types'
 import { ActionMode, Adventures } from './Adventures'
 import { getMonsterInfo, monsterInfos } from './constants'
+
+// delta > 0
+function toward(x: number, target: number, delta: number): number {
+  const dir = x < target ? 1 : x === target ? 0 : -1
+  const nx = x + dir * delta
+
+  return nx > target === dir > 0 ? target : nx
+}
 
 export class AdventureMonster {
   curX: number
@@ -12,14 +20,14 @@ export class AdventureMonster {
   imageContainer = new Container()
   map: ViewportMap
 
-  range = 4
+  // range = 4
   maxHp = 10
   isSelecting = false
 
   prevHP = 0
-  drawInfo: MonsterDrawInfo
+  drawInfo: MonsterInfo
 
-  private fireSpeed = 600
+  // private fireSpeed = 600
 
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
@@ -32,6 +40,7 @@ export class AdventureMonster {
   // start control
   async startControl() {
     this.map.pauseDrag()
+    this.drawRange()
     this.game.selectMon(this)
 
     // let shadow = new Container()
@@ -54,7 +63,7 @@ export class AdventureMonster {
       const [px, py] = e.detail
 
       // hide shadow when too far
-      if (Math.abs(px - this.curX) > this.range || Math.abs(py - this.curY) > this.range) {
+      if (Math.abs(px - this.curX) > this.drawInfo.shootRange || Math.abs(py - this.curY) > this.drawInfo.shootRange) {
         shadow.visible = false
       } else {
         shadow.x = px * PIXEL_SIZE
@@ -71,7 +80,7 @@ export class AdventureMonster {
       if (tx === this.curX && ty === this.curY) return
       const pos = ty * 100 + tx
       this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
-    }, this.fireSpeed)
+    }, this.drawInfo.shootSpeed)
 
     // done control
     const doneShooting = (e: CustomEvent<[number, number]>) => {
@@ -98,7 +107,7 @@ export class AdventureMonster {
     const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py] = e.detail
       // hide shadow when too far
-      if (Math.abs(px - this.curX) > this.range || Math.abs(py - this.curY) > this.range) {
+      if (Math.abs(px - this.curX) > this.drawInfo.moveRange || Math.abs(py - this.curY) > this.drawInfo.moveRange) {
         shadow.visible = false
       } else {
         shadow.x = px * PIXEL_SIZE
@@ -131,13 +140,13 @@ export class AdventureMonster {
   }
 
   private async initialize() {
-    if (this.state.type === MonsterType.SONIC) {
-    this.range = 20
-    } else if (this.state.type === MonsterType.NINE) {
-      this.range = 6
-    } else if (this.state.type === MonsterType.SHINIC) {
-      this.range = 10
-    }
+    // if (this.state.type === MonsterType.SONIC) {
+    // this.range = 12
+    // } else if (this.state.type === MonsterType.SHINIC) {
+    //   this.range = 6
+    // } else if (this.state.type === MonsterType.SHINIC2) {
+    //   this.range = 10
+    // }
 
     const { image, w, h, offX, offY } = this.drawInfo
     const imageContainer = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h }, this.imageContainer)
@@ -155,8 +164,6 @@ export class AdventureMonster {
     imageContainer.addChild(hp) // 1
     imageContainer.addChild(circle) // 2
 
-    
-
     // events
     // imageContainer.on('mousedown', startControl)
 
@@ -166,6 +173,30 @@ export class AdventureMonster {
     this.drawRange()
 
     this.map.markDirty()
+
+    // const speed = 0.5
+    // setInterval(() => {
+    //   const [tx, ty] = positionToXY(this.state.pos)
+    //   if (this.curX !== tx || this.curY !== ty) {
+    //     // move toward tx, ty
+    //     console.log('Move', tx, ty)
+    //     this.curX = toward(this.curX, tx, speed)
+    //     this.curY = toward(this.curY, ty, speed)
+
+    //     this.imageContainer.x = this.curX * PIXEL_SIZE
+    //     this.imageContainer.y = this.curY * PIXEL_SIZE
+
+    //     this.map.markDirty()
+    //   }
+    // }, 20)
+
+    // window.addEventListener('keydown', (e) => {
+    //   if (e.key === 'ArrowRight') {
+    //     const [tx, ty] = positionToXY(this.state.pos)
+    //     const pos = xyToPosition(tx + 1, ty)
+    //     this.game.receiveAction({ id: this.state.id, type: ActionType.MOVE, val: pos })
+    //   }
+    // })
   }
 
   select(isSelect: boolean) {
@@ -192,6 +223,7 @@ export class AdventureMonster {
         const { imageMove } = this.drawInfo
         const monsterSprite = this.getMonsterDraw()
 
+        // switch to imageMove
         const t_ = monsterSprite.texture
         monsterSprite.texture = await Assets.load(imageMove)
         await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
@@ -238,9 +270,10 @@ export class AdventureMonster {
   }
 
   private drawRange() {
+    const range = this.game.mode === ActionMode.MOVE ? this.drawInfo.moveRange : this.drawInfo.shootRange
     let circle = this.imageContainer.getChildAt(2) as Graphics
     circle.clear()
-    circle.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * (this.range + 0.5))  // x, y, radius
+    circle.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * (range + 0.5))  // x, y, radius
     circle.fill(0x00FF00) // Color of the circle (green in this example)
     circle.alpha = 0.12
     circle.visible = false
@@ -250,6 +283,8 @@ export class AdventureMonster {
     const energy = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
     sound.play('shoot', {volume: 0.4})
     await this.moveObject(energy, this.curX, this.curY, x, y)
+    this.map.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
+    sound.play('explode1', {volume: 0.4})
     energy.parent.removeChild(energy)
   }
 

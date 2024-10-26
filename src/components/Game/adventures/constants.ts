@@ -1,6 +1,6 @@
-import { MonsterDrawInfo, MonsterType } from './types'
+import { MonsterInfo, MonsterType } from './types'
 
-export const monsterInfos: {[k in MonsterType]: Partial<MonsterDrawInfo>} = {
+export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
   [MonsterType.AXIE]: { 
     image: '/images/axie.png',
     w: 1.3,
@@ -11,25 +11,27 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterDrawInfo>} = {
     imageMove: '/images/sonic_run.webp',
     w: 2.6,
     h: 3,
-    offX: -0.3
-  },
-  [MonsterType.NINE]: {
-    image: '/images/nine.png',
-    // imageMove: '/images/nine_run.png',
-    w: 2.6,
-    h: 3,
-    offX: -0.3
+    offX: -0.3,
+    moveRange: 15,
+    shootRange: 6,
+    shootSpeed: 400,
   },
   [MonsterType.SHINIC]: {
     image: '/images/shinic.webp',
-    imageMove: '/images/shinic_run.webp',
     w: 2,
     h: 2,
     offX: -0.3
+  },
+  [MonsterType.SHINIC2]: {
+    image: '/images/shinic_run.webp',
+    w: 2,
+    h: 2,
+    shootSpeed: 200,
+    shootRange: 6,
   }
 }
 
-export function getMonsterInfo(type: MonsterType): MonsterDrawInfo {
+export function getMonsterInfo(type: MonsterType): MonsterInfo {
   const info = monsterInfos[type]
 
   return {
@@ -39,6 +41,10 @@ export function getMonsterInfo(type: MonsterType): MonsterDrawInfo {
     h: info.h || 1,
     offX: info.offX || 0,
     offY: info.offY || 0,
+
+    moveRange: info.moveRange || 4,
+    shootRange: info.shootRange || 4,
+    shootSpeed: info.shootSpeed || 600,
   }
 }
 
