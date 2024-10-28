@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, Sprite } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
@@ -34,7 +34,7 @@ function calculateNextMove(x: number, y: number, tx: number, ty: number, range: 
 export class AdventureMonster {
   curX: number
   curY: number
-  imageContainer = new Container()
+  imageContainer: Container
   map: ViewportMap
 
   // range = 4
@@ -45,13 +45,17 @@ export class AdventureMonster {
   drawInfo: MonsterInfo
 
   // private fireSpeed = 600
+  drawState = 'stand'
 
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
+    const { image, w, h } = this.drawInfo
+    this.imageContainer = this.map.addImage(image, { x: this.curX, y: this.curY, w: 0, h: 0 })
     this.initialize()
+    this.initializeDrawState()
   }
 
   // start control
@@ -93,6 +97,8 @@ export class AdventureMonster {
       this.map.markDirty()
     })
 
+    this.drawState = 'run'
+
     const int = setInterval(() => {
       if (tx === this.curX && ty === this.curY) return
       const pos = ty * 100 + tx
@@ -102,6 +108,7 @@ export class AdventureMonster {
     // done control
     const doneShooting = (e: CustomEvent<[number, number]>) => {
       console.log('doneShooting', e)
+      this.drawState = 'stand'
       // remove shadow
       shadow.parent.removeChild(shadow)
       // unsubscribe pixelmove
@@ -116,7 +123,8 @@ export class AdventureMonster {
 
   private async startMove() {
     const { imageMove, w, h } = this.drawInfo
-    const shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w, h })
+    const shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w: 0, h: 0 })
+    shadow.scale.set(0.36)
     shadow.alpha = 0.2
 
     // subcribe to pixelmove event
@@ -159,9 +167,31 @@ export class AdventureMonster {
     this.map.subscribeOnce('pixelup', doneControl)
   }
 
-  private async initialize() {
-    const { image, w, h, offX, offY } = this.drawInfo
-    const imageContainer = await this.map.addImage(image, { x: this.curX, y: this.curY, w, h }, this.imageContainer)
+  private async initializeDrawState() {
+    const sheet = await Assets.load<Spritesheet>('/animations/megaman/mm-move.json')
+    // this.drawState = 'run'
+    let count = 0
+    let i = 0
+    const sprite = this.getMonsterDraw()
+    sprite.scale.set(0.36)
+    this.map.subscribe('tick', () => {
+      const animation = sheet.animations[this.drawState]
+      if (count % 12 === 0) {
+        if (i >= animation.length) {
+          i = 0
+          count = 0
+        }
+        sprite.texture = animation[i++]
+      }
+      count++
+      this.map.markDirty()
+    })
+    this.map.markDirty()
+  }
+
+  private initialize() {
+    const { offX, offY } = this.drawInfo
+    const imageContainer = this.imageContainer
     imageContainer.interactive = true
 
     const monsterDraw = this.getMonsterDraw()
@@ -234,7 +264,7 @@ export class AdventureMonster {
 
         // switch to imageMove
         const t_ = monsterSprite.texture
-        monsterSprite.texture = await Assets.load(imageMove)
+        monsterSprite.texture = Texture.from(imageMove)
         await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
         monsterSprite.texture = t_
 

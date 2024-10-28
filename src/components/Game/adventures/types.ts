@@ -37,10 +37,12 @@ export interface AdventureAction {
 }
 
 export enum MonsterType {
-  AXIE,
-  SONIC,
-  SHINIC,
-  SHINIC2,
+  // AXIE,
+  // SONIC,
+  // SHINIC,
+  // SHINIC2,
+  // SHADOW,
+  MEGAMAN,
 }
 
 export interface MonsterInfo {

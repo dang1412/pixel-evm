@@ -1,14 +1,13 @@
 import { sound } from '@pixi/sound'
+import { Assets, Container, Sprite, Spritesheet, Texture } from 'pixi.js'
 
-// import { Address, RTCConnectClients, RTCConnectState } from '@/lib/RTCConnectClients'
-import { positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from './types'
 import { adventureUpdate } from './gameprocess'
-// import { decodeAction, decodeAdventureStates, encodeAdventureStates } from './encode'
 import { AdventureMonster } from './Monster'
-import { decodeAction, decodeUpdates, encodeAction, encodeStates, encodeUpdates } from './encodes'
-import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
-import { Assets, Spritesheet } from 'pixi.js'
+import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
+import { getMonsterInfo, getMonsterTypes, monsterInfos } from './constants'
 
 export enum ActionMode {
   MOVE,
@@ -19,6 +18,8 @@ export interface AdventureOptions {
   sendAll: SendAllFunc
   sendTo: SendToFunc
 }
+
+const types = getMonsterTypes()
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
@@ -51,20 +52,88 @@ export class Adventures {
     sound.add('explode2', '/sounds/explosion4.mp3')
     sound.add('grunt', '/sounds/grunt2.mp3')
 
+    // map.options.onDrop = (data, px, py) => {
+    //   const type = Number(data.getData('monsterType')) as MonsterType
+    //   const pos = xyToPosition(px, py)
+    //   if (this.isServer) {
+    //     if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+    //   } else {
+    //     this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+    //   }
+    // }
+  }
+
+  async init() {
     Assets.load<Spritesheet>('/animations/fire3-0.json')
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
+    Assets.load('/images/energy2.png')
+    await Assets.load<Spritesheet>('/animations/megaman/mm-move.json')
 
-    map.options.onDrop = (data, px, py) => {
-      const type = Number(data.getData('monsterType')) as MonsterType
-      const pos = xyToPosition(px, py)
-      if (this.isServer) {
-        if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
-      } else {
-        this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
-      }
+    const monsterPromises = types.map((t) => {if (t !== MonsterType.MEGAMAN) Assets.load(getMonsterInfo(t).image)})
+    await Promise.all(monsterPromises)
+  }
+
+  async loadMonsterList() {
+    const monsterContainer = new Container()
+    monsterContainer.interactive = true
+
+    const monsterHeight = 100
+    monsterContainer.x = this.map.canvas.width - 70
+    monsterContainer.y = this.map.canvas.height - types.length * monsterHeight
+
+    for (let i = 0; i < types.length; i++) {
+      const monsterInfo = getMonsterInfo(types[i])
+      const image = new Sprite(Texture.from(monsterInfo.image))
+      const targetHeight = monsterHeight - 5
+      image.scale.set(targetHeight / image.height)
+      // image.width = 55
+      // image.height = 
+
+      image.y = i * monsterHeight
+
+      monsterContainer.addChild(image)
     }
+
+    this.map.wrapper.addChild(monsterContainer)
+
+    monsterContainer.on('pointerdown', async (e) => {
+      const [_, __, rawx, rawy] = this.map.getPixelXY(e)
+      console.log('monsterContainer', rawx, rawy, monsterContainer.x, monsterContainer.y)
+      const i = Math.floor((rawy - monsterContainer.y) / monsterHeight)
+      const type = types[i]
+      // const type = MonsterType.MEGAMAN
+      const { image, w, h } = getMonsterInfo(type)
+
+      const shadow = await this.map.addImage(image, {x: 1, y: 1, w: 0, h: 0})
+      shadow.scale.set(0.36)
+      shadow.alpha = 0.4
+
+      const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+        const [px, py] = e.detail
+        shadow.x = px * PIXEL_SIZE
+        shadow.y = py * PIXEL_SIZE
+        this.map.markDirty()
+      })
+
+      this.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
+        const [px, py] = e.detail
+        unsub()
+        shadow.parent.removeChild(shadow)
+        this.map.markDirty()
+
+        // drop monster
+        const pos = xyToPosition(px, py)
+        if (this.isServer) {
+          if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+        } else {
+          this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+        }
+      })
+    })
+
+    this.map.markDirty()
   }
 
   addMonsters(monsterStates: MonsterState[]) {
@@ -101,7 +170,7 @@ export class Adventures {
     }
   }
 
-  private sendActionToServer(action: AdventureAction) {
+  sendActionToServer(action: AdventureAction) {
     // client
     const encode = encodeAction(action)
     this.options.sendTo(this.serverAddr as Address, encode)

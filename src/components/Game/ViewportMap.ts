@@ -40,13 +40,14 @@ export class ViewportMap {
   viewport: Viewport | undefined
   container: Container
 
-  wrapper: Container | undefined
+  wrapper: Container
   minimap: Minimap | undefined
 
   eventTarget = new EventTarget()
 
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
+    this.wrapper = new Container()
     this.container = new Container()
   }
 
@@ -85,7 +86,6 @@ export class ViewportMap {
     const container = this.container = new Container()
     viewport.addChild(container)
 
-    this.wrapper = new Container()
     this.minimap = new Minimap(this.renderer)
     this.minimap.container.position.set(10, 10)
 
@@ -134,8 +134,8 @@ export class ViewportMap {
     })
 
     const mousedown = (e: MouseEvent) => {
-      const [px, py] = this.getPixelXY(e)
-      this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixeldown', {detail: [px, py]}))
+      const [px, py, rawx, rawy] = this.getPixelXY(e)
+      this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixeldown', {detail: [px, py, rawx, rawy]}))
       console.log('Pixel down xy', px, py)
     }
 
@@ -169,7 +169,7 @@ export class ViewportMap {
 
     canvas.addEventListener('dragover', (e) => e.preventDefault())
     canvas.addEventListener('drop', (e) => {
-      const [px, py] = this.getPixelXY(e)
+      const [px, py, rawx, rawy] = this.getPixelXY(e)
       console.log('Dropped', e.dataTransfer, px, py)
       if (e.dataTransfer && this.options.onDrop) this.options.onDrop(e.dataTransfer, px, py)
     })
@@ -192,10 +192,10 @@ export class ViewportMap {
     })
   }
 
-  getPixelXY(e: {pageX: number, pageY: number}): [number, number] {
+  getPixelXY(e: {pageX: number, pageY: number}): [number, number, number, number] {
     const canvas = this.canvas
     const viewport = this.viewport
-    if (!viewport) return [0, 0]
+    if (!viewport) return [0, 0, 0, 0]
 
     const screenX = e.pageX - canvas.offsetLeft
     const screenY = e.pageY - canvas.offsetTop
@@ -207,7 +207,7 @@ export class ViewportMap {
 
     const [px, py] = [Math.floor(worldX / PIXEL_SIZE), Math.floor(worldY / PIXEL_SIZE)]
 
-    return [px, py]
+    return [px, py, screenX, screenY]
   }
 
   moveCenter() {
@@ -251,6 +251,7 @@ export class ViewportMap {
           // stop animation
           container.parent.removeChild(container)
           unsub()
+          count = 0
         }
       }
       count ++
@@ -261,7 +262,7 @@ export class ViewportMap {
     this.markDirty()
   }
 
-  async addImage(url: string, area: PixelArea, container?: Container): Promise<Container> {
+  addImage(url: string, area: PixelArea, container?: Container): Container {
     if (!this.viewport || !this.container) return new Container()
 
     // create container
@@ -269,11 +270,13 @@ export class ViewportMap {
 
     container.x = area.x * PIXEL_SIZE
     container.y = area.y * PIXEL_SIZE
-    
+
     // add image
-    const image = new Sprite(url ? await Assets.load(url) : undefined)
-    image.width = area.w * PIXEL_SIZE
-    image.height = area.h * PIXEL_SIZE
+    const image = new Sprite(url ? Texture.from(url) : undefined)
+    if (area.w && area.h) {
+      image.width = area.w * PIXEL_SIZE
+      image.height = area.h * PIXEL_SIZE
+    }
     container.addChild(image)
 
     this.container.addChild(container)

@@ -4,6 +4,7 @@ import { Adventures } from '../adventures/Adventures'
 import { ViewportMap, xyToPosition } from '../ViewportMap'
 import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
 import { MonsterType } from '../adventures/types'
+import { Assets } from 'pixi.js'
 
 export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc): [Adventures | undefined] {
   const [adventures, setAdventures] = useState<Adventures | undefined>()
@@ -26,7 +27,6 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
         await vpmap.init()
         const { width, height } = (c.parentNode as HTMLDivElement).getBoundingClientRect()
         vpmap.resize(width, height)
-        await vpmap.addImage('/images/pixel_logo.png', {x: 49, y: 49, w: 3, h: 3})
         vpmap.moveCenter()
 
         // Adventure game
@@ -36,6 +36,11 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
         })
 
         setAdventures(myadventures)
+
+        await myadventures.init()
+        await Assets.load('/images/pixel_logo.png')
+        await vpmap.addImage('/images/pixel_logo.png', {x: 49, y: 49, w: 3, h: 3})
+        myadventures.loadMonsterList()
       })()
 
       return () => {

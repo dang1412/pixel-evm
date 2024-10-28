@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, DragEvent } from 'react'
+import { useCallback, useEffect, useState, PointerEvent } from 'react'
 
 import { MonsterControl } from './Control'
 import { useAdventure } from './hooks/useAdventure'
@@ -8,12 +8,11 @@ import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
 import { useWebRTCConnect } from './hooks/useWebRTCConnects'
-import { MonsterType } from './adventures/types'
-import { getMonsters } from './adventures/constants'
+import { ActionType, MonsterType } from './adventures/types'
+// import { getMonsters } from './adventures/constants'
+import { xyToPosition } from './ViewportMap'
 
 interface Props {}
-
-const monsters = getMonsters()
 
 export const GameMap: React.FC<Props> = (props) => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -54,12 +53,10 @@ export const GameMap: React.FC<Props> = (props) => {
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
     // await adventures.rtcClients.connectWallet()
-    adventures.addMonsters([
-      {id: 0, pos: 5055, hp: 10, type: MonsterType.AXIE},
-      {id: 0, pos: 5052, hp: 8, type: MonsterType.SONIC},
-    ])
-
     adventures.startServer()
+    adventures.addMonsters([
+      {id: 0, pos: 5055, hp: 10, type: MonsterType.MEGAMAN},
+    ])
 
     setIsMenuModalOpen(false)
   }, [adventures])
@@ -79,9 +76,23 @@ export const GameMap: React.FC<Props> = (props) => {
     if (Object.keys(connectStates).length) setIsConnectingStatesOpen(true)
   }, [connectStates])
 
-  const monsterDrag = useCallback((e: DragEvent<HTMLImageElement>, type: MonsterType) => {
-    e.dataTransfer?.setData('monsterType', `${type}`)
-  }, [])
+  // const monsterDrag = useCallback((e: DragEvent<HTMLImageElement>, type: MonsterType) => {
+  //   e.dataTransfer?.setData('monsterType', `${type}`)
+  // }, [])
+  const monsterDrag = useCallback((e: PointerEvent, type: MonsterType) => {
+    if (!adventures) return
+
+    console.log('Drag', type)
+    adventures.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      const pos = xyToPosition(px, py)
+      if (adventures.isServer) {
+        if (adventures.states.posMonster[pos] === undefined) adventures.addMonster({ id: 0, hp: 10, type, pos })
+      } else {
+        adventures.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+      }
+    })
+  }, [adventures])
 
   return (
     <>
@@ -89,11 +100,11 @@ export const GameMap: React.FC<Props> = (props) => {
       <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} openConnectInfo={() => setIsConnectingStatesOpen(true)} />
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
       {isConnectingStatesOpen && <ConnectingState states={connectStates} onClose={() => setIsConnectingStatesOpen(false)} />}
-      <div className='absolute bottom-2 right-12'>
+      {/* <div className='absolute bottom-2 right-2'>
         {monsters.map(mon => (
-          <img className='h-12 w-14' src={mon[1]} draggable="true" onDragStart={(e) => monsterDrag(e, mon[0])} />
+          <img className='h-12 w-14' src={mon[1]} onPointerDown={(e) => monsterDrag(e, mon[0])} />
         ))}
-      </div>
+      </div> */}
     </>
   )
 }
