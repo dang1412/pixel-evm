@@ -241,8 +241,7 @@ export class ViewportMap {
         // next frame
         const frameNum = count / slow
         const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
-        
-        console.log('Render animation', frameNum)
+
         // update to next frame
         const t = Texture.from(`${prefix}${frameStr}.png`)
         sprite.texture = t

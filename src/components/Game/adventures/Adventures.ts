@@ -5,7 +5,7 @@ import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../Viewport
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from './types'
 import { adventureUpdate } from './gameprocess'
-import { AdventureMonster } from './Monster'
+import { AdventureMonster, DrawState } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
 import { getMonsterInfo, getMonsterTypes, monsterInfos } from './constants'
 
@@ -20,6 +20,17 @@ export interface AdventureOptions {
 }
 
 const types = getMonsterTypes()
+
+async function loadSpriteSheet(path: string) {
+  const sheet = await Assets.load<Spritesheet>(path)
+  const linkedSheets = sheet.linkedSheets
+  for (const linked of linkedSheets) {
+    // sheet.animations.push(...linked.animations)
+    sheet.animations = Object.assign(sheet.animations, linked.animations)
+  }
+
+  return sheet
+}
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
@@ -64,15 +75,27 @@ export class Adventures {
   }
 
   async init() {
-    Assets.load<Spritesheet>('/animations/fire3-0.json')
+    const fire3 = await Assets.load<Spritesheet>('/animations/fire3-0.json')
+    console.log('Fire3', fire3)
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
     Assets.load('/images/energy2.png')
-    await Assets.load<Spritesheet>('/animations/megaman/mm-move.json')
+    // await Assets.load<Spritesheet>('/animations/megaman/mm-01.json')
+    await loadSpriteSheet('/animations/megaman/mm-01.json')
 
     const monsterPromises = types.map((t) => {if (t !== MonsterType.MEGAMAN) Assets.load(getMonsterInfo(t).image)})
     await Promise.all(monsterPromises)
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case '1': this.selectingMonster?.changeDrawStateOnce(DrawState.A1); break
+        case '2': this.selectingMonster?.changeDrawStateOnce(DrawState.A2); break
+        case '3': this.selectingMonster?.changeDrawStateOnce(DrawState.A3); break
+        case '4': this.selectingMonster?.changeDrawStateOnce(DrawState.A4); break
+        case '5': this.selectingMonster?.changeDrawStateOnce(DrawState.A5); break
+      }
+    })
   }
 
   async loadMonsterList() {
@@ -107,7 +130,6 @@ export class Adventures {
       const { image, w, h } = getMonsterInfo(type)
 
       const shadow = await this.map.addImage(image, {x: 1, y: 1, w: 0, h: 0})
-      shadow.scale.set(0.36)
       shadow.alpha = 0.4
 
       const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {

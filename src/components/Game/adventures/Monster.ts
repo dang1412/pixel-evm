@@ -31,6 +31,18 @@ function calculateNextMove(x: number, y: number, tx: number, ty: number, range: 
   return [nx, ny]
 }
 
+export enum DrawState {
+  Stand = 'stand',
+  Run = 'run',
+  Jump = 'jump',
+  A1 = 'a1',
+  A2 = 'a2',
+  A3 = 'a3',
+  A4 = 'a4',
+  A5 = 'a5',
+  Dash = 'dash',
+}
+
 export class AdventureMonster {
   curX: number
   curY: number
@@ -43,9 +55,6 @@ export class AdventureMonster {
 
   prevHP = 0
   drawInfo: MonsterInfo
-
-  // private fireSpeed = 600
-  drawState = 'stand'
 
   constructor(public game: Adventures, public state: MonsterState) {
     [this.curX, this.curY] = positionToXY(state.pos)
@@ -74,14 +83,16 @@ export class AdventureMonster {
     this.map.markDirty()
   }
 
-  private async startShoot() {
-    const shadow = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+  private startShoot() {
+    const shadow = this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
     shadow.alpha = 0.2
     // subcribe to pixelmove event
     // unsub when done
-    let [tx, ty] = [0, 0]
+    let [tx, ty] = [this.curX, this.curY]
     const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py] = e.detail
+      tx = px
+      ty = py
 
       // hide shadow when too far
       if (Math.abs(px - this.curX) > this.drawInfo.shootRange || Math.abs(py - this.curY) > this.drawInfo.shootRange) {
@@ -90,14 +101,12 @@ export class AdventureMonster {
         shadow.x = px * PIXEL_SIZE
         shadow.y = py * PIXEL_SIZE
         shadow.visible = true
-        tx = px
-        ty = py
       }
 
       this.map.markDirty()
     })
 
-    this.drawState = 'run'
+    this.drawState = DrawState.A1
 
     const int = setInterval(() => {
       if (tx === this.curX && ty === this.curY) return
@@ -108,7 +117,7 @@ export class AdventureMonster {
     // done control
     const doneShooting = (e: CustomEvent<[number, number]>) => {
       console.log('doneShooting', e)
-      this.drawState = 'stand'
+      this.drawState = DrawState.Stand
       // remove shadow
       shadow.parent.removeChild(shadow)
       // unsubscribe pixelmove
@@ -167,26 +176,51 @@ export class AdventureMonster {
     this.map.subscribeOnce('pixelup', doneControl)
   }
 
+  private tickCount = 0
+  private frameCount = 0
+  private frameStep = 5
+  private drawState = DrawState.Stand
+  private onDrawLoop = () => {}
+
   private async initializeDrawState() {
-    const sheet = await Assets.load<Spritesheet>('/animations/megaman/mm-move.json')
-    // this.drawState = 'run'
-    let count = 0
-    let i = 0
+    const sheet = await Assets.load<Spritesheet>('/animations/megaman/mm-01.json')
     const sprite = this.getMonsterDraw()
-    sprite.scale.set(0.36)
+
     this.map.subscribe('tick', () => {
       const animation = sheet.animations[this.drawState]
-      if (count % 12 === 0) {
-        if (i >= animation.length) {
-          i = 0
-          count = 0
+      if (this.tickCount % this.frameStep === 0) {
+        if (this.frameCount >= animation.length) {
+          this.frameCount = 0
+          this.tickCount = 0
+          this.onDrawLoop()
         }
-        sprite.texture = animation[i++]
+        const texture = animation[this.frameCount++]
+        sprite.texture = texture
+        const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
+        sprite.anchor.set(x,y)
       }
-      count++
+      this.tickCount++
       this.map.markDirty()
     })
     this.map.markDirty()
+  }
+
+  changeDrawState(state: DrawState) {
+    this.drawState = state
+    this.frameCount = 0
+    this.tickCount = 0
+  }
+
+  changeDrawStateOnce(state: DrawState) {
+    // const curState = this.drawState
+    // const _ = this.onDrawLoop
+    this.changeDrawState(state)
+    this.onDrawLoop = () => {
+      // change state back
+      // this.changeDrawState(curState)
+      this.drawState = DrawState.Stand
+      this.onDrawLoop = () => {}
+    }
   }
 
   private initialize() {
@@ -319,7 +353,7 @@ export class AdventureMonster {
   }
 
   async shoot(x: number, y: number) {
-    const energy = await this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+    const energy = this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
     sound.play('shoot', {volume: 0.4})
     await this.moveObject(energy, this.curX, this.curY, x, y)
     this.map.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
