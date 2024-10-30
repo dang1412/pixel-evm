@@ -84,96 +84,59 @@ export class AdventureMonster {
   }
 
   private startShoot() {
-    const shadow = this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
-    shadow.alpha = 0.2
-    // subcribe to pixelmove event
-    // unsub when done
     let [tx, ty] = [this.curX, this.curY]
-    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
-      tx = px
-      ty = py
-
-      // hide shadow when too far
-      if (Math.abs(px - this.curX) > this.drawInfo.shootRange || Math.abs(py - this.curY) > this.drawInfo.shootRange) {
-        shadow.visible = false
-      } else {
-        shadow.x = px * PIXEL_SIZE
-        shadow.y = py * PIXEL_SIZE
-        shadow.visible = true
-      }
-
-      this.map.markDirty()
-    })
-
     this.drawState = DrawState.A1
 
+    const range = this.drawInfo.shootRange
+
+    // shooting
     const int = setInterval(() => {
       if (tx === this.curX && ty === this.curY) return
-      const pos = ty * 100 + tx
-      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
+      if (Math.abs(tx - this.curX) <= range && Math.abs(ty - this.curY) <= range) {
+        const pos = ty * 100 + tx
+        this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
+      }
     }, this.drawInfo.shootSpeed)
 
-    // done control
-    const doneShooting = (e: CustomEvent<[number, number]>) => {
-      console.log('doneShooting', e)
-      this.drawState = DrawState.Stand
-      // remove shadow
-      shadow.parent.removeChild(shadow)
-      // unsubscribe pixelmove
-      unsub()
-      clearInterval(int)
-      this.map.resumeDrag()
-      this.map.markDirty()
-    }
-
-    this.map.subscribeOnce('pixelup', doneShooting)
+    this.game.startDrag('/images/energy2.png', {
+      onDrop: (px, py) => {
+        // on drop
+        clearInterval(int)
+        this.map.resumeDrag()
+        this.drawState = DrawState.Stand
+      },
+      onMove: (x, y) => {
+        // on move
+        tx = x
+        ty = y
+      },
+      w: 1,
+      h: 1
+    })
   }
 
-  private async startMove() {
-    const { imageMove, w, h } = this.drawInfo
-    const shadow = await this.map.addImage(imageMove, { x: this.curX, y: this.curY, w: 0, h: 0 })
-    shadow.scale.set(0.36)
-    shadow.alpha = 0.2
+  private startMove() {
+    const { imageMove } = this.drawInfo
 
-    // subcribe to pixelmove event
-    // unsub when done
-    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
-      shadow.x = px * PIXEL_SIZE
-      shadow.y = py * PIXEL_SIZE
+    this.game.startDrag(imageMove, {
+      onDrop: (x, y) => {
+        this.map.resumeDrag()
+        if (x !== this.curX || y !== this.curY) {
+          const move = () => {
+            const [nx, ny] = calculateNextMove(this.curX, this.curY, x, y, this.drawInfo.moveRange)
 
-      this.map.markDirty()
-    })
+            const pos = ny * 100 + nx
+            this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
 
-    // done control
-    const doneControl = (e: CustomEvent<[number, number]>) => {
-      const [x, y] = e.detail
-      // remove shadow
-      shadow.parent.removeChild(shadow)
-      // unsubscribe pixelmove
-      unsub()
-      this.map.resumeDrag()
-      this.map.markDirty()
-
-      // inform game about the move
-      if (x !== this.curX || y !== this.curY) {
-        const move = () => {
-          const [nx, ny] = calculateNextMove(this.curX, this.curY, x, y, this.drawInfo.moveRange)
-
-          const pos = ny * 100 + nx
-          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
-
-          if (nx !== x || ny !== y) {
-            setTimeout(move, 800)
+            if (nx !== x || ny !== y) {
+              setTimeout(move, 800)
+            }
           }
+
+          move()
         }
-
-        move()
       }
-    }
-
-    this.map.subscribeOnce('pixelup', doneControl)
+    })
   }
 
   private tickCount = 0

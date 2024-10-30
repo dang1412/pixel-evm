@@ -32,6 +32,13 @@ async function loadSpriteSheet(path: string) {
   return sheet
 }
 
+export interface DragOptions {
+  onDrop: (x: number, y: number) => void
+  onMove?: (x: number, y: number) => void
+  w?: number
+  h?: number
+}
+
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {} }
   bufferActions: AdventureAction[] = []
@@ -98,6 +105,28 @@ export class Adventures {
     })
   }
 
+  startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {
+    const shadow = this.map.addImage(image, {x: -1, y: 0, w, h})
+    shadow.alpha = 0.4
+
+    const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      shadow.x = px * PIXEL_SIZE
+      shadow.y = py * PIXEL_SIZE
+      onMove(px, py)
+      this.map.markDirty()
+    })
+
+    this.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      unsub()
+      shadow.parent.removeChild(shadow)
+      onDrop(px, py)
+
+      this.map.markDirty()
+    })
+  }
+
   async loadMonsterList() {
     const monsterContainer = new Container()
     monsterContainer.interactive = true
@@ -111,8 +140,6 @@ export class Adventures {
       const image = new Sprite(Texture.from(monsterInfo.image))
       const targetHeight = monsterHeight - 5
       image.scale.set(targetHeight / image.height)
-      // image.width = 55
-      // image.height = 
 
       image.y = i * monsterHeight
 
@@ -123,34 +150,19 @@ export class Adventures {
 
     monsterContainer.on('pointerdown', async (e) => {
       const [_, __, rawx, rawy] = this.map.getPixelXY(e)
-      console.log('monsterContainer', rawx, rawy, monsterContainer.x, monsterContainer.y)
       const i = Math.floor((rawy - monsterContainer.y) / monsterHeight)
       const type = types[i]
-      // const type = MonsterType.MEGAMAN
-      const { image, w, h } = getMonsterInfo(type)
+      const { image } = getMonsterInfo(type)
 
-      const shadow = await this.map.addImage(image, {x: 1, y: 1, w: 0, h: 0})
-      shadow.alpha = 0.4
-
-      const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-        const [px, py] = e.detail
-        shadow.x = px * PIXEL_SIZE
-        shadow.y = py * PIXEL_SIZE
-        this.map.markDirty()
-      })
-
-      this.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
-        const [px, py] = e.detail
-        unsub()
-        shadow.parent.removeChild(shadow)
-        this.map.markDirty()
-
-        // drop monster
-        const pos = xyToPosition(px, py)
-        if (this.isServer) {
-          if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
-        } else {
-          this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+      this.startDrag(image, {
+        onDrop: (px, py) => {
+          // drop monster
+          const pos = xyToPosition(px, py)
+          if (this.isServer) {
+            if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+          } else {
+            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+          }
         }
       })
     })
