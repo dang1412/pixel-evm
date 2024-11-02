@@ -317,6 +317,12 @@
       "mm-move-22.png",
       "mm-move-23.png",
       "mm-move-24.png"
+    ],
+    "hurt": [
+      "mm-move-26.png",
+      "mm-move-27.png",
+      "mm-move-28.png",
+      "mm-move-29.png"
     ]
   },
   "meta": {

@@ -2,15 +2,15 @@ import { sound } from '@pixi/sound'
 import { Assets, Container, Sprite, Spritesheet, Texture } from 'pixi.js'
 
 import { ViewportMap } from '../ViewportMap'
-import { PIXEL_SIZE, position10ToXY, positionToXY, xyToPosition, xyToPosition10 } from '../utils'
+import { PIXEL_SIZE, positionToXY, xyToPosition } from '../utils'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
-import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from './types'
-import { adventureUpdate } from './gameprocess'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { AdventureMonster, DrawState } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
-import { getMonsterInfo, getMonsterTypes, monsterInfos } from './constants'
+import { getMonsterInfo, getMonsterTypes} from './constants'
 import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
 import { mainLoop } from './gamelogic/mainloop'
+import { AttackType } from './gamelogic/types'
 
 export enum ActionMode {
   MOVE,
@@ -99,12 +99,25 @@ export class Adventures {
 
     document.addEventListener('keydown', (e) => {
       switch (e.key) {
-        case '1': this.selectingMonster?.changeDrawStateOnce(DrawState.A1); break
-        case '2': this.selectingMonster?.changeDrawStateOnce(DrawState.A2); break
-        case '3': this.selectingMonster?.changeDrawStateOnce(DrawState.A3); break
-        case '4': this.selectingMonster?.changeDrawStateOnce(DrawState.A4); break
-        case '5': this.selectingMonster?.changeDrawStateOnce(DrawState.A5); break
-        case '6': this.selectingMonster?.changeDrawStateOnce(DrawState.A6); break
+        case '1':
+          // this.selectingMonster?.changeDrawStateOnce(DrawState.A1)
+          this.selectingMonster?.sendAttack(AttackType.A1)
+          break
+        case '2':
+          this.selectingMonster?.sendAttack(AttackType.A2)
+          break
+        case '3':
+          this.selectingMonster?.sendAttack(AttackType.A3)
+          break
+        case '4':
+          this.selectingMonster?.sendAttack(AttackType.A4)
+          break
+        case '5':
+          this.selectingMonster?.sendAttack(AttackType.A5)
+          break
+        case '6':
+          this.selectingMonster?.sendAttack(AttackType.A6)
+          break
       }
     })
   }
@@ -228,9 +241,10 @@ export class Adventures {
     
     const data = encodeUpdates(updates)
     if (data) {
+      console.log('updates', updates)
       // send updates to clients
       this.options.sendAll(data)
-      // draw updates states
+      // server draw updates states
       this.drawUpdates(updates)
     }
   }
@@ -271,16 +285,13 @@ export class Adventures {
   }
 
   private async drawActions(actions: AdventureAction[]) {
-    const shoots: Promise<void>[] = []
     for (const { id, type, val } of actions) {
       if (type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
-        const {x, y} = positionToXY(val)
-        shoots.push(monster.shoot(x, y))
+        const attack = val as AttackType
+        monster.drawAttack(attack)
       }
     }
-
-    await Promise.all(shoots)
   }
 
   monsterMap: {[id: number]: AdventureMonster} = {}

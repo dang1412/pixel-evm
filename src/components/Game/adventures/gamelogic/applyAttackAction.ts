@@ -1,21 +1,18 @@
 import { PixelArea } from '../../ViewportMap'
 import { AdventureStates, AdventureStateUpdates, MonsterType } from '../types'
+import { AttackType } from './types'
 import { getPixels, updateRemoveMonster } from './utils'
-
-enum AttackType {
-  A1,
-  A2,
-  A3,
-  A4,
-  A5,
-  A6
-}
 
 const defaultAttackRange: PixelArea = { x: 1, y: 0, w: 1, h: 1 }
 
 const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>} = {
   [MonsterType.MEGAMAN]: {
-    [AttackType.A1]: { x: 1, y: 0, w: 2, h: 2 }
+    [AttackType.A1]: { x: 0, y: -1, w: 3, h: 3 },
+    [AttackType.A2]: { x: -1, y: -1, w: 4, h: 3 },
+    [AttackType.A3]: { x: -1, y: -1, w: 5, h: 3 },
+    [AttackType.A4]: { x: -1, y: -2, w: 3, h: 3 },
+    [AttackType.A5]: { x: 1, y: 1, w: 1, h: 1 },
+    [AttackType.A6]: { x: -2, y: -2, w: 4, h: 4 },
   },
   [MonsterType.MONSTER]: {
     [AttackType.A1]: defaultAttackRange

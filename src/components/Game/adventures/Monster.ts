@@ -7,6 +7,7 @@ import { ActionMode, Adventures } from './Adventures'
 import { getMonsterInfo } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward } from './gamelogic/utils'
+import { AttackType } from './gamelogic/types'
 
 // delta > 0
 // function toward(x: number, target: number, delta: number): number {
@@ -35,6 +36,7 @@ import { moveToward } from './gamelogic/utils'
 
 export enum DrawState {
   Stand = 'stand',
+  Hurt = 'hurt',
   Run = 'run',
   Jump = 'jump',
   A1 = 'a1',
@@ -44,6 +46,15 @@ export enum DrawState {
   A5 = 'a5',
   A6 = 'a6',
   Dash = 'dash',
+}
+
+const attackToDraw: {[k in AttackType]: DrawState} = {
+  [AttackType.A1]: DrawState.A1,
+  [AttackType.A2]: DrawState.A2,
+  [AttackType.A3]: DrawState.A3,
+  [AttackType.A4]: DrawState.A4,
+  [AttackType.A5]: DrawState.A5,
+  [AttackType.A6]: DrawState.A6,
 }
 
 export class AdventureMonster {
@@ -87,9 +98,21 @@ export class AdventureMonster {
     this.map.markDirty()
   }
 
+  sendAttack(a: AttackType) {
+    // only send attack when no action state
+    if (this.actionState === undefined) {
+      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: a})
+    }
+  }
+
+  drawAttack(a: AttackType) {
+    const attackDrawState = attackToDraw[a]
+    this.changeActionState(attackDrawState)
+  }
+
   private startShoot() {
     let [tx, ty] = [this.curX, this.curY]
-    this.drawState = DrawState.A1
+    // this.drawState = DrawState.A1
 
     const range = this.drawInfo.shootRange
 
@@ -107,7 +130,7 @@ export class AdventureMonster {
         // on drop
         clearInterval(int)
         this.map.resumeDrag()
-        this.drawState = DrawState.Stand
+        // this.drawState = DrawState.Stand
       },
       onMove: (x, y) => {
         // on move
@@ -135,7 +158,8 @@ export class AdventureMonster {
   private tickCount = 0
   private frameCount = 0
   private frameStep = 5
-  private drawState = DrawState.Stand
+  private baseState = DrawState.Stand
+  private actionState: DrawState | undefined
   private onDrawLoop = () => {}
 
   private async initializeDrawState() {
@@ -144,7 +168,7 @@ export class AdventureMonster {
     const sprite = this.getMonsterDraw()
 
     this.map.subscribe('tick', (e: CustomEvent<number>) => {
-      const animation = sheet.animations[this.drawState]
+      const animation = sheet.animations[this.actionState || this.baseState]
       if (this.tickCount % this.frameStep === 0) {
         if (this.frameCount >= animation.length) {
           this.frameCount = 0
@@ -168,9 +192,10 @@ export class AdventureMonster {
 
   // speed 1unit every 200ms
   private proceedMove(delta: number) {
-    const d = delta / 200
+    const d = delta / 100
     const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curX || ty !== this.curY) {
+      this.changeBaseState(DrawState.Run)
       // move
       const { x, y } = moveToward(this.curX, this.curY, tx, ty, d)
       this.imageContainer.x = x * PIXEL_SIZE
@@ -180,25 +205,32 @@ export class AdventureMonster {
 
       this.curX = x
       this.curY = y
+    } else {
+      this.changeBaseState(DrawState.Stand)
     }
   }
 
-  changeDrawState(state: DrawState) {
-    this.drawState = state
-    this.frameCount = 0
-    this.tickCount = 0
+  private changeBaseState(state: DrawState) {
+    this.baseState = state
   }
 
-  changeDrawStateOnce(state: DrawState) {
+  changeActionState(state: DrawState) {
     // const curState = this.drawState
     // const _ = this.onDrawLoop
-    this.changeDrawState(state)
-    this.onDrawLoop = () => {
-      // change state back
-      // this.changeDrawState(curState)
-      this.drawState = DrawState.Stand
-      this.onDrawLoop = () => {}
+    // this.changeDrawState(state)
+    if (this.actionState === undefined || state === DrawState.Hurt) {
+      // change action state
+      this.actionState = state
+      // restart animation
+      this.frameCount = 0
+      this.tickCount = 0
+      this.onDrawLoop = () => {
+        // clear action state
+        this.actionState = undefined
+        this.onDrawLoop = () => {}
+      }
     }
+    
   }
 
   private initialize() {
@@ -315,6 +347,7 @@ export class AdventureMonster {
       // get hurt
       sound.play('grunt', {volume: 0.4})
       this.prevHP = hp
+      this.changeActionState(DrawState.Hurt)
     }
 
     hpdraw.rect(0, -5, PIXEL_SIZE * hp / this.maxHp, 3)

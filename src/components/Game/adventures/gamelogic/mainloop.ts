@@ -31,7 +31,7 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
 
     if (curp.x !== tarp.x || curp.y !== tarp.y) {
       // calculate move, move 1 unit each loop
-      const nextp = moveToward(curp.x, curp.y, tarp.x, tarp.y, 1)
+      const nextp = moveToward(curp.x, curp.y, tarp.x, tarp.y, 2)
       nextp.x = parseFloat(nextp.x.toFixed(1))
       nextp.y = parseFloat(nextp.y.toFixed(1))
 
