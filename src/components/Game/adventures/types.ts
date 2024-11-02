@@ -1,14 +1,11 @@
+import { PointData } from 'pixi.js'
+
 export interface MonsterState {
   id: number  // 8bit
   hp: number  // 4bit
   type: MonsterType // 4bit
-  target: number // 16bit
-  pos10: number // 24bit
-  // weapon: number // 8bit
-
-  // size 8bit
-  // sizex: number // <=10
-  // sizey: number // <=10
+  target: PointData // 16bit
+  pos: PointData // 24bit
 }
 
 export interface AdventureStates {

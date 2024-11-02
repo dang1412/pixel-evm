@@ -160,13 +160,12 @@ export class Adventures {
       console.log(image)
 
       this.startDrag(image, {
-        onDrop: (px, py) => {
+        onDrop: (x, y) => {
           // drop monster
-          const pos10 = xyToPosition10(px, py)
-          const target = xyToPosition(px, py)
           if (this.isServer) {
-            this.addMonster({ id: 0, hp: 10, type, pos10, target })
+            this.addMonster({ id: 0, hp: 10, type, pos: {x, y}, target: {x, y} })
           } else {
+            const target = xyToPosition(x, y)
             this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: target })
           }
         }
@@ -195,14 +194,12 @@ export class Adventures {
   }
 
   // Server functions
-
   receiveAction(action: AdventureAction) {
     if (this.isServer) {
       // server
       if (action.type === ActionType.ONBOARD) {
-        const { x, y } = positionToXY(action.val)
-        const pos10 = xyToPosition10(x, y)
-        this.addMonster({id: 0, hp: 10, type: action.id, target: action.val, pos10})
+        const p = positionToXY(action.val)
+        this.addMonster({id: 0, hp: 10, type: action.id, target: p, pos: p})
       } else {
         this.bufferActions.push(action)
       }
@@ -286,11 +283,6 @@ export class Adventures {
     await Promise.all(shoots)
   }
 
-  // async syncStates() {
-  //   const monsters = Object.values(this.states.monsters)
-  //   await this.drawMonsters(monsters)
-  // }
-
   monsterMap: {[id: number]: AdventureMonster} = {}
   selectingMonster: AdventureMonster | undefined
 
@@ -313,28 +305,19 @@ export class Adventures {
 
   // update state and postion - only client
   private updateMonsterState(state: MonsterState) {
-    // const curState = this.states.monsters[state.id]
-    // const oldPos = curState? curState.pos10 : -1
-    // if (oldPos >= 0 && this.states.posMonster[oldPos] === state.id) {
-    //   // delete old pos
-    //   delete this.states.posMonster[oldPos]
-    // }
-    const { x, y } = position10ToXY(state.pos10)
+    const { x, y } = state.pos
     const nextCoverPixels = getMonsterPixels(x, y, state.type)
     updateCoverPixel(this.states, state.id, nextCoverPixels)
     console.log('updateCoverPixel', this.states, state)
 
     // update state
     this.states.monsters[state.id] = state
-    // this.states.posMonster[state.pos10] = state.id
   }
 
   private async drawMonster(monsterState: MonsterState) {
     const monster = this.monsterMap[monsterState.id]
     if (!monster) {
       this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
-      // this.states.monsters[monsterState.id] = monsterState
-      // this.states.posMonster[monsterState.pos] = monsterState.id
     } else {
       if (monsterState.hp === 0) {
         this.remove(monsterState.id)
@@ -346,19 +329,10 @@ export class Adventures {
 
   private remove(id: number) {
     // remove from states
-    // const removeMonster = this.states.monsters[id]
-    // if (removeMonster) {
-    //   const pos = removeMonster.pos10
-    //   if (this.states.posMonster[pos] === id) {
-    //     delete this.states.posMonster[pos]
-    //   }
-    //   delete this.states.monsters[id]
-    // }
     if (!this.isServer) updateRemoveMonster(this.states, id)
 
     // remove draw
     const monster = this.monsterMap[id]
     if (monster) monster.remove()
   }
-
 }

@@ -1,28 +1,28 @@
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from './types'
 
-function proceedMove(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: number): boolean {
-  const { posMonster, monsters } = states
-  // can not move here
-  if (posMonster[p] >= 0) {
-    return false
-  }
+// function proceedMove(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: number): boolean {
+//   const { posMonster, monsters } = states
+//   // can not move here
+//   if (posMonster[p] >= 0) {
+//     return false
+//   }
 
-  // TODO check range
+//   // TODO check range
 
-  // delete current position
-  const curPos = monsters[id].pos10
-  if (curPos >= 0) {
-    delete posMonster[curPos]
-  }
+//   // delete current position
+//   const curPos = monsters[id].pos
+//   if (curPos >= 0) {
+//     delete posMonster[curPos]
+//   }
 
-  // update new position
-  posMonster[p] = id
-  monsters[id].pos10 = p
+//   // update new position
+//   posMonster[p] = id
+//   monsters[id].pos = p
 
-  updates.monsters[id] = monsters[id]
+//   updates.monsters[id] = monsters[id]
 
-  return true
-}
+//   return true
+// }
 
 function proceedShoot(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: number): boolean {
   const { posMonster, monsters } = states
@@ -47,7 +47,7 @@ function proceedShoot(states: AdventureStates, updates: AdventureStateUpdates, i
 }
 
 function proceedAction(states: AdventureStates, updates: AdventureStateUpdates, action: AdventureAction): boolean {
-  const func = action.type === ActionType.MOVE ? proceedMove : proceedShoot
+  const func = action.type === ActionType.MOVE ? proceedShoot : proceedShoot
   const rs = func(states, updates, action.id, action.val)
   if (rs) {
     updates.actions.push(action)

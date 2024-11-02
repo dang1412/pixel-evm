@@ -1,4 +1,4 @@
-import { position10ToXY, positionToXY, xyToPosition10 } from '../../utils'
+import { positionToXY } from '../../utils'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from '../types'
 import { applyAttackAction } from './applyAttackAction'
 import { getMonsterPixels, moveToward, updateCoverPixel } from './utils'
@@ -10,8 +10,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
     const { type, id, val } = action
 
     if (type === ActionType.MOVE) {
-      // applyMoveAction(states, updates, id, val)
-      states.monsters[id].target = val
+      states.monsters[id].target = positionToXY(val)
       updates.monsters[id] = states.monsters[id]
     } else if (type === ActionType.SHOOT) {
       applyAttackAction(states, updates, id, val)
@@ -25,10 +24,10 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 }
 
 function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
-  const { posMonster, monsters, coverPixels } = states
+  const { posMonster, monsters } = states
   for (const monster of Object.values(monsters)) {
-    const curp = position10ToXY(monster.pos10)
-    const tarp = positionToXY(monster.target)
+    const curp = monster.pos
+    const tarp = monster.target
 
     if (curp.x !== tarp.x || curp.y !== tarp.y) {
       // calculate move, move 1 unit each loop
@@ -49,17 +48,10 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
 
       // do move
       if (canmove) {
-        // const curCoverPixels = coverPixels[monster.id]
-        // for (const pixel of curCoverPixels) {
-        //   delete posMonster[pixel]
-        // }
-        // for (const pixel of nextCoverPixels) {
-        //   posMonster[pixel] = monster.id
-        // }
         updateCoverPixel(states, monster.id, nextCoverPixels)
 
         // update states
-        monster.pos10 = xyToPosition10(nextp.x, nextp.y)
+        monster.pos = nextp
         // mark updates
         updates.monsters[monster.id] = monster
       }

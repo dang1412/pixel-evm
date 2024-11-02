@@ -1,3 +1,5 @@
+import { position10ToXY, positionToXY, xyToPosition, xyToPosition10 } from '../../utils'
+import { getMonsterPixels } from '../gamelogic/utils'
 import { AdventureStates, MonsterState } from '../types'
 
 export const encodeMonsterStateByteLen = 7
@@ -6,11 +8,12 @@ export function encodeMonstersView(view: DataView, monsters: MonsterState[]): nu
   view.setUint8(0, monsters.length)
 
   let offset = 1
-  for (const { id, hp, type, target, pos10: pos } of monsters) {
+  for (const { id, hp, type, target: {x: tx, y: ty}, pos: {x: px, y: py} } of monsters) {
     view.setUint8(offset, id) // id 8bit
     view.setUint8(offset + 1, ((hp & 0x0F) << 4) | type & 0x0F) // hp: 4bit ,type: 4bit
-    view.setUint16(offset + 2, target) // target: 16bit
+    view.setUint16(offset + 2, xyToPosition(tx, ty)) // target: 16bit
 
+    const pos = xyToPosition10(px, py)
     view.setUint16(offset + 4, pos >> 8) // pos top 16bit
     view.setUint8(offset + 6, pos & 0xFF) // pos bottom 8bit
 
@@ -40,8 +43,8 @@ export function decodeMonstersView(view: DataView): MonsterState[] {
       id,
       hp: val2 >> 4,
       type: val2 & 0x0F,
-      target,
-      pos10: pos
+      target: positionToXY(target),
+      pos: position10ToXY(pos)
     })
   }
 
@@ -66,7 +69,11 @@ export function decodeStates(data: ArrayBuffer): AdventureStates {
 
   for (const monster of monsters) {
     states.monsters[monster.id] = monster
-    states.posMonster[monster.pos10] = monster.id
+    const coverPixels = getMonsterPixels(monster.pos.x, monster.pos.y, monster.type)
+    states.coverPixels[monster.id] = coverPixels
+    for (const pixel of coverPixels) {
+      states.posMonster[pixel] = monster.id
+    }
   }
 
   return states

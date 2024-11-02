@@ -1,37 +1,37 @@
-import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
-import { ActionType, MonsterInfo, MonsterState, MonsterType } from './types'
+import { ActionType, MonsterInfo, MonsterState } from './types'
 import { ActionMode, Adventures } from './Adventures'
-import { getMonsterInfo, monsterInfos } from './constants'
-import { PIXEL_SIZE, position10ToXY, positionToXY } from '../utils'
+import { getMonsterInfo } from './constants'
+import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward } from './gamelogic/utils'
 
 // delta > 0
-function toward(x: number, target: number, delta: number): number {
-  const dir = x < target ? 1 : x === target ? 0 : -1
-  const nx = x + dir * delta
+// function toward(x: number, target: number, delta: number): number {
+//   const dir = x < target ? 1 : x === target ? 0 : -1
+//   const nx = x + dir * delta
 
-  return nx > target === dir > 0 ? target : nx
-}
+//   return nx > target === dir > 0 ? target : nx
+// }
 
-function calculateNextMove(x: number, y: number, tx: number, ty: number, range: number): [number, number] {
-  const disX = Math.abs(tx - x)
-  const disY = Math.abs(ty - y)
+// function calculateNextMove(x: number, y: number, tx: number, ty: number, range: number): [number, number] {
+//   const disX = Math.abs(tx - x)
+//   const disY = Math.abs(ty - y)
 
-  // target is in range
-  if (disX <= range && disY <= range) {
-    return [tx, ty]
-  }
+//   // target is in range
+//   if (disX <= range && disY <= range) {
+//     return [tx, ty]
+//   }
 
-  const [dx, dy] = disX < disY ? [Math.ceil(range * disX / disY), range] : [range, Math.ceil(range * disY / disX)]
+//   const [dx, dy] = disX < disY ? [Math.ceil(range * disX / disY), range] : [range, Math.ceil(range * disY / disX)]
 
-  const nx = toward(x, tx, dx)
-  const ny = toward(y, ty, dy)
+//   const nx = toward(x, tx, dx)
+//   const ny = toward(y, ty, dy)
 
-  return [nx, ny]
-}
+//   return [nx, ny]
+// }
 
 export enum DrawState {
   Stand = 'stand',
@@ -60,9 +60,8 @@ export class AdventureMonster {
   drawInfo: MonsterInfo
 
   constructor(public game: Adventures, public state: MonsterState) {
-    const { x, y } = position10ToXY(state.pos10)
-    this.curX = x
-    this.curY = y
+    this.curX = state.pos.x
+    this.curY = state.pos.y
     
     this.map = game.map
     this.prevHP = state.hp
@@ -79,7 +78,6 @@ export class AdventureMonster {
     this.drawRange()
     this.game.selectMon(this)
 
-    // let shadow = new Container()
     if (this.game.mode === ActionMode.MOVE) {
       await this.startMove()
     } else {
@@ -127,19 +125,8 @@ export class AdventureMonster {
     this.game.startDrag(imageMove, {
       onDrop: (x, y) => {
         this.map.resumeDrag()
-        if (x !== this.curX || y !== this.curY) {
-          const move = () => {
-            const [nx, ny] = calculateNextMove(this.curX, this.curY, x, y, this.drawInfo.moveRange)
-
-            const pos = ny * 100 + nx
-            this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: pos})
-
-            if (nx !== x || ny !== y) {
-              setTimeout(move, 800)
-            }
-          }
-
-          move()
+        if (x !== this.state.target.x || y !== this.state.target.y) {
+          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: xyToPosition(x, y)})
         }
       }
     })
@@ -182,12 +169,14 @@ export class AdventureMonster {
   // speed 1unit every 200ms
   private proceedMove(delta: number) {
     const d = delta / 200
-    const { x: tx, y: ty } = position10ToXY(this.state.pos10)
+    const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curX || ty !== this.curY) {
       // move
       const { x, y } = moveToward(this.curX, this.curY, tx, ty, d)
       this.imageContainer.x = x * PIXEL_SIZE
       this.imageContainer.y = y * PIXEL_SIZE
+
+      console.log(x, y, tx, ty, this.state.target)
 
       this.curX = x
       this.curY = y
@@ -276,8 +265,8 @@ export class AdventureMonster {
 
   async draw() {
     // new position
-    const posxy = position10ToXY(this.state.pos10)
-    const {x: tx, y: ty} = posxy
+    // const posxy = position10ToXY(this.state.pos)
+    // const {x: tx, y: ty} = posxy
 
     // if (this.imageContainer) {
       // move

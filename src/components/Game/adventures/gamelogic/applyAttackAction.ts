@@ -1,6 +1,5 @@
-import { position10ToXY } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
-import { AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from '../types'
+import { AdventureStates, AdventureStateUpdates, MonsterType } from '../types'
 import { getPixels, updateRemoveMonster } from './utils'
 
 enum AttackType {
@@ -33,10 +32,10 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   const type = value as AttackType
   const attackRange = ATTACK_RANGE[monster.type][type] || defaultAttackRange
 
-  const currentPos = position10ToXY(monster.pos10)
+  // const currentPos = position10ToXY(monster.pos)
   // round to a pixel
-  const px = Math.round(currentPos.x)
-  const py = Math.round(currentPos.y)
+  const px = Math.round(monster.pos.x)
+  const py = Math.round(monster.pos.y)
 
   const damgeRange: PixelArea = {...attackRange, x: px + attackRange.x, y: py + attackRange.y}
   const pixels = getPixels(damgeRange)
@@ -50,7 +49,7 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
 }
 
 function monsterGetHurt(states: AdventureStates, updates: AdventureStateUpdates, id: number) {
-  const { posMonster, monsters, coverPixels } = states
+  const { monsters } = states
   const monster = monsters[id]
   if (!monster) return
 
