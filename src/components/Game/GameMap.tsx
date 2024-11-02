@@ -9,8 +9,7 @@ import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
 import { useWebRTCConnect } from './hooks/useWebRTCConnects'
 import { ActionType, MonsterType } from './adventures/types'
-// import { getMonsters } from './adventures/constants'
-import { xyToPosition } from './ViewportMap'
+import { xyToPosition, xyToPosition10 } from './utils'
 
 interface Props {}
 
@@ -55,7 +54,7 @@ export const GameMap: React.FC<Props> = (props) => {
     // await adventures.rtcClients.connectWallet()
     adventures.startServer()
     adventures.addMonsters([
-      {id: 0, pos: 5055, hp: 10, type: MonsterType.MEGAMAN},
+      {id: 0, pos10: 500550, target: 5055, hp: 10, type: MonsterType.MEGAMAN},
     ])
 
     setIsMenuModalOpen(false)
@@ -79,20 +78,21 @@ export const GameMap: React.FC<Props> = (props) => {
   // const monsterDrag = useCallback((e: DragEvent<HTMLImageElement>, type: MonsterType) => {
   //   e.dataTransfer?.setData('monsterType', `${type}`)
   // }, [])
-  const monsterDrag = useCallback((e: PointerEvent, type: MonsterType) => {
-    if (!adventures) return
+  // const monsterDrag = useCallback((e: PointerEvent, type: MonsterType) => {
+  //   if (!adventures) return
 
-    console.log('Drag', type)
-    adventures.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
-      const pos = xyToPosition(px, py)
-      if (adventures.isServer) {
-        if (adventures.states.posMonster[pos] === undefined) adventures.addMonster({ id: 0, hp: 10, type, pos })
-      } else {
-        adventures.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
-      }
-    })
-  }, [adventures])
+  //   console.log('Drag', type)
+  //   adventures.map.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
+  //     const [px, py] = e.detail
+  //     const pos10 = xyToPosition10(px, py)
+  //     const target = xyToPosition(px, py)
+  //     if (adventures.isServer) {
+  //       adventures.addMonster({ id: 0, hp: 10, type, pos10, target })
+  //     } else {
+  //       adventures.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: target })
+  //     }
+  //   })
+  // }, [adventures])
 
   return (
     <>

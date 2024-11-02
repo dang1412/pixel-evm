@@ -2,20 +2,22 @@ export interface MonsterState {
   id: number  // 8bit
   hp: number  // 4bit
   type: MonsterType // 4bit
-  pos: number // 16bit
+  target: number // 16bit
+  pos10: number // 24bit
   // weapon: number // 8bit
-  // size: number
+
+  // size 8bit
+  // sizex: number // <=10
+  // sizey: number // <=10
 }
 
 export interface AdventureStates {
+  // main info
+  monsters: {[id: number]: MonsterState}
   // position to id
   posMonster: {[p: number]: number}
-  // id to position
-  // monsterPos: {[id: number]: number}
-  // monsters
-  monsters: {[id: number]: MonsterState}
-  // actions
-  // actions: AdventureAction[]
+  // id to cover pixels
+  coverPixels: {[id: number]: number[]}
 }
 
 export interface AdventureStateUpdates {
@@ -43,9 +45,11 @@ export enum MonsterType {
   // SHINIC2,
   // SHADOW,
   MEGAMAN,
+  MONSTER,
 }
 
 export interface MonsterInfo {
+  spritesheet: string
   image: string
   imageMove: string
   w: number

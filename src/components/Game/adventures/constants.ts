@@ -40,20 +40,38 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
   //   moveRange: 8,
   // },
   [MonsterType.MEGAMAN]: {
+    spritesheet: '/animations/megaman/mm-01.json',
     image: 'mm-move-0.png',
-    w: 2,
-    h: 2.4,
-    // offY: -0.2,
+    w: 1,
+    h: 2,
     shootSpeed: 200,
     shootRange: 8,
     moveRange: 8,
   },
+  [MonsterType.MONSTER]: {
+    spritesheet: '/animations/monster/monster1.json',
+    image: 'Troll_01_1_IDLE_000.png',
+    w: 2,
+    h: 2,
+  },
+}
+
+export const typeSizes: {[k in MonsterType]: {x: number, y: number}} = {
+  [MonsterType.MEGAMAN]: {
+    x: 1,
+    y: 2,
+  },
+  [MonsterType.MONSTER]: {
+    x: 2,
+    y: 2,
+  }
 }
 
 export function getMonsterInfo(type: MonsterType): MonsterInfo {
   const info = monsterInfos[type]
 
   return {
+    spritesheet: info.spritesheet || '',
     image: info.image || '',
     imageMove: info.imageMove || info.image || '',
     w: info.w || 1,

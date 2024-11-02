@@ -1,14 +1,20 @@
 import { AdventureStates, MonsterState } from '../types'
 
+export const encodeMonsterStateByteLen = 7
+
 export function encodeMonstersView(view: DataView, monsters: MonsterState[]): number {
   view.setUint8(0, monsters.length)
 
   let offset = 1
-  for (const { id, hp, type, pos } of monsters) {
-    view.setUint8(offset, id)
-    view.setUint8(offset + 1, ((hp & 0x0F) << 4) | type & 0x0F)
-    view.setUint16(offset + 2, pos)
-    offset += 4
+  for (const { id, hp, type, target, pos10: pos } of monsters) {
+    view.setUint8(offset, id) // id 8bit
+    view.setUint8(offset + 1, ((hp & 0x0F) << 4) | type & 0x0F) // hp: 4bit ,type: 4bit
+    view.setUint16(offset + 2, target) // target: 16bit
+
+    view.setUint16(offset + 4, pos >> 8) // pos top 16bit
+    view.setUint8(offset + 6, pos & 0xFF) // pos bottom 8bit
+
+    offset += encodeMonsterStateByteLen
   }
 
   return offset
@@ -18,15 +24,24 @@ export function decodeMonstersView(view: DataView): MonsterState[] {
   const monsters: MonsterState[] = []
 
   const len = view.getUint8(0)
+  let offset = 1
   for (let i = 0; i < len; i++) {
-    const id = view.getUint8(1 + i * 4) // 1byte
-    const val2 = view.getUint8(2 + i * 4) // 1byte
-    const pos = view.getUint16(3 + i * 4) // 2bytes
+    const id = view.getUint8(offset) // id 8bit
+    const val2 = view.getUint8(offset + 1) // 1byte hp and type
+    const target = view.getUint16(offset + 2) // target 16bit
+
+    const val3 = view.getUint16(offset + 4) // pos top 16bit
+    const val4 = view.getUint8(offset + 6) // pos bottom 8bit
+    const pos = val3 << 8 | val4  // pos
+
+    offset += encodeMonsterStateByteLen
+
     monsters.push({
       id,
       hp: val2 >> 4,
       type: val2 & 0x0F,
-      pos
+      target,
+      pos10: pos
     })
   }
 
@@ -35,7 +50,7 @@ export function decodeMonstersView(view: DataView): MonsterState[] {
 
 export function encodeStates(states: AdventureStates): ArrayBuffer {
   const monsters = Object.values(states.monsters)
-  const buffer = new ArrayBuffer(1 + monsters.length * 4)
+  const buffer = new ArrayBuffer(1 + monsters.length * encodeMonsterStateByteLen)
   const view = new DataView(buffer)
 
   encodeMonstersView(view, monsters)
@@ -44,14 +59,14 @@ export function encodeStates(states: AdventureStates): ArrayBuffer {
 }
 
 export function decodeStates(data: ArrayBuffer): AdventureStates {
-  const states: AdventureStates = { posMonster: {}, monsters: {} }
+  const states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {} }
 
   const view = new DataView(data)
   const monsters = decodeMonstersView(view)
 
   for (const monster of monsters) {
     states.monsters[monster.id] = monster
-    states.posMonster[monster.pos] = monster.id
+    states.posMonster[monster.pos10] = monster.id
   }
 
   return states

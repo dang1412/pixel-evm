@@ -4,8 +4,8 @@ import { ActionType, AdventureStateUpdates } from '../types'
 describe('Test encode decode AdventureStateUpdates', () => {
   const updates: AdventureStateUpdates = {
     monsters: {
-      1: {id: 1, hp: 10, type: 1, pos: 10},
-      2: {id: 2, hp: 8, type: 2, pos: 15}
+      1: {id: 1, hp: 10, type: 0, pos10: 10, target: 12},
+      2: {id: 2, hp: 8, type: 1, pos10: 15, target: 20}
     },
     actions: [
       { id: 1, val: 10, type: ActionType.MOVE },
@@ -15,7 +15,7 @@ describe('Test encode decode AdventureStateUpdates', () => {
 
   test('AdventureStateUpdates', () => {
     const encoded = encodeUpdates(updates)
-    expect(encoded.byteLength).toBe(16)
+    expect(encoded.byteLength).toBe(22)
   
     const decoded = decodeUpdates(encoded)
   

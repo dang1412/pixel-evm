@@ -10,14 +10,14 @@ function proceedMove(states: AdventureStates, updates: AdventureStateUpdates, id
   // TODO check range
 
   // delete current position
-  const curPos = monsters[id].pos
+  const curPos = monsters[id].pos10
   if (curPos >= 0) {
     delete posMonster[curPos]
   }
 
   // update new position
   posMonster[p] = id
-  monsters[id].pos = p
+  monsters[id].pos10 = p
 
   updates.monsters[id] = monsters[id]
 

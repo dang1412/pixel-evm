@@ -1,10 +1,12 @@
 import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
-import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { ViewportMap } from '../ViewportMap'
 import { ActionType, MonsterInfo, MonsterState, MonsterType } from './types'
 import { ActionMode, Adventures } from './Adventures'
 import { getMonsterInfo, monsterInfos } from './constants'
+import { PIXEL_SIZE, position10ToXY, positionToXY } from '../utils'
+import { moveToward } from './gamelogic/utils'
 
 // delta > 0
 function toward(x: number, target: number, delta: number): number {
@@ -40,6 +42,7 @@ export enum DrawState {
   A3 = 'a3',
   A4 = 'a4',
   A5 = 'a5',
+  A6 = 'a6',
   Dash = 'dash',
 }
 
@@ -57,7 +60,10 @@ export class AdventureMonster {
   drawInfo: MonsterInfo
 
   constructor(public game: Adventures, public state: MonsterState) {
-    [this.curX, this.curY] = positionToXY(state.pos)
+    const { x, y } = position10ToXY(state.pos10)
+    this.curX = x
+    this.curY = y
+    
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
@@ -146,10 +152,11 @@ export class AdventureMonster {
   private onDrawLoop = () => {}
 
   private async initializeDrawState() {
-    const sheet = await Assets.load<Spritesheet>('/animations/megaman/mm-01.json')
+    const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
+    console.log(sheet)
     const sprite = this.getMonsterDraw()
 
-    this.map.subscribe('tick', () => {
+    this.map.subscribe('tick', (e: CustomEvent<number>) => {
       const animation = sheet.animations[this.drawState]
       if (this.tickCount % this.frameStep === 0) {
         if (this.frameCount >= animation.length) {
@@ -163,9 +170,28 @@ export class AdventureMonster {
         sprite.anchor.set(x,y)
       }
       this.tickCount++
+
+      // move
+      this.proceedMove(e.detail)
+
       this.map.markDirty()
     })
     this.map.markDirty()
+  }
+
+  // speed 1unit every 200ms
+  private proceedMove(delta: number) {
+    const d = delta / 200
+    const { x: tx, y: ty } = position10ToXY(this.state.pos10)
+    if (tx !== this.curX || ty !== this.curY) {
+      // move
+      const { x, y } = moveToward(this.curX, this.curY, tx, ty, d)
+      this.imageContainer.x = x * PIXEL_SIZE
+      this.imageContainer.y = y * PIXEL_SIZE
+
+      this.curX = x
+      this.curY = y
+    }
   }
 
   changeDrawState(state: DrawState) {
@@ -250,28 +276,29 @@ export class AdventureMonster {
 
   async draw() {
     // new position
-    const [tx, ty] = positionToXY(this.state.pos)
+    const posxy = position10ToXY(this.state.pos10)
+    const {x: tx, y: ty} = posxy
 
-    if (this.imageContainer) {
+    // if (this.imageContainer) {
       // move
-      if (this.curX !== tx || this.curY !== ty) {
-        sound.play('move', {volume: 0.5})
-        const { imageMove } = this.drawInfo
-        const monsterSprite = this.getMonsterDraw()
+      // if (this.curX !== tx || this.curY !== ty) {
+      //   sound.play('move', {volume: 0.5})
+      //   const { imageMove } = this.drawInfo
+      //   const monsterSprite = this.getMonsterDraw()
 
-        // switch to imageMove
-        const t_ = monsterSprite.texture
-        monsterSprite.texture = Texture.from(imageMove)
-        await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
-        monsterSprite.texture = t_
+      //   // switch to imageMove
+      //   const t_ = monsterSprite.texture
+      //   monsterSprite.texture = Texture.from(imageMove)
+      //   await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
+      //   monsterSprite.texture = t_
 
-        this.curX = tx
-        this.curY = ty
-      }
+      //   this.curX = tx
+      //   this.curY = ty
+      // }
 
       // hp
-      this.drawHp()
-    }
+    this.drawHp()
+    // }
   }
 
   remove() {

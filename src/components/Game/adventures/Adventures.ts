@@ -1,13 +1,16 @@
 import { sound } from '@pixi/sound'
 import { Assets, Container, Sprite, Spritesheet, Texture } from 'pixi.js'
 
-import { PIXEL_SIZE, positionToXY, ViewportMap, xyToPosition } from '../ViewportMap'
+import { ViewportMap } from '../ViewportMap'
+import { PIXEL_SIZE, position10ToXY, positionToXY, xyToPosition, xyToPosition10 } from '../utils'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from './types'
 import { adventureUpdate } from './gameprocess'
 import { AdventureMonster, DrawState } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
 import { getMonsterInfo, getMonsterTypes, monsterInfos } from './constants'
+import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
+import { mainLoop } from './gamelogic/mainloop'
 
 export enum ActionMode {
   MOVE,
@@ -40,7 +43,7 @@ export interface DragOptions {
 }
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsters: {} }
+  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {} }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -88,10 +91,10 @@ export class Adventures {
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
     Assets.load('/images/energy2.png')
-    // await Assets.load<Spritesheet>('/animations/megaman/mm-01.json')
-    await loadSpriteSheet('/animations/megaman/mm-01.json')
+    // await loadSpriteSheet('/animations/megaman/mm-01.json')
+    // await loadSpriteSheet('/animations/monster/monster.json')
 
-    const monsterPromises = types.map((t) => {if (t !== MonsterType.MEGAMAN) Assets.load(getMonsterInfo(t).image)})
+    const monsterPromises = types.map((t) => loadSpriteSheet(getMonsterInfo(t).spritesheet))
     await Promise.all(monsterPromises)
 
     document.addEventListener('keydown', (e) => {
@@ -101,6 +104,7 @@ export class Adventures {
         case '3': this.selectingMonster?.changeDrawStateOnce(DrawState.A3); break
         case '4': this.selectingMonster?.changeDrawStateOnce(DrawState.A4); break
         case '5': this.selectingMonster?.changeDrawStateOnce(DrawState.A5); break
+        case '6': this.selectingMonster?.changeDrawStateOnce(DrawState.A6); break
       }
     })
   }
@@ -153,15 +157,17 @@ export class Adventures {
       const i = Math.floor((rawy - monsterContainer.y) / monsterHeight)
       const type = types[i]
       const { image } = getMonsterInfo(type)
+      console.log(image)
 
       this.startDrag(image, {
         onDrop: (px, py) => {
           // drop monster
-          const pos = xyToPosition(px, py)
+          const pos10 = xyToPosition10(px, py)
+          const target = xyToPosition(px, py)
           if (this.isServer) {
-            if (this.states.posMonster[pos] === undefined) this.addMonster({ id: 0, hp: 10, type, pos })
+            this.addMonster({ id: 0, hp: 10, type, pos10, target })
           } else {
-            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
+            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: target })
           }
         }
       })
@@ -183,8 +189,8 @@ export class Adventures {
       this.drawMonster(state)
 
       // send to clients
-      const encode = encodeUpdates({monsters: {[state.id]: state}, actions: []})
-      this.options.sendAll(encode)
+      const data = encodeUpdates({monsters: {[state.id]: state}, actions: []})
+      if (data) this.options.sendAll(data)
     }
   }
 
@@ -194,7 +200,9 @@ export class Adventures {
     if (this.isServer) {
       // server
       if (action.type === ActionType.ONBOARD) {
-        this.addMonster({id: 0, hp: 10, type: action.id, pos: action.val})
+        const { x, y } = positionToXY(action.val)
+        const pos10 = xyToPosition10(x, y)
+        this.addMonster({id: 0, hp: 10, type: action.id, target: action.val, pos10})
       } else {
         this.bufferActions.push(action)
       }
@@ -217,26 +225,23 @@ export class Adventures {
 
   // server
   private applyBufferActions() {
-    if (this.bufferActions.length === 0) return
-
-    console.log('applyBufferActions', this.bufferActions)
-    const updates = adventureUpdate(this.states, this.bufferActions)
-    console.log(updates)
+    const updates = mainLoop(this.states, this.bufferActions)
 
     this.resetBuffer()
-
-    // send updates to clients
+    
     const data = encodeUpdates(updates)
-    this.options.sendAll(data)
-
-    // draw updates states
-    this.drawUpdates(updates)
+    if (data) {
+      // send updates to clients
+      this.options.sendAll(data)
+      // draw updates states
+      this.drawUpdates(updates)
+    }
   }
 
   // Server send a client all current states
   sendStates(addr: Address) {
     const data = encodeUpdates({monsters: this.states.monsters, actions: []})
-    this.options.sendTo(addr, data)
+    if (data) this.options.sendTo(addr, data)
   }
 
   // Server receives action from client
@@ -273,7 +278,7 @@ export class Adventures {
     for (const { id, type, val } of actions) {
       if (type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
-        const [x, y] = positionToXY(val)
+        const {x, y} = positionToXY(val)
         shoots.push(monster.shoot(x, y))
       }
     }
@@ -281,10 +286,10 @@ export class Adventures {
     await Promise.all(shoots)
   }
 
-  async syncStates() {
-    const monsters = Object.values(this.states.monsters)
-    await this.drawMonsters(monsters)
-  }
+  // async syncStates() {
+  //   const monsters = Object.values(this.states.monsters)
+  //   await this.drawMonsters(monsters)
+  // }
 
   monsterMap: {[id: number]: AdventureMonster} = {}
   selectingMonster: AdventureMonster | undefined
@@ -300,23 +305,28 @@ export class Adventures {
   
   private async drawMonsters(monsterStates: MonsterState[]) {
     for (const monsterState of monsterStates) {
-      this.updateMonsterState(monsterState)
+      // update monsterState for client
+      if (!this.isServer) this.updateMonsterState(monsterState)
       this.drawMonster(monsterState)
     }
   }
 
-  // update state and postion
+  // update state and postion - only client
   private updateMonsterState(state: MonsterState) {
-    const curState = this.states.monsters[state.id]
-    const oldPos = curState? curState.pos : -1
-    if (oldPos >= 0 && this.states.posMonster[oldPos] === state.id) {
-      // delete old pos
-      delete this.states.posMonster[oldPos]
-    }
+    // const curState = this.states.monsters[state.id]
+    // const oldPos = curState? curState.pos10 : -1
+    // if (oldPos >= 0 && this.states.posMonster[oldPos] === state.id) {
+    //   // delete old pos
+    //   delete this.states.posMonster[oldPos]
+    // }
+    const { x, y } = position10ToXY(state.pos10)
+    const nextCoverPixels = getMonsterPixels(x, y, state.type)
+    updateCoverPixel(this.states, state.id, nextCoverPixels)
+    console.log('updateCoverPixel', this.states, state)
 
     // update state
     this.states.monsters[state.id] = state
-    this.states.posMonster[state.pos] = state.id
+    // this.states.posMonster[state.pos10] = state.id
   }
 
   private async drawMonster(monsterState: MonsterState) {
@@ -336,14 +346,15 @@ export class Adventures {
 
   private remove(id: number) {
     // remove from states
-    const removeMonster = this.states.monsters[id]
-    if (removeMonster) {
-      const pos = removeMonster.pos
-      if (this.states.posMonster[pos] === id) {
-        delete this.states.posMonster[pos]
-      }
-      delete this.states.monsters[id]
-    }
+    // const removeMonster = this.states.monsters[id]
+    // if (removeMonster) {
+    //   const pos = removeMonster.pos10
+    //   if (this.states.posMonster[pos] === id) {
+    //     delete this.states.posMonster[pos]
+    //   }
+    //   delete this.states.monsters[id]
+    // }
+    if (!this.isServer) updateRemoveMonster(this.states, id)
 
     // remove draw
     const monster = this.monsterMap[id]
