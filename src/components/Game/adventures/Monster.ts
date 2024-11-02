@@ -46,6 +46,7 @@ export enum DrawState {
   A5 = 'a5',
   A6 = 'a6',
   Dash = 'dash',
+  Die = 'die',
 }
 
 const attackToDraw: {[k in AttackType]: DrawState} = {
@@ -157,7 +158,7 @@ export class AdventureMonster {
 
   private tickCount = 0
   private frameCount = 0
-  private frameStep = 5
+  // private frameStep = 5
   private baseState = DrawState.Stand
   private actionState: DrawState | undefined
   private onDrawLoop = () => {}
@@ -168,8 +169,10 @@ export class AdventureMonster {
     const sprite = this.getMonsterDraw()
 
     this.map.subscribe('tick', (e: CustomEvent<number>) => {
-      const animation = sheet.animations[this.actionState || this.baseState]
-      if (this.tickCount % this.frameStep === 0) {
+      const state = this.actionState || this.baseState
+      const animation = sheet.animations[state]
+      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 8 : 5
+      if (this.tickCount % framePerStep === 0) {
         if (this.frameCount >= animation.length) {
           this.frameCount = 0
           this.tickCount = 0
@@ -214,7 +217,7 @@ export class AdventureMonster {
     this.baseState = state
   }
 
-  changeActionState(state: DrawState) {
+  changeActionState(state: DrawState, onDone = () => {}) {
     // const curState = this.drawState
     // const _ = this.onDrawLoop
     // this.changeDrawState(state)
@@ -228,6 +231,7 @@ export class AdventureMonster {
         // clear action state
         this.actionState = undefined
         this.onDrawLoop = () => {}
+        onDone()
       }
     }
     
@@ -323,7 +327,7 @@ export class AdventureMonster {
   }
 
   remove() {
-    this.imageContainer.parent.removeChild(this.imageContainer)
+    this.changeActionState(DrawState.Die, () => this.imageContainer.parent.removeChild(this.imageContainer))
   }
 
   private getRangeDraw(): Graphics {

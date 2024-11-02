@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 
 import { Adventures } from '../adventures/Adventures'
-import { ViewportMap, xyToPosition } from '../ViewportMap'
+import { ViewportMap } from '../ViewportMap'
 import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
-import { MonsterType } from '../adventures/types'
 import { Assets } from 'pixi.js'
 
 export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc): [Adventures | undefined] {
