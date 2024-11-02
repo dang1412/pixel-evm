@@ -1,29 +1,11 @@
-import { DragEvent } from 'react'
-
-import { Assets, Container, Graphics, type Renderer, Sprite, Texture, WebGLRenderer } from 'pixi.js'
+import { Container, Graphics, type Renderer, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
 import { Minimap } from './Minimap'
-
-export const PIXEL_SIZE = 40
-
-const MAP_W = 100
-const MAP_H = 100
+import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
-
-export function positionToXY(p: number): [number, number] {
-  const x = p % MAP_W
-  const y = Math.floor(p / MAP_W)
-
-  return [x, y]
-}
-
-export function xyToPosition(x: number, y: number): number {
-  return y * MAP_W + x
-}
-
 export interface PixelArea {
   x: number
   y: number
@@ -286,15 +268,22 @@ export class ViewportMap {
   }
 
   private runUpdate() {
-    if (!this.viewport || !this.wrapper) return
-
-    if (this.viewport.dirty) {
-      this.renderer.render(this.wrapper)
-      this.viewport.dirty = false
-      this.eventTarget.dispatchEvent(new Event('tick'))
+    let lastrun = performance.now()
+    const tick = () => {
+      if (this.viewport?.dirty) {
+        this.renderer.render(this.wrapper)
+        this.viewport.dirty = false
+  
+        // calculate tick duration
+        const current = performance.now()
+        const delta = current - lastrun
+        lastrun = current
+        this.eventTarget.dispatchEvent(new CustomEvent<number>('tick', { detail: delta }))
+      }
+      requestAnimationFrame(tick)
     }
 
-    requestAnimationFrame(() => this.runUpdate())
+    tick()
   }
 
   private drawGrid() {
