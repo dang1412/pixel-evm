@@ -9,31 +9,6 @@ import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward } from './gamelogic/utils'
 import { AttackType } from './gamelogic/types'
 
-// delta > 0
-// function toward(x: number, target: number, delta: number): number {
-//   const dir = x < target ? 1 : x === target ? 0 : -1
-//   const nx = x + dir * delta
-
-//   return nx > target === dir > 0 ? target : nx
-// }
-
-// function calculateNextMove(x: number, y: number, tx: number, ty: number, range: number): [number, number] {
-//   const disX = Math.abs(tx - x)
-//   const disY = Math.abs(ty - y)
-
-//   // target is in range
-//   if (disX <= range && disY <= range) {
-//     return [tx, ty]
-//   }
-
-//   const [dx, dy] = disX < disY ? [Math.ceil(range * disX / disY), range] : [range, Math.ceil(range * disY / disX)]
-
-//   const nx = toward(x, tx, dx)
-//   const ny = toward(y, ty, dy)
-
-//   return [nx, ny]
-// }
-
 export enum DrawState {
   Stand = 'stand',
   Hurt = 'hurt',
@@ -199,6 +174,7 @@ export class AdventureMonster {
     const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curX || ty !== this.curY) {
       this.changeBaseState(DrawState.Run)
+      
       // move
       const { x, y } = moveToward(this.curX, this.curY, tx, ty, d)
       this.imageContainer.x = x * PIXEL_SIZE
@@ -212,7 +188,14 @@ export class AdventureMonster {
   }
 
   private changeBaseState(state: DrawState) {
-    this.baseState = state
+    if (this.baseState !== state) {
+      this.baseState = state
+      if (state === DrawState.Run) {
+        if (this.isSelecting) sound.play('running', {loop: true})
+      } else {
+        sound.stop('running')
+      }
+    }
   }
 
   changeActionState(state: DrawState, onDone = () => {}) {
@@ -222,6 +205,7 @@ export class AdventureMonster {
       // restart animation
       this.frameCount = 0
       this.tickCount = 0
+      if (this.isSelecting) sound.play(state)
       this.onDrawLoop = () => {
         // clear action state
         this.actionState = undefined
@@ -254,30 +238,6 @@ export class AdventureMonster {
     this.drawRange()
 
     this.map.markDirty()
-
-    // const speed = 0.5
-    // setInterval(() => {
-    //   const [tx, ty] = positionToXY(this.state.pos)
-    //   if (this.curX !== tx || this.curY !== ty) {
-    //     // move toward tx, ty
-    //     console.log('Move', tx, ty)
-    //     this.curX = toward(this.curX, tx, speed)
-    //     this.curY = toward(this.curY, ty, speed)
-
-    //     this.imageContainer.x = this.curX * PIXEL_SIZE
-    //     this.imageContainer.y = this.curY * PIXEL_SIZE
-
-    //     this.map.markDirty()
-    //   }
-    // }, 20)
-
-    // window.addEventListener('keydown', (e) => {
-    //   if (e.key === 'ArrowRight') {
-    //     const [tx, ty] = positionToXY(this.state.pos)
-    //     const pos = xyToPosition(tx + 1, ty)
-    //     this.game.receiveAction({ id: this.state.id, type: ActionType.MOVE, val: pos })
-    //   }
-    // })
   }
 
   select(isSelect: boolean) {
@@ -294,30 +254,7 @@ export class AdventureMonster {
   }
 
   async draw() {
-    // new position
-    // const posxy = position10ToXY(this.state.pos)
-    // const {x: tx, y: ty} = posxy
-
-    // if (this.imageContainer) {
-      // move
-      // if (this.curX !== tx || this.curY !== ty) {
-      //   sound.play('move', {volume: 0.5})
-      //   const { imageMove } = this.drawInfo
-      //   const monsterSprite = this.getMonsterDraw()
-
-      //   // switch to imageMove
-      //   const t_ = monsterSprite.texture
-      //   monsterSprite.texture = Texture.from(imageMove)
-      //   await this.moveObject(this.imageContainer, this.curX, this.curY, tx, ty)
-      //   monsterSprite.texture = t_
-
-      //   this.curX = tx
-      //   this.curY = ty
-      // }
-
-      // hp
     this.drawHp()
-    // }
   }
 
   remove() {
@@ -343,9 +280,11 @@ export class AdventureMonster {
 
     if (this.prevHP > hp) {
       // get hurt
-      sound.play('grunt', {volume: 0.4})
-      this.prevHP = hp
-      this.changeActionState(DrawState.Hurt)
+      setTimeout(() => {
+        sound.play('grunt', {volume: 0.4})
+        this.prevHP = hp
+        this.changeActionState(DrawState.Hurt)
+      }, 200)
     }
 
     hpdraw.rect(0, -5, PIXEL_SIZE * hp / this.maxHp, 3)

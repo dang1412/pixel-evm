@@ -72,6 +72,13 @@ export class Adventures {
     sound.add('explode1', '/sounds/explosion3.mp3')
     sound.add('explode2', '/sounds/explosion4.mp3')
     sound.add('grunt', '/sounds/grunt2.mp3')
+    sound.add('running', '/sounds/running.mp3')
+    sound.add('a1', '/sounds/sword2.mp3')
+    sound.add('a2', '/sounds/sword.mp3')
+    sound.add('a3', '/sounds/sword1.mp3')
+    sound.add('a4', '/sounds/sword.mp3')
+    sound.add('a5', '/sounds/sword.mp3')
+    sound.add('a6', '/sounds/sword.mp3')
 
     // map.options.onDrop = (data, px, py) => {
     //   const type = Number(data.getData('monsterType')) as MonsterType
