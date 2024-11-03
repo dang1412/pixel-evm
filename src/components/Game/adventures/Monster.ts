@@ -103,6 +103,7 @@ export class AdventureMonster {
     // only send attack when no action state
     if (this.actionState === undefined) {
       this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: a})
+      this.drawAttack(a)
     }
   }
 
@@ -158,7 +159,6 @@ export class AdventureMonster {
 
   private tickCount = 0
   private frameCount = 0
-  // private frameStep = 5
   private baseState = DrawState.Stand
   private actionState: DrawState | undefined
   private onDrawLoop = () => {}
@@ -171,7 +171,7 @@ export class AdventureMonster {
     this.map.subscribe('tick', (e: CustomEvent<number>) => {
       const state = this.actionState || this.baseState
       const animation = sheet.animations[state]
-      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 8 : 5
+      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
       if (this.tickCount % framePerStep === 0) {
         if (this.frameCount >= animation.length) {
           this.frameCount = 0
@@ -204,8 +204,6 @@ export class AdventureMonster {
       this.imageContainer.x = x * PIXEL_SIZE
       this.imageContainer.y = y * PIXEL_SIZE
 
-      console.log(x, y, tx, ty, this.state.target)
-
       this.curX = x
       this.curY = y
     } else {
@@ -218,9 +216,6 @@ export class AdventureMonster {
   }
 
   changeActionState(state: DrawState, onDone = () => {}) {
-    // const curState = this.drawState
-    // const _ = this.onDrawLoop
-    // this.changeDrawState(state)
     if (this.actionState === undefined || state === DrawState.Hurt) {
       // change action state
       this.actionState = state
@@ -234,7 +229,6 @@ export class AdventureMonster {
         onDone()
       }
     }
-    
   }
 
   private initialize() {

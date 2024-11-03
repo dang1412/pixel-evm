@@ -286,7 +286,7 @@ export class Adventures {
 
   private async drawActions(actions: AdventureAction[]) {
     for (const { id, type, val } of actions) {
-      if (type === ActionType.SHOOT) {
+      if (this.selectingMonster?.state.id !== id && type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
         const attack = val as AttackType
         monster.drawAttack(attack)
