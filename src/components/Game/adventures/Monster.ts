@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, Sprite, Spritesheet } from 'pixi.js'
+import { Assets, Container, Graphics, PointData, Sprite, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
@@ -34,8 +34,8 @@ const attackToDraw: {[k in AttackType]: DrawState} = {
 }
 
 export class AdventureMonster {
-  curX: number
-  curY: number
+  curP: PointData
+  // curY: number
   imageContainer: Container
   map: ViewportMap
 
@@ -47,14 +47,15 @@ export class AdventureMonster {
   drawInfo: MonsterInfo
 
   constructor(public game: Adventures, public state: MonsterState) {
-    this.curX = state.pos.x
-    this.curY = state.pos.y
+    this.curP = state.pos
+    // this.curX = state.pos.x
+    // this.curY = state.pos.y
     
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
     const { image, w, h } = this.drawInfo
-    this.imageContainer = this.map.addImage(image, { x: this.curX, y: this.curY, w: 0, h: 0 })
+    this.imageContainer = this.map.addImage(image, { x: this.curP.x, y: this.curP.y, w: 0, h: 0 })
     this.initialize()
     this.initializeDrawState()
   }
@@ -88,15 +89,15 @@ export class AdventureMonster {
   }
 
   private startShoot() {
-    let [tx, ty] = [this.curX, this.curY]
+    let {x: tx, y: ty} = this.curP
     // this.drawState = DrawState.A1
 
     const range = this.drawInfo.shootRange
 
     // shooting
     const int = setInterval(() => {
-      if (tx === this.curX && ty === this.curY) return
-      if (Math.abs(tx - this.curX) <= range && Math.abs(ty - this.curY) <= range) {
+      if (tx === this.curP.x && ty === this.curP.y) return
+      if (Math.abs(tx - this.curP.x) <= range && Math.abs(ty - this.curP.y) <= range) {
         const pos = ty * 100 + tx
         this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
       }
@@ -170,18 +171,17 @@ export class AdventureMonster {
 
   // speed 1unit every 200ms
   private proceedMove(delta: number) {
-    const d = delta / 100
+    const d = delta / 200
     const { x: tx, y: ty } = this.state.pos
-    if (tx !== this.curX || ty !== this.curY) {
+    if (tx !== this.curP.x || ty !== this.curP.y) {
       this.changeBaseState(DrawState.Run)
       
       // move
-      const { x, y } = moveToward(this.curX, this.curY, tx, ty, d)
+      const { x, y } = moveToward(this.curP.x, this.curP.y, tx, ty, d)
       this.imageContainer.x = x * PIXEL_SIZE
       this.imageContainer.y = y * PIXEL_SIZE
 
-      this.curX = x
-      this.curY = y
+      this.curP = {x, y}
     } else {
       this.changeBaseState(DrawState.Stand)
     }
@@ -302,9 +302,9 @@ export class AdventureMonster {
   }
 
   async shoot(x: number, y: number) {
-    const energy = this.map.addImage('/images/energy2.png', { x: this.curX, y: this.curY, w: 1, h: 1 })
+    const energy = this.map.addImage('/images/energy2.png', { x: this.curP.x, y: this.curP.y, w: 1, h: 1 })
     sound.play('shoot', {volume: 0.4})
-    await this.moveObject(energy, this.curX, this.curY, x, y)
+    await this.moveObject(energy, this.curP.x, this.curP.y, x, y)
     this.map.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
     sound.play('explode1', {volume: 0.4})
     energy.parent.removeChild(energy)
