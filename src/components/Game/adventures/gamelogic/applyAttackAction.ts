@@ -38,8 +38,10 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   const pixels = getPixels(damgeRange)
 
   for (const pixel of pixels) {
-    const hurtMonsterId = posMonster[pixel]
-    if (hurtMonsterId !== id) monsterGetHurt(states, updates, hurtMonsterId)
+    const hurtMonsterIds = posMonster[pixel] || []
+    for (const hurtMonsterId of hurtMonsterIds) {
+      if (hurtMonsterId !== id) monsterGetHurt(states, updates, hurtMonsterId)
+    }
   }
 
   return true

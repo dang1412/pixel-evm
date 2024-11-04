@@ -52,10 +52,17 @@ export function moveToward(x1: number, y1: number, x2: number, y2: number, d: nu
 export function updateCoverPixel({posMonster, coverPixels}: AdventureStates, id: number, nextCoverPixels: number[]) {
   const curCoverPixels = coverPixels[id] || []
   for (const pixel of curCoverPixels) {
-    delete posMonster[pixel]
+    // remove id from pixel
+    const ids = posMonster[pixel] || []
+    posMonster[pixel] = ids.filter((_id) => _id !== id)
   }
   for (const pixel of nextCoverPixels) {
-    posMonster[pixel] = id
+    // add id to pixel
+    if (posMonster[pixel]) {
+      posMonster[pixel].push(id)
+    } else {
+      posMonster[pixel] = [id]
+    }
   }
 
   coverPixels[id] = nextCoverPixels
@@ -65,7 +72,9 @@ export function updateRemoveMonster({ posMonster, coverPixels, monsters }: Adven
   const pixels = coverPixels[id]
   // delete positions
   for (const p of pixels) {
-    delete posMonster[p]
+    // remove id from pixel
+    const ids = posMonster[p] || []
+    posMonster[p] = ids.filter((_id) => _id !== id)
   }
   // delete monster
   delete monsters[id]

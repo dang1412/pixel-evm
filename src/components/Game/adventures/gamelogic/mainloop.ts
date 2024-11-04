@@ -41,12 +41,12 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
       // TODO can improve performance this check, in case monster is big
       const nextCoverPixels = getMonsterPixels(nextp.x, nextp.y, monster.type)
       let canmove = true
-      for (const pixel of nextCoverPixels) {
-        if (posMonster[pixel] >= 0 && posMonster[pixel] !== monster.id) {
-          canmove = false
-          break
-        }
-      }
+      // for (const pixel of nextCoverPixels) {
+      //   if (posMonster[pixel] >= 0 && posMonster[pixel] !== monster.id) {
+      //     canmove = false
+      //     break
+      //   }
+      // }
 
       // do move
       if (canmove) {

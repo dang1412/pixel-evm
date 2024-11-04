@@ -30,8 +30,9 @@ function proceedShoot(states: AdventureStates, updates: AdventureStateUpdates, i
   // already dead
   if (!monsters[id]) return false
 
-  const shotId = posMonster[p]
-  if (shotId >= 0) {
+  const shotIds = posMonster[p] || []
+  for (const shotId of shotIds) {
+  // if (shotId >= 0) {
     const shotMonster = monsters[shotId]
     shotMonster.hp --
     updates.monsters[shotId] = shotMonster

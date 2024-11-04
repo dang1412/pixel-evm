@@ -11,8 +11,8 @@ export interface MonsterState {
 export interface AdventureStates {
   // main info
   monsters: {[id: number]: MonsterState}
-  // position to id
-  posMonster: {[p: number]: number}
+  // position to ids
+  posMonster: {[p: number]: number[]}
   // id to cover pixels
   coverPixels: {[id: number]: number[]}
 }

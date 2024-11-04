@@ -59,7 +59,8 @@ export class Adventures {
     this.map.subscribe('pixeldown', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
-      const id = this.states.posMonster[pos]
+      const ids = this.states.posMonster[pos] || []
+      const id = ids[0]
       if (id >= 0) {
         const monster = this.monsterMap[id]
         if (monster) monster.startControl()
