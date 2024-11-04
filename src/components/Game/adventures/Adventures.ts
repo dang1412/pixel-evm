@@ -7,7 +7,7 @@ import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { AdventureMonster, DrawState } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
-import { getMonsterInfo, getMonsterTypes} from './constants'
+import { getMonsterInfo, getMonsterTypes, LOOP_TIME} from './constants'
 import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
 import { mainLoop } from './gamelogic/mainloop'
 import { AttackType } from './gamelogic/types'
@@ -278,7 +278,7 @@ export class Adventures {
     // apply buffer actions periodically
     setInterval(() => {
       this.applyBufferActions()
-    }, 200)
+    }, LOOP_TIME)
 
     this.isServer = true
   }

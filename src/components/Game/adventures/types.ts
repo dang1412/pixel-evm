@@ -57,4 +57,7 @@ export interface MonsterInfo {
   moveRange: number
   shootRange: number
   shootSpeed: number
+
+  // number of pixel per loop
+  moveSpeed: number
 }

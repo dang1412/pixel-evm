@@ -4,7 +4,7 @@ import { sound } from '@pixi/sound'
 import { ViewportMap } from '../ViewportMap'
 import { ActionType, MonsterInfo, MonsterState } from './types'
 import { ActionMode, Adventures } from './Adventures'
-import { getMonsterInfo } from './constants'
+import { getMonsterInfo, LOOP_TIME } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward } from './gamelogic/utils'
 import { AttackType } from './gamelogic/types'
@@ -31,6 +31,12 @@ const attackToDraw: {[k in AttackType]: DrawState} = {
   [AttackType.A4]: DrawState.A4,
   [AttackType.A5]: DrawState.A5,
   [AttackType.A6]: DrawState.A6,
+}
+
+function distance(p1: PointData, p2: PointData): number {
+  const dx = p1.x -p2.x
+  const dy = p1.y -p2.y
+  return parseFloat(Math.abs(dx ** 2 + dy ** 2).toFixed(1))
 }
 
 export class AdventureMonster {
@@ -171,7 +177,11 @@ export class AdventureMonster {
 
   // speed 1unit every 200ms
   private proceedMove(delta: number) {
-    const d = delta / 200
+    // const distanceToPos = distance(this.curP, this.state.pos)
+    // if (distanceToPos === 0) return
+
+    // console.log(distanceToPos)
+    const d = delta / LOOP_TIME * this.drawInfo.moveSpeed
     const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curP.x || ty !== this.curP.y) {
       this.changeBaseState(DrawState.Run)

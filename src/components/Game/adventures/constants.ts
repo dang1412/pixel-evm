@@ -1,52 +1,12 @@
 import { MonsterInfo, MonsterType } from './types'
 
 export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
-  // [MonsterType.AXIE]: {
-  //   image: '/images/saitama_fight.png',
-  //   w: 2,
-  //   h: 2.4,
-  //   offY: -0.2
-  // },
-  // [MonsterType.SONIC]: {
-  //   image: '/images/sonic_stand.png',
-  //   imageMove: '/images/sonic_move.png',
-  //   w: 2,
-  //   h: 3.2,
-  //   offY: -0.2,
-  //   moveRange: 15,
-  //   shootRange: 6,
-  //   shootSpeed: 400,
-  // },
-  // [MonsterType.SHINIC]: {
-  //   image: '/images/shinic.webp',
-  //   w: 2,
-  //   h: 2,
-  //   offX: -0.3
-  // },
-  // [MonsterType.SHINIC2]: {
-  //   image: '/images/shinic_run.webp',
-  //   w: 2,
-  //   h: 2,
-  //   shootSpeed: 200,
-  //   shootRange: 6,
-  // },
-  // [MonsterType.SHADOW]: {
-  //   image: '/images/shadow.png',
-  //   w: 2,
-  //   h: 2.4,
-  //   offY: -0.2,
-  //   shootSpeed: 200,
-  //   shootRange: 8,
-  //   moveRange: 8,
-  // },
   [MonsterType.MEGAMAN]: {
     spritesheet: '/animations/megaman/mm-01.json',
     image: 'mm-move-0.png',
     w: 1,
     h: 2,
-    shootSpeed: 200,
-    shootRange: 8,
-    moveRange: 8,
+    moveSpeed: 1.2
   },
   [MonsterType.MONSTER]: {
     spritesheet: '/animations/monster/monster1.json',
@@ -54,17 +14,6 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     w: 2,
     h: 2,
   },
-}
-
-export const typeSizes: {[k in MonsterType]: {x: number, y: number}} = {
-  [MonsterType.MEGAMAN]: {
-    x: 1,
-    y: 2,
-  },
-  [MonsterType.MONSTER]: {
-    x: 2,
-    y: 2,
-  }
 }
 
 export function getMonsterInfo(type: MonsterType): MonsterInfo {
@@ -82,11 +31,14 @@ export function getMonsterInfo(type: MonsterType): MonsterInfo {
     moveRange: info.moveRange || 4,
     shootRange: info.shootRange || 4,
     shootSpeed: info.shootSpeed || 600,
+
+    moveSpeed: info.moveSpeed || 1,
   }
 }
 
 export function getMonsterTypes(): MonsterType[] {
   return Object.keys(monsterInfos)
     .map((type) => Number(type) as MonsterType)
-    // .map((type) => [type, monsterInfos[type as MonsterType].image || ''])
 }
+
+export const LOOP_TIME = 200
