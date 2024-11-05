@@ -3,7 +3,7 @@ import { AdventureStates } from '../types'
 
 describe('Test encode decode AdventureStates', () => {
   const states: AdventureStates = {
-    posMonster: {1510: 1, 1610: 1, 3020: 2, 3120: 2},
+    posMonster: {1510: [1], 1610: [1], 3020: [2], 3120: [2]},
     monsters: {
       1: {id: 1, hp: 10, type: 0, pos: {x: 10, y: 15}, target: {x: 12, y: 16}},
       2: {id: 2, hp: 8, type: 0, pos: {x: 20, y: 30}, target: {x: 24, y: 20}},

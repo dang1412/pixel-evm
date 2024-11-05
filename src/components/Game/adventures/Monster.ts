@@ -243,6 +243,7 @@ export class AdventureMonster {
     imageContainer.addChild(circle) // 2
 
     this.imageContainer = imageContainer
+    // this.imageContainer.scale.x = -1
 
     this.draw()
     this.drawRange()

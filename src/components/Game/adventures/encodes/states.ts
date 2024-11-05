@@ -72,7 +72,7 @@ export function decodeStates(data: ArrayBuffer): AdventureStates {
     const coverPixels = getMonsterPixels(monster.pos.x, monster.pos.y, monster.type)
     states.coverPixels[monster.id] = coverPixels
     for (const pixel of coverPixels) {
-      states.posMonster[pixel] = monster.id
+      states.posMonster[pixel] = [monster.id]
     }
   }
 
