@@ -153,19 +153,21 @@ export class AdventureMonster {
     this.map.subscribe('tick', (e: CustomEvent<number>) => {
       const state = this.actionState || this.baseState
       const animation = sheet.animations[state]
-      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
-      if (this.tickCount % framePerStep === 0) {
-        if (this.frameCount >= animation.length) {
-          this.frameCount = 0
-          this.tickCount = 0
-          this.onDrawLoop()
+      if (animation) {
+        const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
+        if (this.tickCount % framePerStep === 0) {
+          if (this.frameCount >= animation.length) {
+            this.frameCount = 0
+            this.tickCount = 0
+            this.onDrawLoop()
+          }
+          const texture = animation[this.frameCount++]
+          sprite.texture = texture
+          const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
+          sprite.anchor.set(x,y)
         }
-        const texture = animation[this.frameCount++]
-        sprite.texture = texture
-        const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
-        sprite.anchor.set(x,y)
+        this.tickCount++
       }
-      this.tickCount++
 
       // move
       this.proceedMove(e.detail)
@@ -201,9 +203,15 @@ export class AdventureMonster {
     if (this.baseState !== state) {
       this.baseState = state
       if (state === DrawState.Run) {
-        if (this.isSelecting) sound.play('running', {loop: true})
+        if (this.isSelecting) {
+          sound.play('running', {loop: true})
+          this.follow(true)
+        }
       } else {
-        sound.stop('running')
+        if (this.isSelecting) {
+          sound.stop('running')
+          this.follow(false)
+        }
       }
     }
   }
@@ -252,11 +260,21 @@ export class AdventureMonster {
   }
 
   select(isSelect: boolean) {
-    console.log('select', isSelect)
+    if (!isSelect) {
+      this.follow(false)
+    }
     let circle = this.getRangeDraw()
     circle.visible = isSelect
     this.isSelecting = isSelect
     this.map.markDirty()
+  }
+
+  private follow(bool: boolean) {
+    if (bool) {
+      this.game.map.viewport?.follow(this.imageContainer, { speed: 10 })
+    } else {
+      this.game.map.viewport?.plugins.remove('follow')
+    }
   }
 
   async updateState(state: MonsterState) {

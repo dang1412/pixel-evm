@@ -42,6 +42,7 @@ export enum MonsterType {
   // SHINIC2,
   // SHADOW,
   MEGAMAN,
+  NINJA,
   MONSTER,
 }
 

@@ -593,7 +593,7 @@
     "image": "monster1.png",
     "format": "RGBA8888",
     "size": { "w": 4030, "h": 5429 },
-    "scale": "6",
+    "scale": "8.4",
     "smartupdate": "$TexturePacker:SmartUpdate:610e132b9ef0f247af13d15dbf7dcc14:5b42ccb454737f288df2ad62fda50d84:be3779e66d4487ea728e8873b08038dc$"
   }
 }

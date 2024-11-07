@@ -348,7 +348,7 @@
     "image": "mm-02.png",
     "format": "RGBA8888",
     "size": { "w": 1903, "h": 1575 },
-    "scale": "4.2",
+    "scale": "5.6",
     "smartupdate": "$TexturePacker:SmartUpdate:7071d5932d4d8080561b17ca4e995d1d:9c5a95de5b709da11318228b007e1b9a:433e740bb2fde6e1a010189a543fed74$"
   }
 }

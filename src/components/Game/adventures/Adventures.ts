@@ -156,8 +156,8 @@ export class Adventures {
     const monsterContainer = new Container()
     monsterContainer.interactive = true
 
-    const monsterHeight = 100
-    monsterContainer.x = this.map.canvas.width - 70
+    const monsterHeight = 70
+    monsterContainer.x = this.map.canvas.width - 50
     monsterContainer.y = this.map.canvas.height - types.length * monsterHeight
 
     for (let i = 0; i < types.length; i++) {

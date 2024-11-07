@@ -520,7 +520,7 @@
     "image": "mm-01.png",
     "format": "RGBA8888",
     "size": { "w": 1805, "h": 509 },
-    "scale": "1.25",
+    "scale": "1.68",
     "related_multi_packs": ["mm-02.json"],
     "smartupdate": "$TexturePacker:SmartUpdate:fd0a4506e23b88e973ed1c03c6c582db:1b8b181f88f4bf19cdcfc6740b85381e:33d0929712c52aa4b1cf83e187e76670$"
   }

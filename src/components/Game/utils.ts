@@ -1,4 +1,4 @@
-export const PIXEL_SIZE = 40
+export const PIXEL_SIZE = 30
 export const MAP_W = 100
 export const MAP_H = 100
 
