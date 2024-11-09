@@ -1,5 +1,5 @@
 import { AdventureStateUpdates } from '../types'
-import { decodeActionsView, encodeActionsView } from './actions'
+import { ActionEncodeLength, decodeActionsView, encodeActionsView } from './actions'
 import { decodeMonstersView, encodeMonsterStateByteLen, encodeMonstersView } from './states'
 
 export function encodeUpdates(updates: AdventureStateUpdates): ArrayBuffer | undefined {
@@ -8,7 +8,7 @@ export function encodeUpdates(updates: AdventureStateUpdates): ArrayBuffer | und
   const monsters = Object.values(updates.monsters)
   if (monsters.length === 0 && actions.length === 0) return undefined
 
-  const buffer = new ArrayBuffer(2 + monsters.length * encodeMonsterStateByteLen + actions.length * 3)
+  const buffer = new ArrayBuffer(2 + monsters.length * encodeMonsterStateByteLen + actions.length * ActionEncodeLength)
 
   encodeMonstersView(new DataView(buffer), monsters)
   encodeActionsView(new DataView(buffer, 1 + monsters.length * encodeMonsterStateByteLen), actions)

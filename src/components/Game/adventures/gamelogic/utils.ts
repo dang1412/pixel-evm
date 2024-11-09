@@ -1,4 +1,5 @@
-import { position10ToXY, xyToPosition } from '../../utils'
+import { PointData } from 'pixi.js'
+import { xyToPosition } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
 import { getMonsterInfo } from '../constants'
 import { AdventureStates, MonsterState, MonsterType } from '../types'
@@ -79,4 +80,9 @@ export function updateRemoveMonster({ posMonster, coverPixels, monsters }: Adven
   // delete monster
   delete monsters[id]
   delete coverPixels[id]
+}
+
+export function roundPos(p: PointData) {
+  p.x = parseFloat(p.x.toFixed(1))
+  p.y = parseFloat(p.y.toFixed(1))
 }

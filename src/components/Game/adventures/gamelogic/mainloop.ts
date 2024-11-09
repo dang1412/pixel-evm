@@ -1,20 +1,19 @@
-import { positionToXY } from '../../utils'
 import { getMonsterInfo } from '../constants'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from '../types'
 import { applyAttackAction } from './applyAttackAction'
-import { getMonsterPixels, moveToward, updateCoverPixel } from './utils'
+import { getMonsterPixels, moveToward, roundPos, updateCoverPixel } from './utils'
 
 export function mainLoop(states: AdventureStates, actions: AdventureAction[]): AdventureStateUpdates {
   const updates: AdventureStateUpdates = { monsters: {}, actions: [] }
 
   for (const action of actions) {
-    const { type, id, val } = action
+    const { type, id, pos } = action
 
     if (type === ActionType.MOVE) {
-      states.monsters[id].target = positionToXY(val)
+      states.monsters[id].target = pos
       updates.monsters[id] = states.monsters[id]
     } else if (type === ActionType.SHOOT) {
-      applyAttackAction(states, updates, id, val)
+      applyAttackAction(states, updates, id, pos.x)
       updates.actions.push(action)
     }
   }
@@ -34,8 +33,7 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
     if (curp.x !== tarp.x || curp.y !== tarp.y) {
       // calculate move, move 1 unit each loop
       const nextp = moveToward(curp.x, curp.y, tarp.x, tarp.y, speed)
-      nextp.x = parseFloat(nextp.x.toFixed(1))
-      nextp.y = parseFloat(nextp.y.toFixed(1))
+      roundPos(nextp)
 
       // check if can move
       // TODO can improve performance this check, in case monster is big

@@ -6,7 +6,7 @@ import { ActionType, MonsterInfo, MonsterState } from './types'
 import { ActionMode, Adventures } from './Adventures'
 import { getMonsterInfo, LOOP_TIME } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
-import { moveToward } from './gamelogic/utils'
+import { moveToward, roundPos } from './gamelogic/utils'
 import { AttackType } from './gamelogic/types'
 
 export enum DrawState {
@@ -39,6 +39,17 @@ function distance(p1: PointData, p2: PointData): number {
   return parseFloat(Math.abs(dx ** 2 + dy ** 2).toFixed(1))
 }
 
+export enum MoveDir {
+  U,
+  D,
+  L,
+  R,
+  UL,
+  UR,
+  DL,
+  DR
+}
+
 export class AdventureMonster {
   curP: PointData
   // curY: number
@@ -66,6 +77,47 @@ export class AdventureMonster {
     this.initializeDrawState()
   }
 
+  move(dir: MoveDir) {
+    const speed = this.drawInfo.moveSpeed
+    const sqrtSpeed = speed
+    const curP = this.state.pos
+    const nextP = {...curP}
+    switch (dir) {
+      case MoveDir.U:
+        nextP.y -= speed
+        break
+      case MoveDir.D:
+        nextP.y += speed
+        break
+      case MoveDir.L:
+        nextP.x -= speed
+        break
+      case MoveDir.R:
+        nextP.x += speed
+        break
+      case MoveDir.UL:
+        nextP.x -= sqrtSpeed
+        nextP.y -= sqrtSpeed
+        break
+      case MoveDir.UR:
+        nextP.x += sqrtSpeed
+        nextP.y -= sqrtSpeed
+        break
+      case MoveDir.DL:
+        nextP.x -= sqrtSpeed
+        nextP.y += sqrtSpeed
+        break
+      case MoveDir.DR:
+        nextP.x += sqrtSpeed
+        nextP.y += sqrtSpeed
+        break
+    }
+    if (nextP.x !== curP.x || nextP.y !== curP.y) {
+      roundPos(nextP)
+      this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, pos: nextP})
+    }
+  }
+
   // start control
   async startControl() {
     this.map.pauseDrag()
@@ -84,7 +136,7 @@ export class AdventureMonster {
   sendAttack(a: AttackType) {
     // only send attack when no action state
     if (this.actionState === undefined) {
-      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: a})
+      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 0}})
       this.drawAttack(a)
     }
   }
@@ -104,8 +156,7 @@ export class AdventureMonster {
     const int = setInterval(() => {
       if (tx === this.curP.x && ty === this.curP.y) return
       if (Math.abs(tx - this.curP.x) <= range && Math.abs(ty - this.curP.y) <= range) {
-        const pos = ty * 100 + tx
-        this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, val: pos})
+        this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: tx, y: ty}})
       }
     }, this.drawInfo.shootSpeed)
 
@@ -133,7 +184,7 @@ export class AdventureMonster {
       onDrop: (x, y) => {
         this.map.resumeDrag()
         if (x !== this.state.target.x || y !== this.state.target.y) {
-          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, val: xyToPosition(x, y)})
+          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, pos: {x, y}})
         }
       }
     })

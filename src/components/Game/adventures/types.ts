@@ -31,8 +31,8 @@ export enum ActionType {
 
 export interface AdventureAction {
   id: number  // 8bit
-  val: number  // 14bit
-  type: ActionType  // 2bit
+  pos: PointData  // 20bit
+  type: ActionType  // 4bit
 }
 
 export enum MonsterType {

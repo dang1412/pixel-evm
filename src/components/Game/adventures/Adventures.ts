@@ -5,7 +5,7 @@ import { ViewportMap } from '../ViewportMap'
 import { PIXEL_SIZE, positionToXY, xyToPosition } from '../utils'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
-import { AdventureMonster, DrawState } from './Monster'
+import { AdventureMonster, DrawState, MoveDir } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
 import { getMonsterInfo, getMonsterTypes, LOOP_TIME} from './constants'
 import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
@@ -105,7 +105,14 @@ export class Adventures {
     const monsterPromises = types.map((t) => loadSpriteSheet(getMonsterInfo(t).spritesheet))
     await Promise.all(monsterPromises)
 
+    const keyPressedMap: {[k: string]: boolean} = {}
+
+    document.addEventListener('keyup', (e) => {
+      keyPressedMap[e.key] = false
+    })
+
     document.addEventListener('keydown', (e) => {
+      keyPressedMap[e.key] = true
       switch (e.key) {
         case '1':
           // this.selectingMonster?.changeDrawStateOnce(DrawState.A1)
@@ -128,6 +135,25 @@ export class Adventures {
           break
       }
     })
+
+    setInterval(() => {
+      // move
+      let dir: MoveDir | undefined = undefined
+      if (keyPressedMap['w']) {
+        dir = keyPressedMap['a'] ? MoveDir.UL : keyPressedMap['d'] ? MoveDir.UR : MoveDir.U
+      } else if (keyPressedMap['s']) {
+        dir = keyPressedMap['a'] ? MoveDir.DL : keyPressedMap['d'] ? MoveDir.DR : MoveDir.D
+      } else if (keyPressedMap['a']) {
+        dir = MoveDir.L
+      } else if (keyPressedMap['d']) {
+        dir = MoveDir.R
+      }
+
+      if (dir !== undefined) {
+        console.log('moveDir', dir)
+        this.selectingMonster?.move(dir)
+      }
+    }, LOOP_TIME)
   }
 
   startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {
@@ -186,8 +212,7 @@ export class Adventures {
           if (this.isServer) {
             this.addMonster({ id: 0, hp: 10, type, pos: {x, y}, target: {x, y} })
           } else {
-            const target = xyToPosition(x, y)
-            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: target })
+            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, pos: {x, y} })
           }
         }
       })
@@ -219,7 +244,7 @@ export class Adventures {
     if (this.isServer) {
       // server
       if (action.type === ActionType.ONBOARD) {
-        const p = positionToXY(action.val)
+        const p = action.pos
         this.addMonster({id: 0, hp: 10, type: action.id, target: p, pos: p})
       } else {
         this.bufferActions.push(action)
@@ -293,10 +318,10 @@ export class Adventures {
   }
 
   private async drawActions(actions: AdventureAction[]) {
-    for (const { id, type, val } of actions) {
+    for (const { id, type, pos } of actions) {
       if (this.selectingMonster?.state.id !== id && type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
-        const attack = val as AttackType
+        const attack = pos.x as AttackType
         monster.drawAttack(attack)
       }
     }

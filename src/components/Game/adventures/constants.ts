@@ -6,21 +6,21 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     image: 'mm-move-0.png',
     w: 1,
     h: 2,
-    moveSpeed: 2.8
+    moveSpeed: 1.4
   },
   [MonsterType.NINJA]: {
     spritesheet: '/animations/ninja/ninja.json',
     image: 'ninja-0.png',
     w: 1,
     h: 2,
-    moveSpeed: 2.8
+    moveSpeed: 1.4
   },
   [MonsterType.MONSTER]: {
     spritesheet: '/animations/monster/monster1.json',
     image: 'Troll_01_1_IDLE_000.png',
     w: 2,
     h: 2,
-    moveSpeed: 2
+    moveSpeed: 1
   },
 }
 
@@ -49,4 +49,4 @@ export function getMonsterTypes(): MonsterType[] {
     .map((type) => Number(type) as MonsterType)
 }
 
-export const LOOP_TIME = 400
+export const LOOP_TIME = 200

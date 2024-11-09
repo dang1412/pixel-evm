@@ -23,5 +23,5 @@ export function position10ToXY(p: number): {x: number, y: number} {
 }
 
 export function xyToPosition10(x: number, y: number): number {
-  return (y * 10) * MAP_W10 + x * 10
+  return Math.round((y * 10)) * MAP_W10 + Math.round(x * 10)
 }

@@ -1,6 +1,6 @@
 
-import { encodeAction, decodeAction } from './actions'
-import { ActionType, AdventureAction, AdventureStates } from '../types'
+import { encodeAction, decodeAction, ActionEncodeLength } from './actions'
+import { ActionType, AdventureAction } from '../types'
 
 describe('Test encode decode Actions', () => {
   // const states: AdventureStates = {
@@ -10,11 +10,11 @@ describe('Test encode decode Actions', () => {
   //     2: {id: 2, hp: 8, type: 2, pos: 15},
   //   },
   // }
-  const action: AdventureAction = { id: 1, val: 10, type: ActionType.MOVE }
+  const action: AdventureAction = { id: 1, pos: {x: 10.5, y: 15.6}, type: ActionType.MOVE }
 
   test('action', () => {
     const encoded = encodeAction(action)
-    expect(encoded.byteLength).toBe(3)
+    expect(encoded.byteLength).toBe(ActionEncodeLength)
   
     const decoded = decodeAction(encoded)
   

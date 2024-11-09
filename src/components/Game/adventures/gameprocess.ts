@@ -49,7 +49,7 @@ function proceedShoot(states: AdventureStates, updates: AdventureStateUpdates, i
 
 function proceedAction(states: AdventureStates, updates: AdventureStateUpdates, action: AdventureAction): boolean {
   const func = action.type === ActionType.MOVE ? proceedShoot : proceedShoot
-  const rs = func(states, updates, action.id, action.val)
+  const rs = func(states, updates, action.id, action.pos)
   if (rs) {
     updates.actions.push(action)
   }
