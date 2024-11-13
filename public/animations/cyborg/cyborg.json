@@ -1,0 +1,259 @@
+{
+  "frames": {
+    "cyborg-0.png": {
+      "frame": { "x": 212, "y": 1, "w": 126, "h": 210 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 126, "h": 210 },
+      "sourceSize": { "w": 126, "h": 210 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-1.png": {
+      "frame": { "x": 637, "y": 1, "w": 127, "h": 209 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 127, "h": 209 },
+      "sourceSize": { "w": 127, "h": 209 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-2.png": {
+      "frame": { "x": 766, "y": 1, "w": 127, "h": 209 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 127, "h": 209 },
+      "sourceSize": { "w": 127, "h": 209 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-23.png": {
+      "frame": { "x": 1447, "y": 204, "w": 156, "h": 199 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 156, "h": 199 },
+      "sourceSize": { "w": 156, "h": 199 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-24.png": {
+      "frame": { "x": 1666, "y": 1, "w": 138, "h": 200 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 138, "h": 200 },
+      "sourceSize": { "w": 138, "h": 200 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-25.png": {
+      "frame": { "x": 505, "y": 1, "w": 130, "h": 209 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 130, "h": 209 },
+      "sourceSize": { "w": 130, "h": 209 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-26.png": {
+      "frame": { "x": 213, "y": 213, "w": 106, "h": 184 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 106, "h": 184 },
+      "sourceSize": { "w": 106, "h": 184 },
+      "anchor": { "x": 0, "y": -0.0706522 }
+    },
+    "cyborg-27.png": {
+      "frame": { "x": 1332, "y": 206, "w": 113, "h": 163 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 113, "h": 163 },
+      "sourceSize": { "w": 113, "h": 163 },
+      "anchor": { "x": 0, "y": -0.153374 }
+    },
+    "cyborg-28.png": {
+      "frame": { "x": 1072, "y": 209, "w": 128, "h": 163 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 128, "h": 163 },
+      "sourceSize": { "w": 128, "h": 163 },
+      "anchor": { "x": 0.015625, "y": -0.153374 }
+    },
+    "cyborg-29.png": {
+      "frame": { "x": 1202, "y": 206, "w": 128, "h": 163 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 128, "h": 163 },
+      "sourceSize": { "w": 128, "h": 163 },
+      "anchor": { "x": 0, "y": -0.153374 }
+    },
+    "cyborg-30.png": {
+      "frame": { "x": 1605, "y": 204, "w": 156, "h": 199 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 156, "h": 199 },
+      "sourceSize": { "w": 156, "h": 199 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-31.png": {
+      "frame": { "x": 1763, "y": 203, "w": 156, "h": 199 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 156, "h": 199 },
+      "sourceSize": { "w": 156, "h": 199 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-32.png": {
+      "frame": { "x": 1806, "y": 1, "w": 156, "h": 199 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 156, "h": 199 },
+      "sourceSize": { "w": 156, "h": 199 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-0.png": {
+      "frame": { "x": 1262, "y": 1, "w": 109, "h": 203 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 109, "h": 203 },
+      "sourceSize": { "w": 109, "h": 203 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-1.png": {
+      "frame": { "x": 1009, "y": 1, "w": 119, "h": 206 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 119, "h": 206 },
+      "sourceSize": { "w": 119, "h": 206 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-2.png": {
+      "frame": { "x": 727, "y": 212, "w": 170, "h": 192 },
+      "rotated": true,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 170, "h": 192 },
+      "sourceSize": { "w": 170, "h": 192 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-3.png": {
+      "frame": { "x": 321, "y": 213, "w": 182, "h": 201 },
+      "rotated": true,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 182, "h": 201 },
+      "sourceSize": { "w": 182, "h": 201 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-4.png": {
+      "frame": { "x": 1373, "y": 1, "w": 146, "h": 201 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 146, "h": 201 },
+      "sourceSize": { "w": 146, "h": 201 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-5.png": {
+      "frame": { "x": 1130, "y": 1, "w": 130, "h": 203 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 130, "h": 203 },
+      "sourceSize": { "w": 130, "h": 203 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-6.png": {
+      "frame": { "x": 895, "y": 1, "w": 112, "h": 207 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 112, "h": 207 },
+      "sourceSize": { "w": 112, "h": 207 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-7.png": {
+      "frame": { "x": 921, "y": 210, "w": 149, "h": 192 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 149, "h": 192 },
+      "sourceSize": { "w": 149, "h": 192 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-8.png": {
+      "frame": { "x": 524, "y": 212, "w": 175, "h": 201 },
+      "rotated": true,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 175, "h": 201 },
+      "sourceSize": { "w": 175, "h": 201 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-run-9.png": {
+      "frame": { "x": 1521, "y": 1, "w": 143, "h": 201 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 143, "h": 201 },
+      "sourceSize": { "w": 143, "h": 201 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-shoot-0.png": {
+      "frame": { "x": 340, "y": 1, "w": 163, "h": 209 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 163, "h": 209 },
+      "sourceSize": { "w": 163, "h": 209 },
+      "anchor": { "x": 0, "y": 0 }
+    },
+    "cyborg-shoot-1.png": {
+      "frame": { "x": 1, "y": 1, "w": 209, "h": 210 },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 1, "y": 0, "w": 209, "h": 210 },
+      "sourceSize": { "w": 212, "h": 210 },
+      "anchor": { "x": 0.245283, "y": 0 }
+    },
+    "cyborg-shoot-2.png": {
+      "frame": { "x": 1, "y": 213, "w": 186, "h": 210 },
+      "rotated": true,
+      "trimmed": true,
+      "spriteSourceSize": { "x": 5, "y": 0, "w": 186, "h": 210 },
+      "sourceSize": { "w": 191, "h": 210 },
+      "anchor": { "x": 0.13089, "y": 0 }
+    }
+  },
+  "animations": {
+    "stand": [
+      "cyborg-0.png",
+      "cyborg-1.png",
+      "cyborg-2.png"
+		],
+		"die": [
+      "cyborg-23.png",
+      "cyborg-24.png",
+      "cyborg-25.png",
+      "cyborg-26.png",
+      "cyborg-27.png",
+      "cyborg-28.png",
+      "cyborg-29.png"
+		],
+		"hurt": [
+      "cyborg-30.png",
+      "cyborg-31.png",
+      "cyborg-32.png"
+    ],
+    "run": [
+      "cyborg-run-0.png",
+      "cyborg-run-1.png",
+      "cyborg-run-2.png",
+      "cyborg-run-3.png",
+      "cyborg-run-4.png",
+      "cyborg-run-5.png",
+      "cyborg-run-6.png",
+      "cyborg-run-7.png",
+      "cyborg-run-8.png",
+      "cyborg-run-9.png"
+    ],
+    "a1": [
+      "cyborg-shoot-0.png",
+      "cyborg-shoot-1.png",
+      "cyborg-shoot-2.png"
+    ]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.1",
+    "image": "cyborg.png",
+    "format": "RGBA8888",
+    "size": { "w": 1963, "h": 404 },
+    "scale": "3.5",
+    "smartupdate": "$TexturePacker:SmartUpdate:e29e561812beeaf22b3cbe491276cd47:b58f597a4224d50089cab65326429cda:1ad2bd95bbc2c37ce4d5516829a130e3$"
+  }
+}

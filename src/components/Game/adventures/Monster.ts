@@ -255,12 +255,12 @@ export class AdventureMonster {
       this.baseState = state
       if (state === DrawState.Run) {
         if (this.isSelecting) {
-          sound.play('running', {loop: true})
+          // sound.play('running', {loop: true})
           this.follow(true)
         }
       } else {
         if (this.isSelecting) {
-          sound.stop('running')
+          // sound.stop('running')
           this.follow(false)
         }
       }

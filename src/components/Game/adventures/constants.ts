@@ -15,6 +15,13 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     h: 2,
     moveSpeed: 1.4
   },
+  [MonsterType.CYBORG]: {
+    spritesheet: '/animations/cyborg/cyborg.json',
+    image: 'cyborg-0.png',
+    w: 1,
+    h: 2,
+    moveSpeed: 1.4
+  },
   [MonsterType.MONSTER]: {
     spritesheet: '/animations/monster/monster1.json',
     image: 'Troll_01_1_IDLE_000.png',

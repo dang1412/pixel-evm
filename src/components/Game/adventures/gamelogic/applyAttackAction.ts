@@ -17,6 +17,9 @@ const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>
   [MonsterType.NINJA]: {
     [AttackType.A1]: { x: 0, y: -1, w: 2, h: 3 },
   },
+  [MonsterType.CYBORG]: {
+    // [AttackType.A1]: { x: 0, y: -1, w: 2, h: 3 },
+  },
   [MonsterType.MONSTER]: {
     [AttackType.A1]: defaultAttackRange
   },
