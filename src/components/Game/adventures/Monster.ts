@@ -84,16 +84,16 @@ export class AdventureMonster {
     const nextP = {...curP}
     switch (dir) {
       case MoveDir.U:
-        nextP.y -= speed
+        nextP.y -= speed * 1.4
         break
       case MoveDir.D:
-        nextP.y += speed
+        nextP.y += speed * 1.4
         break
       case MoveDir.L:
-        nextP.x -= speed
+        nextP.x -= speed * 1.4
         break
       case MoveDir.R:
-        nextP.x += speed
+        nextP.x += speed * 1.4
         break
       case MoveDir.UL:
         nextP.x -= sqrtSpeed
