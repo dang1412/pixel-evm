@@ -15,6 +15,8 @@ export interface AdventureStates {
   posMonster: {[p: number]: number[]}
   // id to cover pixels
   coverPixels: {[id: number]: number[]}
+  // monsterIsLeft
+  monsterIsLeft: {[id: number]: boolean}
 }
 
 export interface AdventureStateUpdates {
@@ -62,4 +64,6 @@ export interface MonsterInfo {
 
   // number of pixel per loop
   moveSpeed: number
+
+  isHuman: boolean
 }

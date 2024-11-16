@@ -11,7 +11,6 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 
     if (type === ActionType.MOVE) {
       states.monsters[id].target = pos
-      updates.monsters[id] = states.monsters[id]
     } else if (type === ActionType.SHOOT) {
       applyAttackAction(states, updates, id, pos.x)
       updates.actions.push(action)
@@ -24,16 +23,25 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 }
 
 function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
-  const { posMonster, monsters } = states
+  const { posMonster, monsters, monsterIsLeft } = states
   for (const monster of Object.values(monsters)) {
     const curp = monster.pos
     const tarp = monster.target
-    const speed = getMonsterInfo(monster.type).moveSpeed
+    const info = getMonsterInfo(monster.type)
+    const speed = info.moveSpeed
 
     if (curp.x !== tarp.x || curp.y !== tarp.y) {
-      // calculate move, move 1 unit each loop
+      // calculate move, move speed unit each loop
       const nextp = moveToward(curp.x, curp.y, tarp.x, tarp.y, speed)
+      // round to x.y
       roundPos(nextp)
+
+      // update isLeft
+      if (curp.x < tarp.x) {
+        monsterIsLeft[monster.id] = false
+      } else if (curp.x > tarp.x) {
+        monsterIsLeft[monster.id] = true
+      }
 
       // check if can move
       // TODO can improve performance this check, in case monster is big
@@ -55,6 +63,16 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
         // mark updates
         updates.monsters[monster.id] = monster
       }
+    } else if (!info.isHuman) {
+      // move random
+      const curp = monster.pos
+      const tarp = {x: getRandom(Math.max(curp.x - 20, 0), Math.min(curp.x + 20, 99)), y: getRandom(Math.max(curp.y - 20, 0), Math.min(curp.y + 20, 99))}
+      states.monsters[monster.id].target = tarp
     }
   }
+}
+
+function getRandom(low: number, high: number): number {
+  const val = Math.floor(Math.random() * (high - low)) + low
+  return val
 }

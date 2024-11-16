@@ -7,7 +7,7 @@ const defaultAttackRange: PixelArea = { x: 1, y: 0, w: 1, h: 1 }
 
 const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>} = {
   [MonsterType.MEGAMAN]: {
-    [AttackType.A1]: { x: 0, y: -1, w: 3, h: 3 },
+    [AttackType.A1]: { x: -1, y: -1, w: 4, h: 3 },
     [AttackType.A2]: { x: -1, y: -1, w: 4, h: 3 },
     [AttackType.A3]: { x: -1, y: -1, w: 5, h: 3 },
     [AttackType.A4]: { x: -1, y: -2, w: 3, h: 3 },
@@ -24,9 +24,9 @@ const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>
     [AttackType.A1]: defaultAttackRange
   },
 }
-
+33
 export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, value: number): boolean {
-  const { posMonster, monsters } = states
+  const { posMonster, monsters, monsterIsLeft } = states
   const monster = monsters[id]
 
   // already dead
@@ -41,6 +41,9 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   const py = Math.round(monster.pos.y)
 
   const damgeRange: PixelArea = {...attackRange, x: px + attackRange.x, y: py + attackRange.y}
+  if (monsterIsLeft[id]) {
+    damgeRange.x = px - attackRange.x - attackRange.w + 1
+  }
   const pixels = getPixels(damgeRange)
 
   for (const pixel of pixels) {
@@ -58,7 +61,7 @@ function monsterGetHurt(states: AdventureStates, updates: AdventureStateUpdates,
   const monster = monsters[id]
   if (!monster) return
 
-  monster.hp --
+  if (monster.hp > 0) monster.hp --
   updates.monsters[id] = monster
   if (monster.hp <= 0) {
     // dead

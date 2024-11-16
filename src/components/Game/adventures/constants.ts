@@ -6,7 +6,7 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     image: 'mm-move-0.png',
     w: 1,
     h: 2,
-    moveSpeed: 1.4
+    moveSpeed: 1.6
   },
   [MonsterType.NINJA]: {
     spritesheet: '/animations/ninja/ninja.json',
@@ -27,7 +27,8 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     image: 'Troll_01_1_IDLE_000.png',
     w: 2,
     h: 2,
-    moveSpeed: 1
+    moveSpeed: 0.5,
+    isHuman: false
   },
 }
 
@@ -48,6 +49,7 @@ export function getMonsterInfo(type: MonsterType): MonsterInfo {
     shootSpeed: info.shootSpeed || 600,
 
     moveSpeed: info.moveSpeed || 1,
+    isHuman: info.isHuman === undefined ? true : info.isHuman
   }
 }
 

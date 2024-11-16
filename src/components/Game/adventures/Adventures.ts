@@ -43,7 +43,7 @@ export interface DragOptions {
 }
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {} }
+  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {} }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -204,7 +204,6 @@ export class Adventures {
       const i = Math.floor((rawy - monsterContainer.y) / monsterHeight)
       const type = types[i]
       const { image } = getMonsterInfo(type)
-      console.log(image)
 
       this.startDrag(image, {
         onDrop: (x, y) => {

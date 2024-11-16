@@ -63,6 +63,8 @@ export class AdventureMonster {
   prevHP = 0
   drawInfo: MonsterInfo
 
+  private isLeft = false
+
   constructor(public game: Adventures, public state: MonsterState) {
     this.curP = state.pos
     // this.curX = state.pos.x
@@ -203,29 +205,37 @@ export class AdventureMonster {
 
     this.map.subscribe('tick', (e: CustomEvent<number>) => {
       const state = this.actionState || this.baseState
-      const animation = sheet.animations[state]
-      if (animation) {
-        const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
-        if (this.tickCount % framePerStep === 0) {
-          if (this.frameCount >= animation.length) {
-            this.frameCount = 0
-            this.tickCount = 0
-            this.onDrawLoop()
-          }
-          const texture = animation[this.frameCount++]
+      const animation = sheet.animations[state] || []
+      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
+      if (this.tickCount % framePerStep === 0) {
+        if (this.frameCount >= animation.length) {
+          this.frameCount = 0
+          this.tickCount = 0
+          this.onDrawLoop()
+        }
+
+        const texture = animation[this.frameCount++]
+        if (texture) {
           sprite.texture = texture
           const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
           sprite.anchor.set(x,y)
         }
-        this.tickCount++
       }
+      this.tickCount++
+
+      this.map.markDirty()
 
       // move
       this.proceedMove(e.detail)
-
-      this.map.markDirty()
     })
-    this.map.markDirty()
+  }
+
+  private switchLeft(isLeft: boolean) {
+    // this.isLeft = isLeft
+    if (this.isLeft !== isLeft) {
+      this.isLeft = isLeft
+      this.imageContainer.scale.x = isLeft ? -1 : 1
+    }
   }
 
   // speed 1unit every 200ms
@@ -238,10 +248,15 @@ export class AdventureMonster {
     const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curP.x || ty !== this.curP.y) {
       this.changeBaseState(DrawState.Run)
+      if (this.curP.x < tx) {
+        this.switchLeft(false)
+      } else if (this.curP.x > tx) {
+        this.switchLeft(true)
+      }
       
       // move
       const { x, y } = moveToward(this.curP.x, this.curP.y, tx, ty, d)
-      this.imageContainer.x = x * PIXEL_SIZE
+      this.imageContainer.x = (x + (this.isLeft ? this.drawInfo.w : 0)) * PIXEL_SIZE
       this.imageContainer.y = y * PIXEL_SIZE
 
       this.curP = {x, y}
@@ -300,9 +315,6 @@ export class AdventureMonster {
 
     imageContainer.addChild(hp) // 1
     imageContainer.addChild(circle) // 2
-
-    this.imageContainer = imageContainer
-    // this.imageContainer.scale.x = -1
 
     this.draw()
     this.drawRange()
