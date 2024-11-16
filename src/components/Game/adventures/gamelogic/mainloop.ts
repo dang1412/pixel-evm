@@ -12,7 +12,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
     if (type === ActionType.MOVE) {
       states.monsters[id].target = pos
     } else if (type === ActionType.SHOOT) {
-      applyAttackAction(states, updates, id, pos.x)
+      applyAttackAction(states, updates, id, pos)
       updates.actions.push(action)
     }
   }

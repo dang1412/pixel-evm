@@ -318,10 +318,9 @@ export class Adventures {
 
   private async drawActions(actions: AdventureAction[]) {
     for (const { id, type, pos } of actions) {
-      if (this.selectingMonster?.state.id !== id && type === ActionType.SHOOT) {
+      if (type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
-        const attack = pos.x as AttackType
-        monster.drawAttack(attack)
+        monster.drawAttack(pos)
       }
     }
   }

@@ -138,14 +138,22 @@ export class AdventureMonster {
   sendAttack(a: AttackType) {
     // only send attack when no action state
     if (this.actionState === undefined) {
-      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 0}})
-      this.drawAttack(a)
+      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: 100, y: a}})
+      // this.drawAttack(a)
     }
   }
 
-  drawAttack(a: AttackType) {
-    const attackDrawState = attackToDraw[a]
-    this.changeActionState(attackDrawState)
+  drawAttack(p: PointData) {
+    if (p.x === 100) {
+      // melee attack
+      const attackDrawState = attackToDraw[p.y as AttackType]
+      this.changeActionState(attackDrawState)
+    } else {
+      // range attack
+      this.changeActionState(attackToDraw[AttackType.A5])
+      // draw shoot
+      this.shoot(p.x, p.y)
+    }
   }
 
   private startShoot() {
@@ -282,20 +290,18 @@ export class AdventureMonster {
     }
   }
 
-  changeActionState(state: DrawState, onDone = () => {}) {
-    if (this.actionState === undefined || state === DrawState.Hurt) {
-      // change action state
-      this.actionState = state
-      // restart animation
-      this.frameCount = 0
-      this.tickCount = 0
-      if (this.isSelecting) sound.play(state)
-      this.onDrawLoop = () => {
-        // clear action state
-        this.actionState = undefined
-        this.onDrawLoop = () => {}
-        onDone()
-      }
+  private changeActionState(state: DrawState, onDone = () => {}) {
+    // change action state
+    this.actionState = state
+    // restart animation
+    this.frameCount = 0
+    this.tickCount = 0
+    if (this.isSelecting) sound.play(state)
+    this.onDrawLoop = () => {
+      // clear action state
+      this.actionState = undefined
+      this.onDrawLoop = () => {}
+      onDone()
     }
   }
 
@@ -393,7 +399,7 @@ export class AdventureMonster {
     circle.visible = false
   }
 
-  async shoot(x: number, y: number) {
+  private async shoot(x: number, y: number) {
     const energy = this.map.addImage('/images/energy2.png', { x: this.curP.x, y: this.curP.y, w: 1, h: 1 })
     sound.play('shoot', {volume: 0.4})
     await this.moveObject(energy, this.curP.x, this.curP.y, x, y)

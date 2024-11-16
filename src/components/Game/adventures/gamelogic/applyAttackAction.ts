@@ -1,5 +1,7 @@
+import { PointData } from 'pixi.js'
+import { positionToXY } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
-import { AdventureStates, AdventureStateUpdates, MonsterType } from '../types'
+import { AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from '../types'
 import { AttackType } from './types'
 import { getPixels, updateRemoveMonster } from './utils'
 
@@ -24,15 +26,9 @@ const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>
     [AttackType.A1]: defaultAttackRange
   },
 }
-33
-export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, value: number): boolean {
-  const { posMonster, monsters, monsterIsLeft } = states
-  const monster = monsters[id]
 
-  // already dead
-  if (!monster) return false
-
-  const type = value as AttackType
+function getMeleeDamageArea(monster: MonsterState, type: AttackType, isLeft: boolean): PixelArea {
+  // Melee Attack
   const attackRange = ATTACK_RANGE[monster.type][type] || defaultAttackRange
 
   // const currentPos = position10ToXY(monster.pos)
@@ -40,12 +36,25 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   const px = Math.round(monster.pos.x)
   const py = Math.round(monster.pos.y)
 
-  const damgeRange: PixelArea = {...attackRange, x: px + attackRange.x, y: py + attackRange.y}
-  if (monsterIsLeft[id]) {
-    damgeRange.x = px - attackRange.x - attackRange.w + 1
+  const damageArea: PixelArea = {...attackRange, x: px + attackRange.x, y: py + attackRange.y}
+  if (isLeft) {
+    damageArea.x = px - attackRange.x - attackRange.w + 1
   }
-  const pixels = getPixels(damgeRange)
 
+  return damageArea
+}
+
+export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: PointData): boolean {
+  const { posMonster, monsters, monsterIsLeft } = states
+  const monster = monsters[id]
+
+  // already dead
+  if (!monster) return false
+
+  const damageArea = p.x >= 100 ? getMeleeDamageArea(monster, p.y as AttackType, monsterIsLeft[id]) : { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
+
+  const pixels = getPixels(damageArea)
+  
   for (const pixel of pixels) {
     const hurtMonsterIds = posMonster[pixel] || []
     for (const hurtMonsterId of hurtMonsterIds) {
