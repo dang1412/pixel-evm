@@ -51,7 +51,7 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   // already dead
   if (!monster) return false
 
-  const damageArea = p.x >= 100 ? getMeleeDamageArea(monster, p.y as AttackType, monsterIsLeft[id]) : { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
+  const damageArea = p.y >= 100 ? getMeleeDamageArea(monster, p.x as AttackType, monsterIsLeft[id]) : { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
 
   const pixels = getPixels(damageArea)
   

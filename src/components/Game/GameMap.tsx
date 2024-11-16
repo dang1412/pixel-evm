@@ -37,8 +37,10 @@ export const GameMap: React.FC<Props> = (props) => {
 
       } else if (adventures) {
         if (adventures.isServer) {
+          // server
           adventures.receiveActionData(data)
         } else {
+          // client
           adventures.receiveUpdatesData(data)
         }
       }

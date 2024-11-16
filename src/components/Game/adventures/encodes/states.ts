@@ -62,7 +62,7 @@ export function encodeStates(states: AdventureStates): ArrayBuffer {
 }
 
 export function decodeStates(data: ArrayBuffer): AdventureStates {
-  const states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {} }
+  const states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {} }
 
   const view = new DataView(data)
   const monsters = decodeMonstersView(view)

@@ -8,7 +8,8 @@ describe('Test encode decode AdventureStates', () => {
       1: {id: 1, hp: 10, type: 0, pos: {x: 10, y: 15}, target: {x: 12, y: 16}},
       2: {id: 2, hp: 8, type: 0, pos: {x: 20, y: 30}, target: {x: 24, y: 20}},
     },
-    coverPixels: {1: [1510, 1610], 2: [3020, 3120]}
+    coverPixels: {1: [1510, 1610], 2: [3020, 3120]},
+    monsterIsLeft: {},
   }
 
   test('AdventureStates', () => {

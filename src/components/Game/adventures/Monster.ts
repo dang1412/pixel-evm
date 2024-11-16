@@ -138,15 +138,14 @@ export class AdventureMonster {
   sendAttack(a: AttackType) {
     // only send attack when no action state
     if (this.actionState === undefined) {
-      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: 100, y: a}})
-      // this.drawAttack(a)
+      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 100}})
     }
   }
 
   drawAttack(p: PointData) {
-    if (p.x === 100) {
+    if (p.y === 100) {
       // melee attack
-      const attackDrawState = attackToDraw[p.y as AttackType]
+      const attackDrawState = attackToDraw[p.x as AttackType]
       this.changeActionState(attackDrawState)
     } else {
       // range attack
