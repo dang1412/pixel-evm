@@ -361,20 +361,12 @@ export class Adventures {
     if (!monster) {
       this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
     } else {
-      if (monsterState.hp === 0) {
-        this.remove(monsterState.id)
-      } else {
-        monster.updateState(monsterState)
+      if (monsterState.hp === 0 && !this.isServer) {
+        // client remove monster from states
+        updateRemoveMonster(this.states, monsterState.id)
       }
+
+      monster.updateState(monsterState)
     }
-  }
-
-  private remove(id: number) {
-    // remove from states
-    if (!this.isServer) updateRemoveMonster(this.states, id)
-
-    // remove draw
-    const monster = this.monsterMap[id]
-    if (monster) monster.remove()
   }
 }

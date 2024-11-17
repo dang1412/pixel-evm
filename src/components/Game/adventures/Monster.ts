@@ -65,6 +65,8 @@ export class AdventureMonster {
 
   private isLeft = false
 
+  private eventTarget = new EventTarget()
+
   constructor(public game: Adventures, public state: MonsterState) {
     this.curP = state.pos
     // this.curX = state.pos.x
@@ -203,14 +205,14 @@ export class AdventureMonster {
   private frameCount = 0
   private baseState = DrawState.Stand
   private actionState: DrawState | undefined
-  private onDrawLoop = () => {}
+  // private onDrawLoop = () => {}
 
   private async initializeDrawState() {
     const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
     console.log(sheet)
     const sprite = this.getMonsterDraw()
 
-    this.map.subscribe('tick', (e: CustomEvent<number>) => {
+    const unsub = this.map.subscribe('tick', (e: CustomEvent<number>) => {
       const state = this.actionState || this.baseState
       const animation = sheet.animations[state] || []
       const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
@@ -218,7 +220,8 @@ export class AdventureMonster {
         if (this.frameCount >= animation.length) {
           this.frameCount = 0
           this.tickCount = 0
-          this.onDrawLoop()
+          // this.onDrawLoop()
+          this.eventTarget.dispatchEvent(new Event('drawloop'))
         }
 
         const texture = animation[this.frameCount++]
@@ -235,6 +238,8 @@ export class AdventureMonster {
       // move
       this.proceedMove(e.detail)
     })
+
+    this.subscribeOnce('die', unsub)
   }
 
   private switchLeft(isLeft: boolean) {
@@ -277,12 +282,10 @@ export class AdventureMonster {
       this.baseState = state
       if (state === DrawState.Run) {
         if (this.isSelecting) {
-          // sound.play('running', {loop: true})
           this.follow(true)
         }
       } else {
         if (this.isSelecting) {
-          // sound.stop('running')
           this.follow(false)
         }
       }
@@ -296,12 +299,26 @@ export class AdventureMonster {
     this.frameCount = 0
     this.tickCount = 0
     if (this.isSelecting) sound.play(state)
-    this.onDrawLoop = () => {
-      // clear action state
+
+    this.subscribeOnce('drawloop', (e) => {
       this.actionState = undefined
-      this.onDrawLoop = () => {}
       onDone()
-    }
+    })
+  }
+
+  // subcribe
+  private subscribe(type: string, func: (e: CustomEvent) => void) {
+    this.eventTarget.addEventListener(type, func as EventListener)
+
+    return () => this.eventTarget.removeEventListener(type, func as EventListener)
+  }
+
+  // subcribe once
+  private subscribeOnce(type: string, func: (e: CustomEvent) => void) {
+    const unsub = this.subscribe(type, (e) => {
+      func(e)
+      unsub()
+    })
   }
 
   private initialize() {
@@ -354,9 +371,13 @@ export class AdventureMonster {
     this.drawHp()
   }
 
-  remove() {
-    this.changeActionState(DrawState.Die, () => this.imageContainer.parent.removeChild(this.imageContainer))
-  }
+  // remove() {
+  //   this.drawHp()
+  //   this.changeActionState(DrawState.Die, () => {
+  //     this.imageContainer.parent.removeChild(this.imageContainer)
+  //     this.eventTarget.dispatchEvent(new Event('die'))
+  //   })
+  // }
 
   private getRangeDraw(): Graphics {
     return this.imageContainer.getChildAt(2) as Graphics
@@ -380,7 +401,14 @@ export class AdventureMonster {
       setTimeout(() => {
         sound.play('grunt', {volume: 0.4})
         this.prevHP = hp
-        this.changeActionState(DrawState.Hurt)
+        if (hp > 0) {
+          this.changeActionState(DrawState.Hurt)
+        } else {
+          this.changeActionState(DrawState.Die, () => {
+            this.imageContainer.parent.removeChild(this.imageContainer)
+            this.eventTarget.dispatchEvent(new Event('die'))
+          })
+        }
       }, 200)
     }
 
