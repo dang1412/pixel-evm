@@ -107,15 +107,26 @@ export class Adventures {
 
     const keyPressedMap: {[k: string]: boolean} = {}
 
+    let lastAttackKey = ''
     document.addEventListener('keyup', (e) => {
       keyPressedMap[e.key] = false
+      if (e.key === lastAttackKey) lastAttackKey = ''
     })
 
     document.addEventListener('keydown', (e) => {
-      keyPressedMap[e.key] = true
-      switch (e.key) {
+      if (!keyPressedMap[e.key]) {
+        keyPressedMap[e.key] = true
+        proceedMove()
+        if (!lastAttackKey && e.key >= '1' && e.key <= '6') {
+          lastAttackKey = e.key
+          proceedAttack()
+        }
+      }
+    })
+
+    const proceedAttack = () => {
+      switch (lastAttackKey) {
         case '1':
-          // this.selectingMonster?.changeDrawStateOnce(DrawState.A1)
           this.selectingMonster?.sendAttack(AttackType.A1)
           break
         case '2':
@@ -134,25 +145,33 @@ export class Adventures {
           this.selectingMonster?.sendAttack(AttackType.A6)
           break
       }
-    })
+    }
 
-    setInterval(() => {
+    const proceedMove = () => {
       // move
       let dir: MoveDir | undefined = undefined
-      if (keyPressedMap['w']) {
-        dir = keyPressedMap['a'] ? MoveDir.UL : keyPressedMap['d'] ? MoveDir.UR : MoveDir.U
-      } else if (keyPressedMap['s']) {
-        dir = keyPressedMap['a'] ? MoveDir.DL : keyPressedMap['d'] ? MoveDir.DR : MoveDir.D
-      } else if (keyPressedMap['a']) {
+      const isU = keyPressedMap['w'] || keyPressedMap['ArrowUp']
+      const isD = keyPressedMap['s'] || keyPressedMap['ArrowDown']
+      const isL = keyPressedMap['a'] || keyPressedMap['ArrowLeft']
+      const isR = keyPressedMap['d'] || keyPressedMap['ArrowRight']
+      if (isU) {
+        dir = isL ? MoveDir.UL : isR ? MoveDir.UR : MoveDir.U
+      } else if (isD) {
+        dir = isL ? MoveDir.DL : isR ? MoveDir.DR : MoveDir.D
+      } else if (isL) {
         dir = MoveDir.L
-      } else if (keyPressedMap['d']) {
+      } else if (isR) {
         dir = MoveDir.R
       }
 
       if (dir !== undefined) {
-        console.log('moveDir', dir)
         this.selectingMonster?.move(dir)
       }
+    }
+
+    setInterval(() => {
+      proceedAttack()
+      proceedMove()
     }, LOOP_TIME)
   }
 

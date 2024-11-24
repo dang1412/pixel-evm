@@ -6,7 +6,8 @@ export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
     image: 'mm-move-0.png',
     w: 1,
     h: 2,
-    moveSpeed: 1.6
+    moveSpeed: 1.6,
+    shootRange: 8
   },
   [MonsterType.NINJA]: {
     spritesheet: '/animations/ninja/ninja.json',
