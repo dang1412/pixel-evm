@@ -8,6 +8,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 
   for (const action of actions) {
     const { type, id, pos } = action
+    if (!states.monsters[id]) continue
 
     if (type === ActionType.MOVE) {
       states.monsters[id].target = pos

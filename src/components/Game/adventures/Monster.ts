@@ -399,7 +399,6 @@ export class AdventureMonster {
     if (this.prevHP > hp) {
       // get hurt
       setTimeout(() => {
-        sound.play('grunt', {volume: 0.4})
         this.prevHP = hp
         if (hp > 0) {
           this.changeActionState(DrawState.Hurt)
