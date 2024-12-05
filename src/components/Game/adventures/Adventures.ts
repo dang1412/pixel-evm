@@ -24,6 +24,9 @@ export interface AdventureOptions {
 
 const types = getMonsterTypes()
 
+/**
+ * Loading sheet with merging animations from linked sheets
+ */
 async function loadSpriteSheet(path: string) {
   const sheet = await Assets.load<Spritesheet>(path)
   const linkedSheets = sheet.linkedSheets
@@ -41,6 +44,8 @@ export interface DragOptions {
   w?: number
   h?: number
 }
+
+const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg']
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {} }
@@ -63,7 +68,9 @@ export class Adventures {
       const id = ids[0]
       if (id >= 0) {
         const monster = this.monsterMap[id]
-        if (monster) monster.startControl()
+        if (monster) {
+          this.selectMon(monster)
+        }
       }
     })
 
@@ -80,6 +87,7 @@ export class Adventures {
     sound.add('a4', '/sounds/sword.mp3')
     sound.add('a5', '/sounds/sword.mp3')
     sound.add('a6', '/sounds/sword.mp3')
+    sound.add('hurt', '/sounds/grunt2.mp3')
 
     // map.options.onDrop = (data, px, py) => {
     //   const type = Number(data.getData('monsterType')) as MonsterType
@@ -93,12 +101,11 @@ export class Adventures {
   }
 
   async init() {
-    const fire3 = await Assets.load<Spritesheet>('/animations/fire3-0.json')
-    console.log('Fire3', fire3)
+    Assets.load<Spritesheet>('/animations/fire3-0.json')
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
-    Assets.load('/images/energy2.png')
+    Assets.load([...controlIcons, '/images/energy2.png'])
     // await loadSpriteSheet('/animations/megaman/mm-01.json')
     // await loadSpriteSheet('/animations/monster/monster.json')
 
@@ -173,6 +180,42 @@ export class Adventures {
       proceedAttack()
       proceedMove()
     }, LOOP_TIME)
+
+    this.drawControls()
+  }
+
+  private drawControls() {
+    const SIZE = 40
+    const PAD = 10
+    const SIZE_PAD = SIZE + PAD
+
+    const ctrlContainer = new Container()
+    ctrlContainer.interactive = true
+    ctrlContainer.x = PAD
+    ctrlContainer.y = this.map.canvas.height - SIZE_PAD
+
+    for (let i = 0; i < controlIcons.length; i++) {
+      const icon = controlIcons[i]
+      const image = new Sprite(Texture.from(icon))
+      const scale = Math.min(SIZE / image.width, SIZE / image.height)
+      image.scale.set(scale)
+      image.x = i * SIZE_PAD + (SIZE - image.width) / 2
+      image.y = (SIZE - image.height) / 2
+      ctrlContainer.addChild(image)
+    }
+
+    this.map.wrapper.addChild(ctrlContainer)
+
+    ctrlContainer.on('pointerdown', async (e) => {
+      const [_, __, rawx] = this.map.getPixelXY(e)
+      const i = Math.floor((rawx - PAD) / SIZE_PAD)
+
+      if (i === 0) {
+        this.selectingMonster?.startMove()
+      } else if (i === 1) {
+        this.selectingMonster?.startShoot()
+      }
+    })
   }
 
   startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {

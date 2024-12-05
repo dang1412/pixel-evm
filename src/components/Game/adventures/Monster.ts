@@ -123,19 +123,19 @@ export class AdventureMonster {
   }
 
   // start control
-  async startControl() {
-    this.map.pauseDrag()
-    this.drawRange()
-    this.game.selectMon(this)
+  // async startControl() {
+  //   this.map.pauseDrag()
+  //   this.drawRange()
+  //   this.game.selectMon(this)
 
-    if (this.game.mode === ActionMode.MOVE) {
-      await this.startMove()
-    } else {
-      await this.startShoot()
-    }
+  //   if (this.game.mode === ActionMode.MOVE) {
+  //     await this.startMove()
+  //   } else {
+  //     await this.startShoot()
+  //   }
 
-    this.map.markDirty()
-  }
+  //   this.map.markDirty()
+  // }
 
   sendAttack(a: AttackType) {
     // only send attack when no action state
@@ -157,12 +157,9 @@ export class AdventureMonster {
     }
   }
 
-  private startShoot() {
+  startShoot() {
     let {x: tx, y: ty} = this.curP
-    // this.drawState = DrawState.A1
-
     const range = this.drawInfo.shootRange
-
     // shooting
     const int = setInterval(() => {
       if (tx === this.curP.x && ty === this.curP.y) return
@@ -176,7 +173,6 @@ export class AdventureMonster {
         // on drop
         clearInterval(int)
         this.map.resumeDrag()
-        // this.drawState = DrawState.Stand
       },
       onMove: (x, y) => {
         // on move
@@ -188,7 +184,7 @@ export class AdventureMonster {
     })
   }
 
-  private startMove() {
+  startMove() {
     const { imageMove } = this.drawInfo
 
     this.game.startDrag(imageMove, {
@@ -205,11 +201,9 @@ export class AdventureMonster {
   private frameCount = 0
   private baseState = DrawState.Stand
   private actionState: DrawState | undefined
-  // private onDrawLoop = () => {}
 
   private async initializeDrawState() {
     const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
-    console.log(sheet)
     const sprite = this.getMonsterDraw()
 
     const unsub = this.map.subscribe('tick', (e: CustomEvent<number>) => {
@@ -338,8 +332,8 @@ export class AdventureMonster {
     imageContainer.addChild(hp) // 1
     imageContainer.addChild(circle) // 2
 
+    this.drawRange(this.drawInfo.shootRange)
     this.draw()
-    this.drawRange()
 
     this.map.markDirty()
   }
@@ -415,8 +409,8 @@ export class AdventureMonster {
     hpdraw.fill('green')
   }
 
-  private drawRange() {
-    const range = this.game.mode === ActionMode.MOVE ? this.drawInfo.moveRange : this.drawInfo.shootRange
+  private drawRange(range: number) {
+    // const range = this.game.mode === ActionMode.MOVE ? this.drawInfo.moveRange : this.drawInfo.shootRange
     let circle = this.imageContainer.getChildAt(2) as Graphics
     circle.clear()
     circle.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * (range + 0.5))  // x, y, radius
