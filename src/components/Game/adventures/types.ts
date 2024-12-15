@@ -1,4 +1,5 @@
 import { PointData } from 'pixi.js'
+import { PixelImage } from '../types'
 
 export interface MonsterState {
   id: number  // 8bit
@@ -17,6 +18,9 @@ export interface AdventureStates {
   coverPixels: {[id: number]: number[]}
   // monsterIsLeft
   monsterIsLeft: {[id: number]: boolean}
+
+  // image blocks
+  imageBlocks?: PixelImage[]
 }
 
 export interface AdventureStateUpdates {

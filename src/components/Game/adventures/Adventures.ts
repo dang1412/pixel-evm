@@ -1,5 +1,5 @@
 import { sound } from '@pixi/sound'
-import { Assets, Container, Sprite, Spritesheet, Texture } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
 
 import { ViewportMap } from '../ViewportMap'
 import { PIXEL_SIZE, positionToXY, xyToPosition } from '../utils'
@@ -11,6 +11,8 @@ import { getMonsterInfo, getMonsterTypes, LOOP_TIME} from './constants'
 import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
 import { mainLoop } from './gamelogic/mainloop'
 import { AttackType } from './gamelogic/types'
+import { mockImages } from '../mock/images'
+import { PixelImage } from '../types'
 
 export enum ActionMode {
   MOVE,
@@ -48,7 +50,7 @@ export interface DragOptions {
 const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg']
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {} }
+  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {}, imageBlocks: [] }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -181,7 +183,25 @@ export class Adventures {
       proceedMove()
     }, LOOP_TIME)
 
+    // this.drawFog()
+
+    // add main scene
+    this.addMainScene(mockImages)
+    this.loadMonsterList()
+
     this.drawControls()
+  }
+
+  private pixelImageMap: {[pixel: number]: PixelImage} = {}
+  private addMainScene(images: PixelImage[]) {
+    const scene = this.map.addScene('main', 100, 100)
+    scene.loadImages(images)
+
+    this.states.imageBlocks = images
+
+    for (const image of images) {
+      
+    }
   }
 
   private drawControls() {
@@ -219,7 +239,9 @@ export class Adventures {
   }
 
   startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {
-    const shadow = this.map.addImage(image, {x: -1, y: 0, w, h})
+    const scene = this.map.getActiveScene()
+    if (!scene) return
+    const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
     shadow.alpha = 0.4
 
     const unsub = this.map.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
@@ -240,7 +262,7 @@ export class Adventures {
     })
   }
 
-  async loadMonsterList() {
+  private loadMonsterList() {
     const monsterContainer = new Container()
     monsterContainer.interactive = true
 
@@ -398,7 +420,7 @@ export class Adventures {
     monster.select(true)
     this.selectingMonster = monster
   }
-  
+
   private async drawMonsters(monsterStates: MonsterState[]) {
     for (const monsterState of monsterStates) {
       // update monsterState for client
@@ -430,5 +452,23 @@ export class Adventures {
 
       monster.updateState(monsterState)
     }
+  }
+
+  private drawFog() {
+    const fogOfWar = new Graphics()
+    fogOfWar.rect(0, 0, 1000, 1000)
+    fogOfWar.fill({ color: 0x000000, alpha: 0.7 })
+    // fogOfWar.beginFill(0x000000, 0.7); // Dark semi-transparent fog
+    // fogOfWar.drawRect(0, 0, app.screen.width, app.screen.height);
+    // fogOfWar.endFill();
+
+    const lightSource = new Graphics()
+    lightSource.circle(200, 200, 100)
+    lightSource.fill(0xffffff)
+
+    this.map.wrapper.mask = lightSource
+
+    // this.map.container.addChild(fogOfWar)
+    // this.map.container.addChild(lightSource)
   }
 }

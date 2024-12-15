@@ -3,6 +3,7 @@ import { Viewport } from 'pixi-viewport'
 
 import { Minimap } from './Minimap'
 import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
+import { ViewportScene } from './ViewportScene'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
@@ -20,24 +21,54 @@ export interface ViewportMapOptions {
 export class ViewportMap {
   renderer: Renderer
   viewport: Viewport | undefined
-  container: Container
+  // container: Container
 
   wrapper: Container
   minimap: Minimap | undefined
 
   eventTarget = new EventTarget()
 
+  scenes: {[name: string]: ViewportScene} = {}
+  activeScene = ''
+
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
-    this.container = new Container()
+    // this.container = new Container()
+  }
+
+  addScene(name: string, pixelWidth: number, pixelHeight: number): ViewportScene {
+    const scene = new ViewportScene(this, pixelWidth, pixelHeight)
+    this.scenes[name] = scene
+
+    if (!this.activeScene) {
+      this.activate(name)
+    }
+
+    return scene
+  }
+
+  getActiveScene(): ViewportScene | undefined {
+    const scene = this.scenes[this.activeScene]
+    return scene
+  }
+
+  activate(name: string) {
+    this.activeScene = name
+    const scene = this.getActiveScene()
+    if (scene) {
+      this.viewport?.removeChildren()
+      this.viewport?.addChild(scene.container)
+      this.updateMinimap()
+    }
   }
 
   updateMinimap() {
-    if (!this.viewport || !this.minimap || !this.container) return
+    const scene = this.getActiveScene()
+    if (!this.viewport || !this.minimap || !scene) return
 
     const { top, left, worldScreenWidth, worldScreenHeight, worldWidth, worldHeight } = this.viewport
-    this.minimap.update(worldWidth, worldHeight, top, left, worldScreenWidth, worldScreenHeight, this.container)
+    this.minimap.update(worldWidth, worldHeight, top, left, worldScreenWidth, worldScreenHeight, scene.container)
   }
 
   resize(w: number, h: number) {
@@ -65,13 +96,14 @@ export class ViewportMap {
       events: this.renderer.events,
     })
 
-    const container = this.container = new Container()
-    viewport.addChild(container)
+    // const container = this.container = new Container()
+    // viewport.addChild(container)
 
     this.minimap = new Minimap(this.renderer)
     this.minimap.container.position.set(10, 10)
 
     this.wrapper.addChild(viewport)
+
     this.wrapper.addChild(this.minimap.container)
     viewport
       .drag()
@@ -83,17 +115,15 @@ export class ViewportMap {
       .clamp({direction: 'all'})
       .clampZoom({minScale: 1, maxScale: 20})
 
-    for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
-      const rect = new Graphics()
-      rect.rect(x, y, 120, 120)
-      rect.fill('green')
-      this.container.addChild(rect)
-    }
+    // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
+    //   const rect = new Graphics()
+    //   rect.rect(x, y, 120, 120)
+    //   rect.fill('green')
+    //   this.container.addChild(rect)
+    // }
 
     viewport.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
-
-    this.updateMinimap()
-    this.drawGrid()
+    // this.drawGrid()
     this.runUpdate()
 
     viewport.on('clicked', (e) => {
@@ -213,59 +243,35 @@ export class ViewportMap {
     return PIXEL_SIZE
   }
 
-  async animate(area: PixelArea, frameCount: number, prefix = '', slow = 3): Promise<void> {
-    const container = await this.addImage('', area)
-    const sprite = container.getChildAt(0) as Sprite
+  // async animate(area: PixelArea, frameCount: number, prefix = '', slow = 3): Promise<void> {
+  //   const container = await this.addImage('', area)
+  //   const sprite = container.getChildAt(0) as Sprite
 
-    let count = 0
-    const unsub = this.subscribe('tick', () => {
-      if (count % slow === 0) {
-        // next frame
-        const frameNum = count / slow
-        const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
+  //   let count = 0
+  //   const unsub = this.subscribe('tick', () => {
+  //     if (count % slow === 0) {
+  //       // next frame
+  //       const frameNum = count / slow
+  //       const frameStr = (frameNum < 10 ? `0` : '') + `${frameNum}`
 
-        // update to next frame
-        const t = Texture.from(`${prefix}${frameStr}.png`)
-        sprite.texture = t
+  //       // update to next frame
+  //       const t = Texture.from(`${prefix}${frameStr}.png`)
+  //       sprite.texture = t
         
-        if (frameNum === frameCount) {
-          // stop animation
-          container.parent.removeChild(container)
-          unsub()
-          count = 0
-        }
-      }
-      count ++
-      this.markDirty()
-    })
+  //       if (frameNum === frameCount) {
+  //         // stop animation
+  //         container.parent.removeChild(container)
+  //         unsub()
+  //         count = 0
+  //       }
+  //     }
+  //     count ++
+  //     this.markDirty()
+  //   })
 
-    // kick-off animation
-    this.markDirty()
-  }
-
-  addImage(url: string, area: PixelArea, container?: Container): Container {
-    if (!this.viewport || !this.container) return new Container()
-
-    // create container
-    container = container ? container : new Container()
-
-    container.x = area.x * PIXEL_SIZE
-    container.y = area.y * PIXEL_SIZE
-
-    // add image
-    const image = new Sprite(url ? Texture.from(url) : undefined)
-    if (area.w && area.h) {
-      image.width = area.w * PIXEL_SIZE
-      image.height = area.h * PIXEL_SIZE
-    }
-    container.addChild(image)
-
-    this.container.addChild(container)
-
-    this.viewport.dirty = true
-
-    return container
-  }
+  //   // kick-off animation
+  //   this.markDirty()
+  // }
 
   private runUpdate() {
     let lastrun = performance.now()
@@ -284,33 +290,5 @@ export class ViewportMap {
     }
 
     tick()
-  }
-
-  private drawGrid() {
-    if (!this.viewport) return
-
-    const g = new Graphics()
-    this.viewport.addChild(g)
-
-    const pixelWidth = WORLD_WIDTH / PIXEL_SIZE
-    const pixelHeight = WORLD_HEIGHT / PIXEL_SIZE
-
-    // draw vertical lines
-    for (let i = 0; i <= pixelWidth; i++) {
-      const pos = i * PIXEL_SIZE
-      g.moveTo(pos, 0)
-      g.lineTo(pos, WORLD_HEIGHT)
-      // g.fill(0xff3300)
-      g.stroke({ width: 0.4, color: 0x888888,  })
-    }
-
-    // draw horizon lines
-    for (let i = 0; i <= pixelHeight; i++) {
-      const pos = i * PIXEL_SIZE
-      g.moveTo(0, pos)
-      g.lineTo(WORLD_WIDTH, pos)
-      // g.fill(0xff3300)
-      g.stroke({ width: 0.4, color: 0x888888 })
-    }
   }
 }

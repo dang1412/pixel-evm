@@ -53,7 +53,7 @@ export enum MoveDir {
 export class AdventureMonster {
   curP: PointData
   // curY: number
-  imageContainer: Container
+  imageContainer = new Container()
   map: ViewportMap
 
   // range = 4
@@ -71,14 +71,17 @@ export class AdventureMonster {
     this.curP = state.pos
     // this.curX = state.pos.x
     // this.curY = state.pos.y
-    
+
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
     const { image, w, h } = this.drawInfo
-    this.imageContainer = this.map.addImage(image, { x: this.curP.x, y: this.curP.y, w: 0, h: 0 })
-    this.initialize()
-    this.initializeDrawState()
+    const scene = this.map.getActiveScene()
+    if (scene) {
+      this.imageContainer = scene.addImage(image, { x: this.curP.x, y: this.curP.y, w: 0, h: 0 }) || new Container()
+      this.initialize()
+      this.initializeDrawState()
+    }
   }
 
   move(dir: MoveDir) {
@@ -420,10 +423,12 @@ export class AdventureMonster {
   }
 
   private async shoot(x: number, y: number) {
-    const energy = this.map.addImage('/images/energy2.png', { x: this.curP.x, y: this.curP.y, w: 1, h: 1 })
+    const scene = this.map.getActiveScene()
+    if (!scene) return
+    const energy = scene.addImage('/images/energy2.png', { x: this.curP.x, y: this.curP.y, w: 1, h: 1 })
     sound.play('shoot', {volume: 0.4})
     await this.moveObject(energy, this.curP.x, this.curP.y, x, y)
-    this.map.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
+    // scene.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
     sound.play('explode1', {volume: 0.4})
     energy.parent.removeChild(energy)
   }
