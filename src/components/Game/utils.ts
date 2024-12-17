@@ -1,3 +1,5 @@
+import { PixelArea } from "./ViewportMap"
+
 export const PIXEL_SIZE = 30
 export const MAP_W = 100
 export const MAP_H = 100
@@ -24,4 +26,16 @@ export function position10ToXY(p: number): {x: number, y: number} {
 
 export function xyToPosition10(x: number, y: number): number {
   return Math.round((y * 10)) * MAP_W10 + Math.round(x * 10)
+}
+
+export function getAreaPixels({x, y, w, h}: PixelArea): number[] {
+  const pixels: number[] = []
+
+  for (let i = 0; i < w; i++) {
+    for (let j = 0; j < h; j++) {
+      pixels.push(xyToPosition(x + i, y + j))
+    }
+  }
+
+  return pixels
 }

@@ -1,9 +1,10 @@
 import { PointData } from 'pixi.js'
-import { positionToXY } from '../../utils'
+
+import { getAreaPixels } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
 import { AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from '../types'
 import { AttackType } from './types'
-import { getPixels, updateRemoveMonster } from './utils'
+import { updateRemoveMonster } from './utils'
 
 const defaultAttackRange: PixelArea = { x: 1, y: 0, w: 1, h: 1 }
 
@@ -53,7 +54,7 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
 
   const damageArea = p.y >= 100 ? getMeleeDamageArea(monster, p.x as AttackType, monsterIsLeft[id]) : { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
 
-  const pixels = getPixels(damageArea)
+  const pixels = getAreaPixels(damageArea)
   
   for (const pixel of pixels) {
     const hurtMonsterIds = posMonster[pixel] || []

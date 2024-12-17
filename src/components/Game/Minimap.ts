@@ -2,6 +2,7 @@ import { Container, Graphics, RenderTexture, Renderer, Sprite } from 'pixi.js'
 
 export class Minimap {
   private renderTexture: RenderTexture
+  private mapSprite: Sprite
   private viewBorder: Graphics
   private worldBorder: Graphics
 
@@ -9,7 +10,7 @@ export class Minimap {
 
   constructor(private renderer: Renderer) {
     const renderTexture = this.renderTexture = RenderTexture.create({ width: 120, height: 120 })
-    const mapSprite = new Sprite(renderTexture)
+    const mapSprite = this.mapSprite = new Sprite(renderTexture)
 
     const worldBorder = this.worldBorder = new Graphics()
     const viewBorder = this.viewBorder = new Graphics()
@@ -47,7 +48,8 @@ export class Minimap {
       .stroke({ width: 1, color: 0xCCC })
 
     // redraw minimap
-    // this.mapSprite.scale.x = this.mapSprite.scale.y = ratio
+    this.mapSprite.scale.x = ratio * worldWidth / 120
+    this.mapSprite.scale.y = ratio * worldHeight / 120
     // update renderTexture size to cover whole map
     this.renderTexture.resize(worldWidth, worldHeight)
 

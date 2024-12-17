@@ -1,9 +1,11 @@
 import { sound } from '@pixi/sound'
 import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
+import { ButtonContainer } from '@pixi/ui'
 
 import { ViewportMap } from '../ViewportMap'
-import { PIXEL_SIZE, positionToXY, xyToPosition } from '../utils'
+import { getAreaPixels, PIXEL_SIZE, xyToPosition } from '../utils'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
+
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
 import { AdventureMonster, DrawState, MoveDir } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
@@ -13,6 +15,7 @@ import { mainLoop } from './gamelogic/mainloop'
 import { AttackType } from './gamelogic/types'
 import { mockImages } from '../mock/images'
 import { PixelImage } from '../types'
+import { ViewportScene } from '../ViewportScene'
 
 export enum ActionMode {
   MOVE,
@@ -47,7 +50,7 @@ export interface DragOptions {
   h?: number
 }
 
-const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg']
+const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg', '/svgs/back.svg']
 
 export class Adventures {
   states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {}, imageBlocks: [] }
@@ -72,6 +75,13 @@ export class Adventures {
         const monster = this.monsterMap[id]
         if (monster) {
           this.selectMon(monster)
+        }
+      } else {
+        const pixel = xyToPosition(x, y)
+        const pixelImage = this.pixelImageMap[pixel]
+        if (pixelImage) {
+          console.log('Open', pixelImage)
+          this.openPixelImage(pixelImage)
         }
       }
     })
@@ -107,7 +117,7 @@ export class Adventures {
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
-    Assets.load([...controlIcons, '/images/energy2.png'])
+    await Assets.load([...controlIcons, '/images/energy2.png'])
     // await loadSpriteSheet('/animations/megaman/mm-01.json')
     // await loadSpriteSheet('/animations/monster/monster.json')
 
@@ -190,18 +200,58 @@ export class Adventures {
     this.loadMonsterList()
 
     this.drawControls()
+    this.drawBackButton()
+  }
+
+  private drawBackButton() {
+    const button = new ButtonContainer(
+      // new Graphics()
+      //   .roundRect(0, 0, 40, 20, 10)
+      //   .fill(0xFF0000)
+      new Sprite(Texture.from('/svgs/back.svg'))
+    )
+
+    button.x = 140
+    button.y = 10
+    button.onPress.connect(() => this.map.activate('main'))
+
+    this.map.wrapper.addChild(button)
   }
 
   private pixelImageMap: {[pixel: number]: PixelImage} = {}
+  private pixelSceneMap: {[pixel: number]: ViewportScene} = {}
+
   private addMainScene(images: PixelImage[]) {
     const scene = this.map.addScene('main', 100, 100)
     scene.loadImages(images)
 
     this.states.imageBlocks = images
 
+    // update pixelImageMap
     for (const image of images) {
-      
+      const pixels = getAreaPixels(image.area)
+      for (const pixel of pixels) {
+        this.pixelImageMap[pixel] = image
+      }
     }
+  }
+
+  private openPixelImage(image: PixelImage) {
+    // get top-left pixel
+    const { x, y, w, h } = image.area
+    const pixel = xyToPosition(x, y)
+    const sceneName = `${pixel}`
+    if (!this.pixelSceneMap[pixel]) {
+      // create new scene
+      const scene = this.map.addScene(sceneName, w * 10, h * 10, image.imageUrl)
+      this.pixelSceneMap[pixel] = scene
+      // load subImages in scene
+      if (image.subImages) scene.loadImages(image.subImages)
+    } else {
+
+    }
+
+    this.map.activate(sceneName)
   }
 
   private drawControls() {

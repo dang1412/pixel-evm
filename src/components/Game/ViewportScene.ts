@@ -7,13 +7,18 @@ import { PixelImage } from './types'
 export class ViewportScene {
   container = new Container()
 
-  constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number) {
+  constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number, bgUrl = '') {
     this.drawGrid()
-    for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
-      const rect = new Graphics()
-      rect.rect(x, y, 120, 120)
-      rect.fill('green')
-      this.container.addChild(rect)
+    // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
+    //   const rect = new Graphics()
+    //   rect.rect(x, y, 120, 120)
+    //   rect.fill('green')
+    //   this.container.addChild(rect)
+    // }
+    // background
+    if (bgUrl) {
+      const image = this.addImage(bgUrl, { x: 0, y: 0, w: pixelWidth, h: pixelHeight })
+      image.alpha = 0.15
     }
   }
 

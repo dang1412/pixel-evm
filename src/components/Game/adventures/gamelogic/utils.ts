@@ -1,8 +1,9 @@
 import { PointData } from 'pixi.js'
-import { xyToPosition } from '../../utils'
+
+import { getAreaPixels } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
 import { getMonsterInfo } from '../constants'
-import { AdventureStates, MonsterState, MonsterType } from '../types'
+import { AdventureStates, MonsterType } from '../types'
 
 export function getMonsterPixels(x: number, y: number, type: MonsterType): number[] {
   const floorx = Math.floor(x)
@@ -14,20 +15,20 @@ export function getMonsterPixels(x: number, y: number, type: MonsterType): numbe
 
   const area: PixelArea = {x: floorx, y: floory, w, h }
 
-  return getPixels(area)
+  return getAreaPixels(area)
 }
 
-export function getPixels({x, y, w, h}: PixelArea): number[] {
-  const pixels: number[] = []
+// export function getPixels({x, y, w, h}: PixelArea): number[] {
+//   const pixels: number[] = []
 
-  for (let i = 0; i < w; i++) {
-    for (let j = 0; j < h; j++) {
-      pixels.push(xyToPosition(x + i, y + j))
-    }
-  }
+//   for (let i = 0; i < w; i++) {
+//     for (let j = 0; j < h; j++) {
+//       pixels.push(xyToPosition(x + i, y + j))
+//     }
+//   }
 
-  return pixels
-}
+//   return pixels
+// }
 
 export function moveToward(x1: number, y1: number, x2: number, y2: number, d: number): { x: number, y: number } {
   // Calculate the distance between (x1, y1) and (x2, y2)

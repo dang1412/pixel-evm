@@ -21,9 +21,9 @@ export interface ViewportMapOptions {
 export class ViewportMap {
   renderer: Renderer
   viewport: Viewport | undefined
-  // container: Container
 
   wrapper: Container
+  viewportContainer: Container
   minimap: Minimap | undefined
 
   eventTarget = new EventTarget()
@@ -34,11 +34,11 @@ export class ViewportMap {
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
-    // this.container = new Container()
+    this.viewportContainer = new Container()
   }
 
-  addScene(name: string, pixelWidth: number, pixelHeight: number): ViewportScene {
-    const scene = new ViewportScene(this, pixelWidth, pixelHeight)
+  addScene(name: string, pixelWidth: number, pixelHeight: number, bgUrl = ''): ViewportScene {
+    const scene = new ViewportScene(this, pixelWidth, pixelHeight, bgUrl)
     this.scenes[name] = scene
 
     if (!this.activeScene) {
@@ -54,12 +54,27 @@ export class ViewportMap {
   }
 
   activate(name: string) {
-    this.activeScene = name
-    const scene = this.getActiveScene()
-    if (scene) {
-      this.viewport?.removeChildren()
-      this.viewport?.addChild(scene.container)
+    if (this.activeScene === name) return
+
+    const scene = this.scenes[name]
+    if (scene && this.viewport) {
+      if (this.activeScene) {
+        const prev = this.getActiveScene()
+        if (prev) this.viewportContainer.removeChild(prev.container)
+      }
+      console.log('Activate', name)
+      this.activeScene = name
+      this.viewportContainer.addChild(scene.container)
+
+      const newWorldWidth = PIXEL_SIZE * scene.pixelWidth
+      const newWorldHeight = PIXEL_SIZE * scene.pixelHeight
+      const { screenWidth, screenHeight, worldWidth, worldHeight } = this.viewport
+      console.log(screenWidth, screenHeight, worldWidth, worldHeight, '---', newWorldWidth, newWorldHeight)
+      this.viewport.resize(screenWidth, screenHeight, newWorldWidth, newWorldHeight)
+      this.viewport.fitWidth()
+      this.viewport.moveCenter(newWorldWidth / 2, newWorldHeight / 2)
       this.updateMinimap()
+      this.markDirty()
     }
   }
 
@@ -95,9 +110,7 @@ export class ViewportMap {
       passiveWheel: false,
       events: this.renderer.events,
     })
-
-    // const container = this.container = new Container()
-    // viewport.addChild(container)
+    viewport.addChild(this.viewportContainer)
 
     this.minimap = new Minimap(this.renderer)
     this.minimap.container.position.set(10, 10)
@@ -114,13 +127,6 @@ export class ViewportMap {
       .wheel()
       .clamp({direction: 'all'})
       .clampZoom({minScale: 1, maxScale: 20})
-
-    // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
-    //   const rect = new Graphics()
-    //   rect.rect(x, y, 120, 120)
-    //   rect.fill('green')
-    //   this.container.addChild(rect)
-    // }
 
     viewport.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
     // this.drawGrid()
@@ -279,6 +285,7 @@ export class ViewportMap {
       if (this.viewport?.dirty) {
         this.renderer.render(this.wrapper)
         this.viewport.dirty = false
+        console.log('tick')
   
         // calculate tick duration
         const current = performance.now()
