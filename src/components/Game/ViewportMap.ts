@@ -23,7 +23,6 @@ export class ViewportMap {
   viewport: Viewport | undefined
 
   wrapper: Container
-  viewportContainer: Container
   minimap: Minimap | undefined
 
   eventTarget = new EventTarget()
@@ -34,7 +33,6 @@ export class ViewportMap {
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
-    this.viewportContainer = new Container()
   }
 
   addScene(name: string, pixelWidth: number, pixelHeight: number, bgUrl = ''): ViewportScene {
@@ -58,13 +56,13 @@ export class ViewportMap {
 
     const scene = this.scenes[name]
     if (scene && this.viewport) {
-      if (this.activeScene) {
-        const prev = this.getActiveScene()
-        if (prev) this.viewportContainer.removeChild(prev.container)
+      const prev = this.getActiveScene()
+      if (prev) {
+        this.viewport.removeChild(prev.container)
       }
       console.log('Activate', name)
       this.activeScene = name
-      this.viewportContainer.addChild(scene.container)
+      this.viewport.addChild(scene.container)
 
       const newWorldWidth = PIXEL_SIZE * scene.pixelWidth
       const newWorldHeight = PIXEL_SIZE * scene.pixelHeight
@@ -110,7 +108,6 @@ export class ViewportMap {
       passiveWheel: false,
       events: this.renderer.events,
     })
-    viewport.addChild(this.viewportContainer)
 
     this.minimap = new Minimap(this.renderer)
     this.minimap.container.position.set(10, 10)

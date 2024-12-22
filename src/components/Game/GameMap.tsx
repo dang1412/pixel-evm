@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { MonsterControl } from './Control'
 import { useAdventure } from './hooks/useAdventure'
 import { Address, RTCConnectState } from '@/lib/RTCConnectClients'
 import { MenuModal } from './MenuModal'
 import { ConnectingState } from './ConnectingState'
 import { useWebRTCConnect } from './hooks/useWebRTCConnects'
-import { MonsterType } from './adventures/types'
 
 interface Props {}
 
@@ -54,9 +52,9 @@ export const GameMap: React.FC<Props> = (props) => {
     if (!adventures || adventures.isServer) return
     // await adventures.rtcClients.connectWallet()
     adventures.startServer()
-    adventures.addMonsters([
-      {id: 0, pos: {x: 55, y: 50}, target: {x: 55, y: 50}, hp: 10, type: MonsterType.MEGAMAN},
-    ])
+    // adventures.addMonsters([
+    //   {id: 0, pos: {x: 55, y: 50}, target: {x: 55, y: 50}, hp: 10, type: MonsterType.MEGAMAN},
+    // ])
 
     setIsMenuModalOpen(false)
   }, [adventures])
