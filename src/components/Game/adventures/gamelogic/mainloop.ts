@@ -1,6 +1,7 @@
 import { getMonsterInfo } from '../constants'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from '../types'
 import { applyAttackAction } from './applyAttackAction'
+import { applyChangeMapAction } from './applyChangeMapAction'
 import { getMonsterPixels, moveToward, roundPos, updateCoverPixel } from './utils'
 
 export function mainLoop(states: AdventureStates, actions: AdventureAction[]): AdventureStateUpdates {
@@ -12,6 +13,8 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 
     if (type === ActionType.MOVE) {
       states.monsters[id].target = pos
+    } else if (type === ActionType.ENTER) {
+      applyChangeMapAction(states, updates, id, pos)
     } else if (type === ActionType.SHOOT) {
       applyAttackAction(states, updates, id, pos)
       updates.actions.push(action)
@@ -24,7 +27,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 }
 
 function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
-  const { posMonster, monsters, monsterIsLeft } = states
+  const { monsters, monsterIsLeft } = states
   for (const monster of Object.values(monsters)) {
     const curp = monster.pos
     const tarp = monster.target

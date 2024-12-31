@@ -46,8 +46,10 @@ function getMeleeDamageArea(monster: MonsterState, type: AttackType, isLeft: boo
 }
 
 export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: PointData): boolean {
-  const { posMonster, monsters, monsterIsLeft } = states
+  const { mapIdxPosMonsters, monsters, monsterIsLeft } = states
   const monster = monsters[id]
+
+  const posMonsters = mapIdxPosMonsters[monster.mapIdx] || {}
 
   // already dead
   if (!monster) return false
@@ -57,7 +59,7 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
   const pixels = getAreaPixels(damageArea)
   
   for (const pixel of pixels) {
-    const hurtMonsterIds = posMonster[pixel] || []
+    const hurtMonsterIds = posMonsters[pixel] || []
     for (const hurtMonsterId of hurtMonsterIds) {
       if (hurtMonsterId !== id) monsterGetHurt(states, updates, hurtMonsterId)
     }

@@ -2,13 +2,13 @@ import { position10ToXY, positionToXY, xyToPosition, xyToPosition10 } from '../.
 import { getMonsterPixels } from '../gamelogic/utils'
 import { AdventureStates, MonsterState } from '../types'
 
-export const encodeMonsterStateByteLen = 7
+export const encodeMonsterStateByteLen = 8
 
 export function encodeMonstersView(view: DataView, monsters: MonsterState[]): number {
   view.setUint8(0, monsters.length)
 
   let offset = 1
-  for (const { id, hp, type, target: {x: tx, y: ty}, pos: {x: px, y: py} } of monsters) {
+  for (const { id, hp, type, target: {x: tx, y: ty}, pos: {x: px, y: py}, mapIdx } of monsters) {
     view.setUint8(offset, id) // id 8bit
     view.setUint8(offset + 1, ((hp & 0x0F) << 4) | type & 0x0F) // hp: 4bit ,type: 4bit
     view.setUint16(offset + 2, xyToPosition(tx, ty)) // target: 16bit
@@ -16,6 +16,9 @@ export function encodeMonstersView(view: DataView, monsters: MonsterState[]): nu
     const pos = xyToPosition10(px, py)
     view.setUint16(offset + 4, pos >> 8) // pos top 16bit
     view.setUint8(offset + 6, pos & 0xFF) // pos bottom 8bit
+
+    // mapIdx
+    view.setUint8(offset + 7, mapIdx)
 
     offset += encodeMonsterStateByteLen
   }
@@ -37,6 +40,8 @@ export function decodeMonstersView(view: DataView): MonsterState[] {
     const val4 = view.getUint8(offset + 6) // pos bottom 8bit
     const pos = val3 << 8 | val4  // pos
 
+    const mapIdx = view.getUint8(offset + 7)
+
     offset += encodeMonsterStateByteLen
 
     monsters.push({
@@ -44,7 +49,8 @@ export function decodeMonstersView(view: DataView): MonsterState[] {
       hp: val2 >> 4,
       type: val2 & 0x0F,
       target: positionToXY(target),
-      pos: position10ToXY(pos)
+      pos: position10ToXY(pos),
+      mapIdx
     })
   }
 
@@ -62,7 +68,14 @@ export function encodeStates(states: AdventureStates): ArrayBuffer {
 }
 
 export function decodeStates(data: ArrayBuffer): AdventureStates {
-  const states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {} }
+  const states: AdventureStates = {
+    mapIdxPosMonsters: {},
+    monsters: {},
+    mapIdxMonsterCoverPixels: {},
+    monsterIsLeft: {},
+    monsterAttackStates: {},
+    imageBlocks: []
+  }
 
   const view = new DataView(data)
   const monsters = decodeMonstersView(view)
@@ -70,9 +83,17 @@ export function decodeStates(data: ArrayBuffer): AdventureStates {
   for (const monster of monsters) {
     states.monsters[monster.id] = monster
     const coverPixels = getMonsterPixels(monster.pos.x, monster.pos.y, monster.type)
-    states.coverPixels[monster.id] = coverPixels
+
+    if (!states.mapIdxMonsterCoverPixels[monster.mapIdx]) {
+      states.mapIdxMonsterCoverPixels[monster.mapIdx] = {}
+    }
+    states.mapIdxMonsterCoverPixels[monster.mapIdx][monster.id] = coverPixels
+    
     for (const pixel of coverPixels) {
-      states.posMonster[pixel] = [monster.id]
+      if (!states.mapIdxPosMonsters[monster.mapIdx]) {
+        states.mapIdxPosMonsters[monster.mapIdx] = {}
+      }
+      states.mapIdxPosMonsters[monster.mapIdx][pixel] = [monster.id]
     }
   }
 

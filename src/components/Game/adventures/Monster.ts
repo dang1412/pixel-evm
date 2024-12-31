@@ -64,11 +64,13 @@ export class AdventureMonster {
   drawInfo: MonsterInfo
 
   private isLeft = false
+  private curMapIdx
 
   private eventTarget = new EventTarget()
 
   constructor(public game: Adventures, public state: MonsterState) {
     this.curP = state.pos
+    this.curMapIdx = state.mapIdx
     // this.curX = state.pos.x
     // this.curY = state.pos.y
 
@@ -140,6 +142,10 @@ export class AdventureMonster {
   //   this.map.markDirty()
   // }
 
+  /**
+   * Send attack signal to server
+   * @param a
+   */
   sendAttack(a: AttackType) {
     // only send attack when no action state
     if (this.actionState === undefined) {
@@ -147,6 +153,10 @@ export class AdventureMonster {
     }
   }
 
+  /**
+   * Draw melee or range attack
+   * @param p
+   */
   drawAttack(p: PointData) {
     if (p.y === 100) {
       // melee attack
@@ -160,6 +170,9 @@ export class AdventureMonster {
     }
   }
 
+  /**
+   * Start control range attack
+   */
   startShoot() {
     let {x: tx, y: ty} = this.curP
     const range = this.drawInfo.shootRange
@@ -200,6 +213,13 @@ export class AdventureMonster {
     })
   }
 
+  // Enter land
+  enterLand(mapIdx: number) {
+    this.game.receiveAction({id: this.state.id, type: ActionType.ENTER, pos: {x: mapIdx, y: 0}})
+  }
+
+  // Monster animations
+
   private tickCount = 0
   private frameCount = 0
   private baseState = DrawState.Stand
@@ -233,7 +253,11 @@ export class AdventureMonster {
       this.map.markDirty()
 
       // move
-      this.proceedMove(e.detail)
+      if (this.state.mapIdx === this.curMapIdx) {
+        this.proceedMove(e.detail)
+      } else {
+        this.changeMap(this.state.mapIdx)
+      }
     })
 
     this.subscribeOnce('die', unsub)
@@ -245,6 +269,11 @@ export class AdventureMonster {
       this.isLeft = isLeft
       this.imageContainer.scale.x = isLeft ? -1 : 1
     }
+  }
+
+  private changeMap(mapIdx: number) {
+    this.curMapIdx = mapIdx
+    
   }
 
   // speed 1unit every 200ms

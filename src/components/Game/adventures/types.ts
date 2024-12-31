@@ -7,20 +7,24 @@ export interface MonsterState {
   type: MonsterType // 4bit
   target: PointData // 16bit
   pos: PointData // 24bit
+  mapIdx: number // 8bit
 }
 
 export interface AdventureStates {
   // main info
   monsters: {[id: number]: MonsterState}
-  // position to ids
-  posMonster: {[p: number]: number[]}
-  // id to cover pixels
-  coverPixels: {[id: number]: number[]}
+  // mapIdx, position to ids
+  mapIdxPosMonsters: {[idx: number]: {[p: number]: number[]}}
+  // mapIdx, monsterId to cover pixels
+  mapIdxMonsterCoverPixels: {[idx: number]: {[id: number]: number[]}}
   // monsterIsLeft
   monsterIsLeft: {[id: number]: boolean}
 
+  // attack state 0,1,2...
+  monsterAttackStates: {[id: number]: number}
+
   // image blocks
-  imageBlocks?: PixelImage[]
+  imageBlocks: PixelImage[]
 }
 
 export interface AdventureStateUpdates {
@@ -33,6 +37,7 @@ export enum ActionType {
   SHOOT,
   ONBOARD,
   WEAR,
+  ENTER,
 }
 
 export interface AdventureAction {

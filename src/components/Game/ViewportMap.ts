@@ -282,7 +282,6 @@ export class ViewportMap {
       if (this.viewport?.dirty) {
         this.renderer.render(this.wrapper)
         this.viewport.dirty = false
-        console.log('tick')
   
         // calculate tick duration
         const current = performance.now()

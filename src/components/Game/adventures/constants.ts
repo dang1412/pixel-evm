@@ -1,3 +1,4 @@
+import { AttackType } from './gamelogic/types'
 import { MonsterInfo, MonsterType } from './types'
 
 export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
@@ -60,3 +61,7 @@ export function getMonsterTypes(): MonsterType[] {
 }
 
 export const LOOP_TIME = 200
+
+export const MonsterAttack = {
+  [MonsterType.MEGAMAN]: [AttackType.A1, AttackType.A2, AttackType.A3, AttackType.A4, AttackType.A5]
+}

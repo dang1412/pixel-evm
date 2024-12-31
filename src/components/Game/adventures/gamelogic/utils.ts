@@ -51,36 +51,51 @@ export function moveToward(x1: number, y1: number, x2: number, y2: number, d: nu
   return { x, y }
 }
 
-export function updateCoverPixel({posMonster, coverPixels}: AdventureStates, id: number, nextCoverPixels: number[]) {
-  const curCoverPixels = coverPixels[id] || []
+export function updateCoverPixel({mapIdxPosMonsters, mapIdxMonsterCoverPixels, monsters}: AdventureStates, id: number, nextCoverPixels: number[]) {
+
+  const mapIdx = monsters[id].mapIdx
+  if (!mapIdxPosMonsters[mapIdx]) mapIdxPosMonsters[mapIdx] = {}
+  if (!mapIdxMonsterCoverPixels[mapIdx]) mapIdxMonsterCoverPixels[mapIdx] = {}
+
+  const monsterCoverPixels = mapIdxMonsterCoverPixels[mapIdx]
+  const curCoverPixels = monsterCoverPixels[id] || []
+
+  const posMonsters = mapIdxPosMonsters[mapIdx]
+
   for (const pixel of curCoverPixels) {
     // remove id from pixel
-    const ids = posMonster[pixel] || []
-    posMonster[pixel] = ids.filter((_id) => _id !== id)
+    const ids = posMonsters[pixel] || []
+    posMonsters[pixel] = ids.filter((_id) => _id !== id)
   }
   for (const pixel of nextCoverPixels) {
     // add id to pixel
-    if (posMonster[pixel]) {
-      posMonster[pixel].push(id)
+    if (posMonsters[pixel]) {
+      posMonsters[pixel].push(id)
     } else {
-      posMonster[pixel] = [id]
+      posMonsters[pixel] = [id]
     }
   }
 
-  coverPixels[id] = nextCoverPixels
+  monsterCoverPixels[id] = nextCoverPixels
 }
 
-export function updateRemoveMonster({ posMonster, coverPixels, monsters }: AdventureStates, id: number) {
-  const pixels = coverPixels[id]
+export function updateRemoveMonster({ mapIdxPosMonsters, mapIdxMonsterCoverPixels, monsters }: AdventureStates, id: number) {
+  const mapIdx = monsters[id].mapIdx
+
+  const monsterCoverPixels = mapIdxMonsterCoverPixels[mapIdx] || {}
+  const pixels = monsterCoverPixels[id] || []
+
+  const posMonsters = mapIdxPosMonsters[mapIdx] || {}
+
   // delete positions
   for (const p of pixels) {
     // remove id from pixel
-    const ids = posMonster[p] || []
-    posMonster[p] = ids.filter((_id) => _id !== id)
+    const ids = posMonsters[p] || []
+    posMonsters[p] = ids.filter((_id) => _id !== id)
   }
   // delete monster
   delete monsters[id]
-  delete coverPixels[id]
+  delete monsterCoverPixels[id]
 }
 
 export function roundPos(p: PointData) {

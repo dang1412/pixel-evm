@@ -53,7 +53,7 @@ export interface DragOptions {
 const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg', '/svgs/back.svg']
 
 export class Adventures {
-  states: AdventureStates = { posMonster: {}, monsters: {}, coverPixels: {}, monsterIsLeft: {}, imageBlocks: [] }
+  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {} }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -69,7 +69,8 @@ export class Adventures {
     this.map.subscribe('pixeldown', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
-      const ids = this.states.posMonster[pos] || []
+      const posMonsters = this.states.mapIdxPosMonsters[this.curMapIdx] || {}
+      const ids = posMonsters[pos] || []
       const id = ids[0]
       if (id >= 0) {
         const monster = this.monsterMap[id]
@@ -78,11 +79,15 @@ export class Adventures {
         }
       } else {
         const pixel = xyToPosition(x, y)
-        const pixelImage = this.pixelImageMap[pixel]
-        if (pixelImage) {
-          console.log('Open', pixelImage)
-          this.openPixelImage(pixelImage)
+        const idx = this.pixelIdxMap[pixel]
+        if (idx !== undefined) {
+          this.openPixelImage(idx)
         }
+        // const pixelImage = this.pixelImageMap[pixel]
+        // if (pixelImage) {
+        //   console.log('Open', pixelImage)
+        //   this.openPixelImage(pixelImage)
+        // }
       }
     })
 
@@ -218,40 +223,51 @@ export class Adventures {
     this.map.wrapper.addChild(button)
   }
 
-  private pixelImageMap: {[pixel: number]: PixelImage} = {}
-  private pixelSceneMap: {[pixel: number]: ViewportScene} = {}
+  // private idxImageMap: {[idx: number]: PixelImage} = {}
+  private idxSceneMap: {[idx: number]: ViewportScene} = {}
+  private pixelIdxMap: {[pixel: number]: number} = {}
+  private curMapIdx = 0
 
   private addMainScene(images: PixelImage[]) {
     const scene = this.map.addScene('main', 100, 100)
     scene.loadImages(images)
 
     this.states.imageBlocks = images
+    this.curMapIdx = images.length
+    this.idxSceneMap[this.curMapIdx] = scene
 
     // update pixelImageMap
-    for (const image of images) {
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i]
       const pixels = getAreaPixels(image.area)
       for (const pixel of pixels) {
-        this.pixelImageMap[pixel] = image
+        this.pixelIdxMap[pixel] = i
       }
     }
+
+    console.log(this.pixelIdxMap, this.curMapIdx)
   }
 
-  private openPixelImage(image: PixelImage) {
+  private openPixelImage(idx: number) {
+    const image = this.states.imageBlocks[idx]
+    if (!image) return
+
     // get top-left pixel
     const { x, y, w, h } = image.area
-    const pixel = xyToPosition(x, y)
-    const sceneName = `${pixel}`
-    if (!this.pixelSceneMap[pixel]) {
+    // const pixel = xyToPosition(x, y)
+    // const sceneName = `${pixel}`
+    if (!this.idxSceneMap[idx]) {
       // create new scene
-      const scene = this.map.addScene(sceneName, w * 10, h * 10, image.imageUrl)
-      this.pixelSceneMap[pixel] = scene
+      const scene = this.map.addScene(image.title, w * 10, h * 10, image.imageUrl)
+      this.idxSceneMap[idx] = scene
       // load subImages in scene
       if (image.subImages) scene.loadImages(image.subImages)
     } else {
-
+      // just activate
     }
 
-    this.map.activate(sceneName)
+    this.curMapIdx = idx
+    this.map.activate(image.title)
   }
 
   private drawControls() {
@@ -341,12 +357,7 @@ export class Adventures {
 
       this.startDrag(image, {
         onDrop: (x, y) => {
-          // drop monster
-          if (this.isServer) {
-            this.addMonster({ id: 0, hp: 10, type, pos: {x, y}, target: {x, y} })
-          } else {
-            this.sendActionToServer({ id: type, type: ActionType.ONBOARD, pos: {x, y} })
-          }
+          this.receiveAction({ id: type, type: ActionType.ONBOARD, pos: {x, y} })
         }
       })
     })
@@ -354,15 +365,17 @@ export class Adventures {
     this.map.markDirty()
   }
 
-  addMonsters(monsterStates: MonsterState[]) {
-    for (let state of monsterStates) {
-      this.addMonster(state)
-    }
-  }
+  // addMonsters(monsterStates: MonsterState[]) {
+  //   for (let state of monsterStates) {
+  //     this.addMonster(state)
+  //   }
+  // }
 
   addMonster(state: MonsterState) {
     if (this.isServer) {
+      console.log('Add monster', state)
       state.id = ++this.lastId
+      this.states.monsters[state.id] = state
       this.updateMonsterState(state)
       this.drawMonster(state)
 
@@ -372,13 +385,13 @@ export class Adventures {
     }
   }
 
-  // Server functions
+  // Server receive action, client send action to server
   receiveAction(action: AdventureAction) {
     if (this.isServer) {
       // server
       if (action.type === ActionType.ONBOARD) {
         const p = action.pos
-        this.addMonster({id: 0, hp: 10, type: action.id, target: p, pos: p})
+        this.addMonster({id: 0, hp: 10, type: action.id, target: p, pos: p, mapIdx: this.curMapIdx})
       } else {
         this.bufferActions.push(action)
       }
@@ -442,6 +455,7 @@ export class Adventures {
     this.isServer = true
   }
 
+  // draw updates for both server/client
   private async drawUpdates(updates: AdventureStateUpdates) {
     const { monsters, actions } = updates
     // draw actions shoot
