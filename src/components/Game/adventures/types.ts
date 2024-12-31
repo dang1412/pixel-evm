@@ -25,6 +25,8 @@ export interface AdventureStates {
 
   // image blocks
   imageBlocks: PixelImage[]
+
+  lastId: number
 }
 
 export interface AdventureStateUpdates {

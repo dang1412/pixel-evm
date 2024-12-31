@@ -1,5 +1,5 @@
 import { getMonsterInfo } from '../constants'
-import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates } from '../types'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from '../types'
 import { applyAttackAction } from './applyAttackAction'
 import { applyChangeMapAction } from './applyChangeMapAction'
 import { getMonsterPixels, moveToward, roundPos, updateCoverPixel } from './utils'
@@ -9,6 +9,29 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 
   for (const action of actions) {
     const { type, id, pos } = action
+
+    if (type === ActionType.ONBOARD) {
+      const newId = states.lastId++
+      const newMonster: MonsterState = {
+        id: newId,
+        type: id,
+        hp: 10,
+        pos,
+        target: pos,
+        mapIdx: 8,
+      }
+      console.log('New monster', newMonster)
+      states.monsters[newId] = newMonster
+      updates.monsters[newId] = newMonster
+
+      // update cover pixels
+      const coverPixels = getMonsterPixels(pos.x, pos.y, newMonster.type)
+      updateCoverPixel(states, newId, coverPixels)
+
+      continue
+    }
+
+    // Other action need monster exist
     if (!states.monsters[id]) continue
 
     if (type === ActionType.MOVE) {

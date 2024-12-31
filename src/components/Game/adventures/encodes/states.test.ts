@@ -12,6 +12,7 @@ describe('Test encode decode AdventureStates', () => {
     monsterIsLeft: {},
     monsterAttackStates: {},
     imageBlocks: [],
+    lastId: 0,
   }
 
   test('AdventureStates', () => {

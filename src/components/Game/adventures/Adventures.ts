@@ -53,7 +53,7 @@ export interface DragOptions {
 const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg', '/svgs/back.svg']
 
 export class Adventures {
-  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {} }
+  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {}, lastId: 0 }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -61,9 +61,6 @@ export class Adventures {
   serverAddr = ''
 
   mode = ActionMode.MOVE
-
-  // lastId
-  lastId = 0
 
   constructor(public map: ViewportMap, private options: AdventureOptions) {
     this.map.subscribe('pixeldown', (e) => {
@@ -244,8 +241,6 @@ export class Adventures {
         this.pixelIdxMap[pixel] = i
       }
     }
-
-    console.log(this.pixelIdxMap, this.curMapIdx)
   }
 
   private openPixelImage(idx: number) {
@@ -371,30 +366,24 @@ export class Adventures {
   //   }
   // }
 
-  addMonster(state: MonsterState) {
-    if (this.isServer) {
-      console.log('Add monster', state)
-      state.id = ++this.lastId
-      this.states.monsters[state.id] = state
-      this.updateMonsterState(state)
-      this.drawMonster(state)
+  // addMonster(state: MonsterState) {
+  //   if (this.isServer) {
+  //     console.log('Add monster', state)
+  //     state.id = ++this.lastId
+  //     this.states.monsters[state.id] = state
+  //     this.updateMonsterState(state)
+  //     this.drawMonster(state)
 
-      // send to clients
-      const data = encodeUpdates({monsters: {[state.id]: state}, actions: []})
-      if (data) this.options.sendAll(data)
-    }
-  }
+  //     // send to clients
+  //     const data = encodeUpdates({monsters: {[state.id]: state}, actions: []})
+  //     if (data) this.options.sendAll(data)
+  //   }
+  // }
 
   // Server receive action, client send action to server
   receiveAction(action: AdventureAction) {
     if (this.isServer) {
-      // server
-      if (action.type === ActionType.ONBOARD) {
-        const p = action.pos
-        this.addMonster({id: 0, hp: 10, type: action.id, target: p, pos: p, mapIdx: this.curMapIdx})
-      } else {
-        this.bufferActions.push(action)
-      }
+      this.bufferActions.push(action)
     } else if (this.serverAddr) {
       // client
       this.sendActionToServer(action)
@@ -488,7 +477,7 @@ export class Adventures {
   private async drawMonsters(monsterStates: MonsterState[]) {
     for (const monsterState of monsterStates) {
       // update monsterState for client
-      if (!this.isServer) this.updateMonsterState(monsterState)
+      // if (!this.isServer) this.updateMonsterState(monsterState)
       this.drawMonster(monsterState)
     }
   }
