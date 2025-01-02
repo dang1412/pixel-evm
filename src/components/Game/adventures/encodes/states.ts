@@ -76,6 +76,7 @@ export function decodeStates(data: ArrayBuffer): AdventureStates {
     monsterAttackStates: {},
     imageBlocks: [],
     lastId: 0,
+    mainMapIdx: 100
   }
 
   const view = new DataView(data)

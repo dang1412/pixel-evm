@@ -18,7 +18,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
         hp: 10,
         pos,
         target: pos,
-        mapIdx: 8,
+        mapIdx: states.mainMapIdx,
       }
       console.log('New monster', newMonster)
       states.monsters[newId] = newMonster

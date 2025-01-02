@@ -63,8 +63,8 @@ export class AdventureMonster {
   prevHP = 0
   drawInfo: MonsterInfo
 
+  curMapIdx
   private isLeft = false
-  private curMapIdx
 
   private eventTarget = new EventTarget()
 
@@ -123,7 +123,7 @@ export class AdventureMonster {
     }
     if (nextP.x !== curP.x || nextP.y !== curP.y) {
       roundPos(nextP)
-      this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, pos: nextP})
+      this.game.requestAction({id: this.state.id, type: ActionType.MOVE, pos: nextP})
     }
   }
 
@@ -149,7 +149,7 @@ export class AdventureMonster {
   sendAttack(a: AttackType) {
     // only send attack when no action state
     if (this.actionState === undefined) {
-      this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 100}})
+      this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 100}})
     }
   }
 
@@ -180,7 +180,7 @@ export class AdventureMonster {
     const int = setInterval(() => {
       if (tx === this.curP.x && ty === this.curP.y) return
       if (Math.abs(tx - this.curP.x) <= range && Math.abs(ty - this.curP.y) <= range) {
-        this.game.receiveAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: tx, y: ty}})
+        this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: tx, y: ty}})
       }
     }, this.drawInfo.shootSpeed)
 
@@ -207,7 +207,7 @@ export class AdventureMonster {
       onDrop: (x, y) => {
         this.map.resumeDrag()
         if (x !== this.state.target.x || y !== this.state.target.y) {
-          this.game.receiveAction({id: this.state.id, type: ActionType.MOVE, pos: {x, y}})
+          this.game.requestAction({id: this.state.id, type: ActionType.MOVE, pos: {x, y}})
         }
       }
     })
@@ -215,7 +215,7 @@ export class AdventureMonster {
 
   // Enter land
   enterLand(mapIdx: number) {
-    this.game.receiveAction({id: this.state.id, type: ActionType.ENTER, pos: {x: mapIdx, y: 0}})
+    this.game.requestAction({id: this.state.id, type: ActionType.ENTER, pos: {x: mapIdx, y: 0}})
   }
 
   // Monster animations
@@ -253,11 +253,11 @@ export class AdventureMonster {
       this.map.markDirty()
 
       // move
-      if (this.state.mapIdx === this.curMapIdx) {
-        this.proceedMove(e.detail)
-      } else {
+      if (this.state.mapIdx !== this.curMapIdx) {
         this.changeMap(this.state.mapIdx)
       }
+
+      this.proceedMove(e.detail)
     })
 
     this.subscribeOnce('die', unsub)
@@ -273,7 +273,11 @@ export class AdventureMonster {
 
   private changeMap(mapIdx: number) {
     this.curMapIdx = mapIdx
-    
+    this.imageContainer.parent.removeChild(this.imageContainer)
+
+    const scene = this.map.getActiveScene()
+    scene?.container.addChild(this.imageContainer)
+    this.curP = {x: this.state.pos.x -1, y: this.state.pos.y}
   }
 
   // speed 1unit every 200ms

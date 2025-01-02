@@ -50,10 +50,11 @@ export interface DragOptions {
   h?: number
 }
 
-const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg', '/svgs/back.svg']
+const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg']
+const controlButtons = ['/svgs/back.svg', '/svgs/door.svg']
 
 export class Adventures {
-  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {}, lastId: 0 }
+  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {}, lastId: 0, mainMapIdx: 0 }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()
@@ -119,7 +120,7 @@ export class Adventures {
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
-    await Assets.load([...controlIcons, '/images/energy2.png'])
+    await Assets.load([...controlIcons, ...controlButtons, '/images/energy2.png'])
     // await loadSpriteSheet('/animations/megaman/mm-01.json')
     // await loadSpriteSheet('/animations/monster/monster.json')
 
@@ -193,6 +194,8 @@ export class Adventures {
     setInterval(() => {
       proceedAttack()
       proceedMove()
+
+      this.checkAndShowEnterButton()
     }, LOOP_TIME)
 
     // this.drawFog()
@@ -205,6 +208,61 @@ export class Adventures {
     this.drawBackButton()
   }
 
+  private enterButton: ButtonContainer | undefined
+  private onImageIdx = -1
+
+  private drawEnterButton(scene: ViewportScene) {
+    const button = new ButtonContainer(
+      new Sprite(Texture.from('/svgs/door.svg'))
+    )
+
+    button.onPress.connect(() => {
+      if (this.selectingMonster && this.onImageIdx >= 0) {
+        // const image = this.states.imageBlocks[this.onImageIdx]
+        this.openPixelImage(this.onImageIdx)
+        this.selectingMonster.enterLand(this.onImageIdx)
+      }
+    })
+
+    scene.container.addChild(button)
+    this.enterButton = button
+  }
+
+  private getCoverPixels(monster: MonsterState): number[] {
+    const coverPixels = this.states.mapIdxMonsterCoverPixels[monster.mapIdx][monster.id]
+    if (coverPixels.length) return coverPixels
+
+    return getMonsterPixels(monster.pos.x, monster.pos.y, monster.type)
+  }
+
+  private getImageIdxOnPixels(pixels: number[]): number {
+    for (const pixel of pixels) {
+      const idx = this.pixelIdxMap[pixel]
+      if (idx >= 0) {
+        return idx
+      }
+    }
+
+    return -1
+  }
+
+  private checkAndShowEnterButton() {
+    if (!this.selectingMonster || !this.enterButton) return
+    if (this.selectingMonster.curMapIdx !== this.curMapIdx) return
+
+    const coverPixels = this.getCoverPixels(this.selectingMonster.state)
+    const mapIdx = this.getImageIdxOnPixels(coverPixels)
+    this.onImageIdx = mapIdx
+    if (mapIdx >= 0) {
+      const image = this.states.imageBlocks[mapIdx]
+      this.enterButton.visible = true
+      this.enterButton.x = (image.area.x - 1) * PIXEL_SIZE
+      this.enterButton.y = image.area.y * PIXEL_SIZE
+    } else {
+      this.enterButton.visible = false
+    }
+  }
+
   private drawBackButton() {
     const button = new ButtonContainer(
       // new Graphics()
@@ -215,7 +273,14 @@ export class Adventures {
 
     button.x = 140
     button.y = 10
-    button.onPress.connect(() => this.map.activate('main'))
+    button.onPress.connect(() => {
+      this.map.activate('main')
+      this.curMapIdx = this.states.mainMapIdx
+
+      if (this.selectingMonster) {
+        this.selectingMonster.enterLand(this.curMapIdx)
+      }
+    })
 
     this.map.wrapper.addChild(button)
   }
@@ -225,15 +290,18 @@ export class Adventures {
   private pixelIdxMap: {[pixel: number]: number} = {}
   private curMapIdx = 0
 
-  private addMainScene(images: PixelImage[]) {
+  private async addMainScene(images: PixelImage[]) {
     const scene = this.map.addScene('main', 100, 100)
-    scene.loadImages(images)
+    await scene.loadImages(images)
 
+    // update states
     this.states.imageBlocks = images
+    this.states.mainMapIdx = images.length
+
     this.curMapIdx = images.length
     this.idxSceneMap[this.curMapIdx] = scene
 
-    // update pixelImageMap
+    // update pixelIdxMap
     for (let i = 0; i < images.length; i++) {
       const image = images[i]
       const pixels = getAreaPixels(image.area)
@@ -241,6 +309,9 @@ export class Adventures {
         this.pixelIdxMap[pixel] = i
       }
     }
+
+    // add enter button
+    this.drawEnterButton(scene)
   }
 
   private openPixelImage(idx: number) {
@@ -263,6 +334,13 @@ export class Adventures {
 
     this.curMapIdx = idx
     this.map.activate(image.title)
+
+    // init monsters in new map
+    for (const monster of Object.values(this.states.monsters)) {
+      if (!this.monsterMap[monster.id] && monster.mapIdx === idx) {
+        this.monsterMap[monster.id] = new AdventureMonster(this, monster)
+      }
+    }
   }
 
   private drawControls() {
@@ -352,7 +430,7 @@ export class Adventures {
 
       this.startDrag(image, {
         onDrop: (x, y) => {
-          this.receiveAction({ id: type, type: ActionType.ONBOARD, pos: {x, y} })
+          this.requestAction({ id: type, type: ActionType.ONBOARD, pos: {x, y} })
         }
       })
     })
@@ -381,7 +459,7 @@ export class Adventures {
   // }
 
   // Server receive action, client send action to server
-  receiveAction(action: AdventureAction) {
+  requestAction(action: AdventureAction) {
     if (this.isServer) {
       this.bufferActions.push(action)
     } else if (this.serverAddr) {
@@ -426,12 +504,16 @@ export class Adventures {
   // Server receives action from client
   receiveActionData(data: ArrayBuffer) {
     const action = decodeAction(data)
-    this.receiveAction(action)
+    this.bufferActions.push(action)
+    // this.requestAction(action)
   }
 
   // Client receives updates from server
   receiveUpdatesData(data: ArrayBuffer) {
     const updates = decodeUpdates(data)
+    // update states's monsters
+    Object.assign(this.states.monsters, updates.monsters)
+    // apply updates
     this.drawUpdates(updates)
   }
 
@@ -457,7 +539,7 @@ export class Adventures {
     for (const { id, type, pos } of actions) {
       if (type === ActionType.SHOOT) {
         const monster = this.monsterMap[id]
-        monster.drawAttack(pos)
+        if (monster && monster.curMapIdx === this.curMapIdx) monster.drawAttack(pos)
       }
     }
   }
@@ -466,42 +548,48 @@ export class Adventures {
   selectingMonster: AdventureMonster | undefined
 
   selectMon(monster: AdventureMonster) {
-    if (this.selectingMonster && this.selectingMonster !== monster) {
+    if (this.selectingMonster) {
       this.selectingMonster.select(false)
     }
 
-    monster.select(true)
-    this.selectingMonster = monster
+    if (this.selectingMonster !== monster) {
+      monster.select(true)
+      this.selectingMonster = monster
+    } else {
+      this.selectingMonster = undefined
+    }
   }
 
-  private async drawMonsters(monsterStates: MonsterState[]) {
-    for (const monsterState of monsterStates) {
+  private async drawMonsters(monsters: MonsterState[]) {
+    for (const monster of monsters) {
       // update monsterState for client
       // if (!this.isServer) this.updateMonsterState(monsterState)
-      this.drawMonster(monsterState)
+      this.drawMonster(monster)
     }
   }
 
   // update state and postion - only client
-  private updateMonsterState(state: MonsterState) {
-    const { x, y } = state.pos
-    const nextCoverPixels = getMonsterPixels(x, y, state.type)
-    updateCoverPixel(this.states, state.id, nextCoverPixels)
-    console.log('updateCoverPixel', this.states, state)
+  // private updateMonsterState(state: MonsterState) {
+  //   const { x, y } = state.pos
+  //   const nextCoverPixels = getMonsterPixels(x, y, state.type)
+  //   updateCoverPixel(this.states, state.id, nextCoverPixels)
+  //   console.log('updateCoverPixel', this.states, state)
 
-    // update state
-    this.states.monsters[state.id] = state
-  }
+  //   // update state
+  //   this.states.monsters[state.id] = state
+  // }
 
   private async drawMonster(monsterState: MonsterState) {
     const monster = this.monsterMap[monsterState.id]
     if (!monster) {
-      this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
-    } else {
-      if (monsterState.hp === 0 && !this.isServer) {
-        // client remove monster from states
-        updateRemoveMonster(this.states, monsterState.id)
+      if (monsterState.mapIdx === this.curMapIdx) {
+        this.monsterMap[monsterState.id] = new AdventureMonster(this, monsterState)
       }
+    } else {
+      // if (monsterState.hp === 0 && !this.isServer) {
+      //   // client remove monster from states
+      //   updateRemoveMonster(this.states, monsterState.id)
+      // }
 
       monster.updateState(monsterState)
     }

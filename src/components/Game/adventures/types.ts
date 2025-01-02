@@ -13,6 +13,10 @@ export interface MonsterState {
 export interface AdventureStates {
   // main info
   monsters: {[id: number]: MonsterState}
+
+  /**
+   * Below info are for server-only
+   */
   // mapIdx, position to ids
   mapIdxPosMonsters: {[idx: number]: {[p: number]: number[]}}
   // mapIdx, monsterId to cover pixels
@@ -27,6 +31,8 @@ export interface AdventureStates {
   imageBlocks: PixelImage[]
 
   lastId: number
+
+  mainMapIdx: number
 }
 
 export interface AdventureStateUpdates {

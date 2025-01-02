@@ -22,11 +22,11 @@ export class ViewportScene {
     }
   }
 
-  loadImages(images: PixelImage[]) {
+  async loadImages(images: PixelImage[]) {
     const promises = images.map(image => Assets.load(image.imageUrl).then(() => {
       this.addImage(image.imageUrl, image.area)
     }))
-    Promise.all(promises).then(() => this.map.markDirty())
+    return Promise.all(promises).then(() => this.map.markDirty())
   }
 
   addImage(url: string, area: PixelArea): Container {
