@@ -52,6 +52,7 @@ export interface DragOptions {
 
 const controlIcons = ['/svgs/walk.svg', '/svgs/gun.svg']
 const controlButtons = ['/svgs/back.svg', '/svgs/door.svg']
+const usedImages = ['/images/energy2.png', '/images/select_aura.png']
 
 export class Adventures {
   states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {}, lastId: 0, mainMapIdx: 0 }
@@ -71,21 +72,18 @@ export class Adventures {
       const ids = posMonsters[pos] || []
       const id = ids[0]
       if (id >= 0) {
+        // select monster
         const monster = this.monsterMap[id]
         if (monster) {
           this.selectMon(monster)
         }
       } else {
+        // open map
         const pixel = xyToPosition(x, y)
         const idx = this.pixelIdxMap[pixel]
         if (idx !== undefined) {
           this.openPixelImage(idx)
         }
-        // const pixelImage = this.pixelImageMap[pixel]
-        // if (pixelImage) {
-        //   console.log('Open', pixelImage)
-        //   this.openPixelImage(pixelImage)
-        // }
       }
     })
 
@@ -120,7 +118,7 @@ export class Adventures {
     Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
-    await Assets.load([...controlIcons, ...controlButtons, '/images/energy2.png'])
+    await Assets.load([...controlIcons, ...controlButtons, ...usedImages])
     // await loadSpriteSheet('/animations/megaman/mm-01.json')
     // await loadSpriteSheet('/animations/monster/monster.json')
 

@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, PointData, Sprite, Spritesheet } from 'pixi.js'
+import { Assets, Container, Graphics, PointData, Sprite, Spritesheet, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
@@ -53,7 +53,7 @@ export enum MoveDir {
 export class AdventureMonster {
   curP: PointData
   // curY: number
-  imageContainer = new Container()
+  monsterContainer = new Container()
   map: ViewportMap
 
   // range = 4
@@ -80,7 +80,7 @@ export class AdventureMonster {
     const { image, w, h } = this.drawInfo
     const scene = this.map.getActiveScene()
     if (scene) {
-      this.imageContainer = scene.addImage(image, { x: this.curP.x, y: this.curP.y, w: 0, h: 0 }) || new Container()
+      this.monsterContainer = scene.addImage('/images/select_aura.png', { x: this.curP.x, y: this.curP.y, w: 0, h: 0 }) || new Container()
       this.initialize()
       this.initializeDrawState()
     }
@@ -267,16 +267,16 @@ export class AdventureMonster {
     // this.isLeft = isLeft
     if (this.isLeft !== isLeft) {
       this.isLeft = isLeft
-      this.imageContainer.scale.x = isLeft ? -1 : 1
+      this.monsterContainer.scale.x = isLeft ? -1 : 1
     }
   }
 
   private changeMap(mapIdx: number) {
     this.curMapIdx = mapIdx
-    this.imageContainer.parent.removeChild(this.imageContainer)
+    this.monsterContainer.parent.removeChild(this.monsterContainer)
 
     const scene = this.map.getActiveScene()
-    scene?.container.addChild(this.imageContainer)
+    scene?.container.addChild(this.monsterContainer)
     this.curP = {x: this.state.pos.x -1, y: this.state.pos.y}
   }
 
@@ -298,8 +298,8 @@ export class AdventureMonster {
       
       // move
       const { x, y } = moveToward(this.curP.x, this.curP.y, tx, ty, d)
-      this.imageContainer.x = (x + (this.isLeft ? this.drawInfo.w : 0)) * PIXEL_SIZE
-      this.imageContainer.y = y * PIXEL_SIZE
+      this.monsterContainer.x = (x + (this.isLeft ? this.drawInfo.w : 0)) * PIXEL_SIZE
+      this.monsterContainer.y = y * PIXEL_SIZE
 
       this.curP = {x, y}
     } else {
@@ -352,23 +352,28 @@ export class AdventureMonster {
   }
 
   private initialize() {
-    const { offX, offY } = this.drawInfo
-    const imageContainer = this.imageContainer
-    imageContainer.interactive = true
+    const { offX, offY, image } = this.drawInfo
+    const monsterContainer = this.monsterContainer
+    monsterContainer.interactive = true
 
-    const monsterDraw = this.getMonsterDraw()
+    // monster
+    const monsterDraw = new Sprite(Texture.from(image))
     monsterDraw.x = offX * PIXEL_SIZE
     monsterDraw.y = offY * PIXEL_SIZE
+    monsterContainer.addChild(monsterDraw) // 1
 
     // hp
     const hp = new Graphics()
-    // range
-    const circle = new Graphics()
+    monsterContainer.addChild(hp) // 2
 
-    imageContainer.addChild(hp) // 1
-    imageContainer.addChild(circle) // 2
+    // select
+    const selectAura = this.getSelectDraw()
+    selectAura.scale = 0.5
+    selectAura.x = -40
+    selectAura.y = -25
+    selectAura.visible = false
 
-    this.drawRange(this.drawInfo.shootRange)
+    // this.drawRange(this.drawInfo.shootRange)
     this.draw()
 
     this.map.markDirty()
@@ -378,15 +383,15 @@ export class AdventureMonster {
     if (!isSelect) {
       this.follow(false)
     }
-    let circle = this.getRangeDraw()
-    circle.visible = isSelect
+    let select = this.getSelectDraw()
+    select.visible = isSelect
     this.isSelecting = isSelect
     this.map.markDirty()
   }
 
   private follow(bool: boolean) {
     if (bool) {
-      this.game.map.viewport?.follow(this.imageContainer, { speed: 10 })
+      this.game.map.viewport?.follow(this.monsterContainer, { speed: 10 })
     } else {
       this.game.map.viewport?.plugins.remove('follow')
     }
@@ -409,16 +414,16 @@ export class AdventureMonster {
   //   })
   // }
 
-  private getRangeDraw(): Graphics {
-    return this.imageContainer.getChildAt(2) as Graphics
+  private getSelectDraw(): Sprite {
+    return this.monsterContainer.getChildAt(0) as Sprite
   }
 
   private getHpDraw(): Graphics {
-    return this.imageContainer.getChildAt(1) as Graphics
+    return this.monsterContainer.getChildAt(2) as Graphics
   }
 
   private getMonsterDraw(): Sprite {
-    return this.imageContainer.getChildAt(0) as Sprite
+    return this.monsterContainer.getChildAt(1) as Sprite
   }
 
   private drawHp() {
@@ -434,7 +439,7 @@ export class AdventureMonster {
           this.changeActionState(DrawState.Hurt)
         } else {
           this.changeActionState(DrawState.Die, () => {
-            this.imageContainer.parent.removeChild(this.imageContainer)
+            this.monsterContainer.parent.removeChild(this.monsterContainer)
             this.eventTarget.dispatchEvent(new Event('die'))
           })
         }
@@ -445,15 +450,15 @@ export class AdventureMonster {
     hpdraw.fill('green')
   }
 
-  private drawRange(range: number) {
-    // const range = this.game.mode === ActionMode.MOVE ? this.drawInfo.moveRange : this.drawInfo.shootRange
-    let circle = this.imageContainer.getChildAt(2) as Graphics
-    circle.clear()
-    circle.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * (range + 0.5))  // x, y, radius
-    circle.fill(0x00FF00) // Color of the circle (green in this example)
-    circle.alpha = 0.12
-    circle.visible = false
-  }
+  // private drawRange(range: number) {
+  //   // const range = this.game.mode === ActionMode.MOVE ? this.drawInfo.moveRange : this.drawInfo.shootRange
+  //   let circle = this.monsterContainer.getChildAt(2) as Graphics
+  //   circle.clear()
+  //   circle.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * (range + 0.5))  // x, y, radius
+  //   circle.fill(0x00FF00) // Color of the circle (green in this example)
+  //   circle.alpha = 0.12
+  //   circle.visible = false
+  // }
 
   private async shoot(x: number, y: number) {
     const scene = this.map.getActiveScene()
