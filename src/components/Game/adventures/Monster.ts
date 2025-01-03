@@ -8,11 +8,17 @@ import { getMonsterInfo, LOOP_TIME } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward, roundPos } from './gamelogic/utils'
 import { AttackType } from './gamelogic/types'
+import { PixiAnimation } from '../Animation'
 
-export enum DrawState {
+// repeating animation state
+export enum DrawBaseState {
   Stand = 'stand',
-  Hurt = 'hurt',
   Run = 'run',
+}
+
+// one-time animation state
+export enum DrawActionState {
+  Hurt = 'hurt',
   Jump = 'jump',
   A1 = 'a1',
   A2 = 'a2',
@@ -24,13 +30,13 @@ export enum DrawState {
   Die = 'die',
 }
 
-const attackToDraw: {[k in AttackType]: DrawState} = {
-  [AttackType.A1]: DrawState.A1,
-  [AttackType.A2]: DrawState.A2,
-  [AttackType.A3]: DrawState.A3,
-  [AttackType.A4]: DrawState.A4,
-  [AttackType.A5]: DrawState.A5,
-  [AttackType.A6]: DrawState.A6,
+const attackToDraw: {[k in AttackType]: DrawActionState} = {
+  [AttackType.A1]: DrawActionState.A1,
+  [AttackType.A2]: DrawActionState.A2,
+  [AttackType.A3]: DrawActionState.A3,
+  [AttackType.A4]: DrawActionState.A4,
+  [AttackType.A5]: DrawActionState.A5,
+  [AttackType.A6]: DrawActionState.A6,
 }
 
 function distance(p1: PointData, p2: PointData): number {
@@ -68,6 +74,8 @@ export class AdventureMonster {
 
   private eventTarget = new EventTarget()
 
+  private animation: PixiAnimation
+
   constructor(public game: Adventures, public state: MonsterState) {
     this.curP = state.pos
     this.curMapIdx = state.mapIdx
@@ -77,13 +85,23 @@ export class AdventureMonster {
     this.map = game.map
     this.prevHP = state.hp
     this.drawInfo = getMonsterInfo(state.type)
-    const { image, w, h } = this.drawInfo
+    // const { image, w, h } = this.drawInfo
     const scene = this.map.getActiveScene()
     if (scene) {
-      this.monsterContainer = scene.addImage('/images/select_aura.png', { x: this.curP.x, y: this.curP.y, w: 0, h: 0 }) || new Container()
+      this.monsterContainer = scene.addImage('/images/select_aura.png', { x: this.curP.x, y: this.curP.y, w: 0, h: 0 })
       this.initialize()
-      this.initializeDrawState()
+      // this.initializeDrawState()
     }
+
+    // animation
+    this.animation = new PixiAnimation((f) => {
+      const unsub = game.map.subscribe('tick', (e: CustomEvent<number>) => {
+        f(e.detail)
+        game.map.markDirty()
+      })
+
+      return unsub
+    })
   }
 
   move(dir: MoveDir) {
@@ -148,9 +166,9 @@ export class AdventureMonster {
    */
   sendAttack(a: AttackType) {
     // only send attack when no action state
-    if (this.actionState === undefined) {
-      this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 100}})
-    }
+    // if (this.actionState === undefined) {
+    this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: a, y: 100}})
+    // }
   }
 
   /**
@@ -161,10 +179,10 @@ export class AdventureMonster {
     if (p.y === 100) {
       // melee attack
       const attackDrawState = attackToDraw[p.x as AttackType]
-      this.changeActionState(attackDrawState)
+      this.applyActionState(attackDrawState)
     } else {
       // range attack
-      this.changeActionState(attackToDraw[AttackType.A5])
+      this.applyActionState(attackToDraw[AttackType.A5])
       // draw shoot
       this.shoot(p.x, p.y)
     }
@@ -220,38 +238,54 @@ export class AdventureMonster {
 
   // Monster animations
 
-  private tickCount = 0
-  private frameCount = 0
-  private baseState = DrawState.Stand
-  private actionState: DrawState | undefined
+  // private tickCount = 0
+  // private frameCount = 0
+  // private baseState = DrawState.Stand
+  // private actionState: DrawState | undefined
+  // private animationStopMap: {[name: string]: () => void} = {}
 
-  private async initializeDrawState() {
-    const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
-    const sprite = this.getMonsterDraw()
+  // private animate(animationName: string, sprite: Sprite, frames: Texture[], tickPerFrame: number) {
+  //   // stop previous animation if any
+  //   const stop = this.animationStopMap[animationName]
+  //   if (stop) stop()
+
+  //   let count = 0
+  //   let frameCount = 0
+  //   this.animationStopMap[animationName] = this.map.subscribe('tick', (e: CustomEvent<number>) => {
+  //     if (count++ % tickPerFrame === 0) {
+  //       if (frameCount >= frames.length) {
+
+  //       }
+  //     }
+  //   })
+  // }
+
+  private initialize() {
+    const { offX, offY, image } = this.drawInfo
+    const monsterContainer = this.monsterContainer
+    monsterContainer.interactive = true
+
+    // monster
+    const monsterDraw = new Sprite(Texture.from(image))
+    monsterDraw.x = offX * PIXEL_SIZE
+    monsterDraw.y = offY * PIXEL_SIZE
+    monsterContainer.addChild(monsterDraw) // 1
+
+    // hp
+    const hp = new Graphics()
+    monsterContainer.addChild(hp) // 2
+
+    // select
+    const selectAura = this.getSelectDraw()
+    selectAura.scale = 0.5
+    selectAura.x = -40
+    selectAura.y = -25
+    selectAura.visible = false
+
+    // this.drawRange(this.drawInfo.shootRange)
+    this.drawHp()
 
     const unsub = this.map.subscribe('tick', (e: CustomEvent<number>) => {
-      const state = this.actionState || this.baseState
-      const animation = sheet.animations[state] || []
-      const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
-      if (this.tickCount % framePerStep === 0) {
-        if (this.frameCount >= animation.length) {
-          this.frameCount = 0
-          this.tickCount = 0
-          // this.onDrawLoop()
-          this.eventTarget.dispatchEvent(new Event('drawloop'))
-        }
-
-        const texture = animation[this.frameCount++]
-        if (texture) {
-          sprite.texture = texture
-          const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
-          sprite.anchor.set(x,y)
-        }
-      }
-      this.tickCount++
-
-      this.map.markDirty()
-
       // move
       if (this.state.mapIdx !== this.curMapIdx) {
         this.changeMap(this.state.mapIdx)
@@ -261,6 +295,81 @@ export class AdventureMonster {
     })
 
     this.subscribeOnce('die', unsub)
+
+    // start stand animation
+    this.applyDrawState(DrawBaseState.Run, () => {})
+
+    this.game.map.markDirty()
+  }
+
+  // private async initializeDrawState() {
+  //   const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
+  //   const sprite = this.getMonsterDraw()
+
+  //   const unsub = this.map.subscribe('tick', (e: CustomEvent<number>) => {
+  //     const state = this.actionState || this.baseState
+  //     const animation = sheet.animations[state] || []
+  //     const framePerStep = (state === DrawState.Stand || state === DrawState.Die) ? 10 : 5
+  //     if (this.tickCount % framePerStep === 0) {
+  //       if (this.frameCount >= animation.length) {
+  //         this.frameCount = 0
+  //         this.tickCount = 0
+  //         // this.onDrawLoop()
+  //         this.eventTarget.dispatchEvent(new Event('drawloop'))
+  //       }
+
+  //       const texture = animation[this.frameCount++]
+  //       if (texture) {
+  //         sprite.texture = texture
+  //         const {x, y} = texture.defaultAnchor || {x: 0, y: 0}
+  //         sprite.anchor.set(x,y)
+  //       }
+  //     }
+  //     this.tickCount++
+
+  //     this.map.markDirty()
+
+  //     // move
+  //     if (this.state.mapIdx !== this.curMapIdx) {
+  //       this.changeMap(this.state.mapIdx)
+  //     }
+
+  //     this.proceedMove(e.detail)
+  //   })
+
+  //   this.subscribeOnce('die', unsub)
+  // }
+
+  private drawBaseState = DrawBaseState.Stand
+
+  // Apply both base(repeating) and action(one-time) states
+  private async applyDrawState(state: DrawBaseState | DrawActionState, onloop: () => void) {
+    console.log('Start draw', state)
+    const sprite = this.getMonsterDraw()
+    const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
+    const frames = sheet.animations[state] || []
+    const tickPerFrame = (state === DrawBaseState.Stand || state === DrawActionState.Die) ? 10 : 5
+
+    return this.animation.animate(sprite, frames, tickPerFrame, onloop)
+  }
+
+  // Apply action(one-time) state, return to base state after done
+  private doingAction = false
+  private async applyActionState(state: DrawActionState, done = () => true) {
+    // doing
+    this.doingAction = true
+    // sound
+    if (this.isSelecting) sound.play(state, { volume: 0.4 })
+    const stop = await this.applyDrawState(state, () => {
+      // stop doing
+      this.doingAction = false
+      if (done()) this.applyDrawState(this.drawBaseState, () => {})
+      else {
+        // stop the animation if not return to base state
+        // this.animation.stopAnimation()
+        stop()
+      }
+    })
   }
 
   private switchLeft(isLeft: boolean) {
@@ -289,7 +398,7 @@ export class AdventureMonster {
     const d = delta / LOOP_TIME * this.drawInfo.moveSpeed
     const { x: tx, y: ty } = this.state.pos
     if (tx !== this.curP.x || ty !== this.curP.y) {
-      this.changeBaseState(DrawState.Run)
+      this.changeBaseState(DrawBaseState.Run)
       if (this.curP.x < tx) {
         this.switchLeft(false)
       } else if (this.curP.x > tx) {
@@ -303,14 +412,17 @@ export class AdventureMonster {
 
       this.curP = {x, y}
     } else {
-      this.changeBaseState(DrawState.Stand)
+      this.changeBaseState(DrawBaseState.Stand)
     }
   }
 
-  private changeBaseState(state: DrawState) {
-    if (this.baseState !== state) {
-      this.baseState = state
-      if (state === DrawState.Run) {
+  private changeBaseState(state: DrawBaseState) {
+    if (this.drawBaseState !== state) {
+      this.drawBaseState = state
+      // apply base state when not doing action
+      if (!this.doingAction) this.applyDrawState(state, () => {})
+      // screen follow
+      if (state === DrawBaseState.Run) {
         if (this.isSelecting) {
           this.follow(true)
         }
@@ -322,19 +434,19 @@ export class AdventureMonster {
     }
   }
 
-  private changeActionState(state: DrawState, onDone = () => {}) {
-    // change action state
-    this.actionState = state
-    // restart animation
-    this.frameCount = 0
-    this.tickCount = 0
-    if (this.isSelecting) sound.play(state)
+  // private changeActionState(state: DrawState, onDone = () => {}) {
+  //   // change action state
+  //   this.actionState = state
+  //   // restart animation
+  //   this.frameCount = 0
+  //   this.tickCount = 0
+  //   if (this.isSelecting) sound.play(state)
 
-    this.subscribeOnce('drawloop', (e) => {
-      this.actionState = undefined
-      onDone()
-    })
-  }
+  //   this.subscribeOnce('drawloop', (e) => {
+  //     this.actionState = undefined
+  //     onDone()
+  //   })
+  // }
 
   // subcribe
   private subscribe(type: string, func: (e: CustomEvent) => void) {
@@ -351,34 +463,6 @@ export class AdventureMonster {
     })
   }
 
-  private initialize() {
-    const { offX, offY, image } = this.drawInfo
-    const monsterContainer = this.monsterContainer
-    monsterContainer.interactive = true
-
-    // monster
-    const monsterDraw = new Sprite(Texture.from(image))
-    monsterDraw.x = offX * PIXEL_SIZE
-    monsterDraw.y = offY * PIXEL_SIZE
-    monsterContainer.addChild(monsterDraw) // 1
-
-    // hp
-    const hp = new Graphics()
-    monsterContainer.addChild(hp) // 2
-
-    // select
-    const selectAura = this.getSelectDraw()
-    selectAura.scale = 0.5
-    selectAura.x = -40
-    selectAura.y = -25
-    selectAura.visible = false
-
-    // this.drawRange(this.drawInfo.shootRange)
-    this.draw()
-
-    this.map.markDirty()
-  }
-
   select(isSelect: boolean) {
     if (!isSelect) {
       this.follow(false)
@@ -386,7 +470,6 @@ export class AdventureMonster {
     let select = this.getSelectDraw()
     select.visible = isSelect
     this.isSelecting = isSelect
-    this.map.markDirty()
   }
 
   private follow(bool: boolean) {
@@ -399,12 +482,12 @@ export class AdventureMonster {
 
   async updateState(state: MonsterState) {
     this.state = state
-    await this.draw()
+    await this.drawHp()
   }
 
-  async draw() {
-    this.drawHp()
-  }
+  // async draw() {
+  //   this.drawHp()
+  // }
 
   // remove() {
   //   this.drawHp()
@@ -436,11 +519,13 @@ export class AdventureMonster {
       setTimeout(() => {
         this.prevHP = hp
         if (hp > 0) {
-          this.changeActionState(DrawState.Hurt)
+          this.applyActionState(DrawActionState.Hurt)
         } else {
-          this.changeActionState(DrawState.Die, () => {
+          this.applyActionState(DrawActionState.Die, () => {
             this.monsterContainer.parent.removeChild(this.monsterContainer)
             this.eventTarget.dispatchEvent(new Event('die'))
+
+            return false
           })
         }
       }, 200)
@@ -492,14 +577,12 @@ export class AdventureMonster {
 
         object.x = x
         object.y = y
-        this.map.markDirty()
         
         if (x === tarX && y === tarY) {
           unsub()
           res()
         }
       })
-      this.map.markDirty()
     })
   }
 }

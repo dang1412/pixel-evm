@@ -7,7 +7,7 @@ import { getAreaPixels, PIXEL_SIZE, xyToPosition } from '../utils'
 import { Address, SendAllFunc, SendToFunc } from '../hooks/useWebRTCConnects'
 
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from './types'
-import { AdventureMonster, DrawState, MoveDir } from './Monster'
+import { AdventureMonster, MoveDir } from './Monster'
 import { decodeAction, decodeUpdates, encodeAction, encodeUpdates } from './encodes'
 import { getMonsterInfo, getMonsterTypes, LOOP_TIME} from './constants'
 import { getMonsterPixels, updateCoverPixel, updateRemoveMonster } from './gamelogic/utils'
