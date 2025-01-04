@@ -2,9 +2,10 @@ import { PointData } from 'pixi.js'
 
 import { getAreaPixels } from '../../utils'
 import { PixelArea } from '../../ViewportMap'
-import { AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from '../types'
+import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState, MonsterType } from '../types'
 import { AttackType } from './types'
-import { updateRemoveMonster } from './utils'
+import { moveToward, updateRemoveMonster } from './utils'
+import { getMonsterInfo } from '../constants'
 
 const defaultAttackRange: PixelArea = { x: 1, y: 0, w: 1, h: 1 }
 
@@ -28,7 +29,7 @@ const ATTACK_RANGE: {[k in MonsterType]: Partial<{[k in AttackType]: PixelArea}>
   },
 }
 
-function getMeleeDamageArea(monster: MonsterState, type: AttackType, isLeft: boolean): PixelArea {
+function getMeleeDamageArea(monster: MonsterState, type: AttackType, isLeft: boolean): [PixelArea, AdventureAction] {
   // Melee Attack
   const attackRange = ATTACK_RANGE[monster.type][type] || defaultAttackRange
 
@@ -42,19 +43,32 @@ function getMeleeDamageArea(monster: MonsterState, type: AttackType, isLeft: boo
     damageArea.x = px - attackRange.x - attackRange.w + 1
   }
 
-  return damageArea
+  return [damageArea, {id: monster.id, type: ActionType.SHOOT, pos: {x: type, y: 100}}]
 }
 
-export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: PointData): boolean {
+// function getRangeDamageArea(p: PointData): PixelArea {
+//   return { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
+// }
+
+function getRangeDamageArea(monster: MonsterState, target: PointData): [PixelArea, AdventureAction] {
+  const { shootRange } = getMonsterInfo(monster.type)
+  const _p = moveToward(monster.pos.x, monster.pos.y, target.x, target.y, shootRange)
+  const p: PointData = {x: Math.round(_p.x), y: Math.round(_p.y)}
+  const area: PixelArea = { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
+
+  return [area, {id: monster.id, type: ActionType.SHOOT, pos: p}]
+}
+
+export function applyAttackAction(states: AdventureStates, updates: AdventureStateUpdates, id: number, p: PointData): AdventureAction | undefined {
   const { mapIdxPosMonsters, monsters, monsterIsLeft } = states
   const monster = monsters[id]
 
   const posMonsters = mapIdxPosMonsters[monster.mapIdx] || {}
 
   // already dead
-  if (!monster) return false
+  if (!monster) return undefined
 
-  const damageArea = p.y >= 100 ? getMeleeDamageArea(monster, p.x as AttackType, monsterIsLeft[id]) : { x: p.x - 1, y: p.y - 2, w: 3, h: 3 }
+  const [damageArea, action] = p.y >= 100 ? getMeleeDamageArea(monster, p.x as AttackType, monsterIsLeft[id]) : getRangeDamageArea(monster, p)
 
   const pixels = getAreaPixels(damageArea)
   
@@ -65,7 +79,7 @@ export function applyAttackAction(states: AdventureStates, updates: AdventureSta
     }
   }
 
-  return true
+  return action
 }
 
 function monsterGetHurt(states: AdventureStates, updates: AdventureStateUpdates, id: number) {

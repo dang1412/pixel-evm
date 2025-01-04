@@ -39,8 +39,8 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
     } else if (type === ActionType.ENTER) {
       applyChangeMapAction(states, updates, id, pos)
     } else if (type === ActionType.SHOOT) {
-      applyAttackAction(states, updates, id, pos)
-      updates.actions.push(action)
+      const processed = applyAttackAction(states, updates, id, pos)
+      if (processed) updates.actions.push(processed)
     }
   }
 
