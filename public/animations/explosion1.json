@@ -197,6 +197,14 @@
       "sourceSize": { "w": 547, "h": 483 }
     }
   },
+  "animations": {
+    "explode": [
+      "explo1_00.png","explo1_01.png","explo1_02.png","explo1_03.png","explo1_04.png","explo1_05.png","explo1_06.png","explo1_07.png","explo1_08.png",
+      "explo1_09.png","explo1_10.png","explo1_11.png","explo1_12.png","explo1_13.png","explo1_14.png","explo1_15.png","explo1_16.png","explo1_17.png",
+      "explo1_18.png","explo1_19.png","explo1_20.png","explo1_21.png","explo1_22.png","explo1_23.png","explo1_24.png","explo1_25.png","explo1_26.png",
+      "explo1_27.png"
+    ]
+  },
   "meta": {
     "app": "https://www.codeandweb.com/texturepacker",
     "version": "1.1",

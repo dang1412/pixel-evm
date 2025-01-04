@@ -9,6 +9,7 @@ import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { moveToward, roundPos } from './gamelogic/utils'
 import { AttackType } from './gamelogic/types'
 import { PixiAnimation } from '../Animation'
+import { ViewportScene } from '../ViewportScene'
 
 // repeating animation state
 export enum DrawBaseState {
@@ -191,43 +192,45 @@ export class AdventureMonster {
   /**
    * Start control range attack
    */
-  startShoot() {
+  startMove() {
     let {x: tx, y: ty} = this.curP
-    const range = this.drawInfo.shootRange
+    const imageMove = this.drawInfo.imageMove
+    const request = (x: number, y: number) => {
+      this.game.requestAction({id: this.state.id, type: ActionType.MOVE, pos: {x, y}})
+    }
     // shooting
     const int = setInterval(() => {
       if (tx === this.curP.x && ty === this.curP.y) return
-      if (Math.abs(tx - this.curP.x) <= range && Math.abs(ty - this.curP.y) <= range) {
-        this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x: tx, y: ty}})
-      }
-    }, this.drawInfo.shootSpeed)
+      // if (Math.abs(tx - this.curP.x) <= range && Math.abs(ty - this.curP.y) <= range) {
+        request(tx, ty)
+      // }
+    }, LOOP_TIME)
 
-    this.game.startDrag('/images/energy2.png', {
+    this.game.startDrag(imageMove, {
       onDrop: (px, py) => {
         // on drop
         clearInterval(int)
         this.map.resumeDrag()
+        request(px, py)
       },
       onMove: (x, y) => {
         // on move
         tx = x
         ty = y
       },
-      w: 1,
-      h: 1
     })
   }
 
-  startMove() {
-    const { imageMove } = this.drawInfo
-
-    this.game.startDrag(imageMove, {
+  startShoot() {
+    this.game.startDrag('/images/energy2.png', {
       onDrop: (x, y) => {
         this.map.resumeDrag()
         if (x !== this.state.target.x || y !== this.state.target.y) {
-          this.game.requestAction({id: this.state.id, type: ActionType.MOVE, pos: {x, y}})
+          this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x, y}})
         }
-      }
+      },
+      w: 1,
+      h: 1
     })
   }
 
@@ -297,7 +300,7 @@ export class AdventureMonster {
     this.subscribeOnce('die', unsub)
 
     // start stand animation
-    this.applyDrawState(DrawBaseState.Run, () => {})
+    this.applyDrawState(DrawBaseState.Stand, () => {})
 
     this.game.map.markDirty()
   }
@@ -344,7 +347,6 @@ export class AdventureMonster {
 
   // Apply both base(repeating) and action(one-time) states
   private async applyDrawState(state: DrawBaseState | DrawActionState, onloop: () => void) {
-    console.log('Start draw', state)
     const sprite = this.getMonsterDraw()
     const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
     const frames = sheet.animations[state] || []
@@ -549,11 +551,22 @@ export class AdventureMonster {
     const scene = this.map.getActiveScene()
     if (!scene) return
     const energy = scene.addImage('/images/energy2.png', { x: this.curP.x, y: this.curP.y, w: 1, h: 1 })
-    sound.play('shoot', {volume: 0.4})
+    sound.play('shoot', {volume: 0.2})
     await this.moveObject(energy, this.curP.x, this.curP.y, x, y)
     // scene.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
-    sound.play('explode1', {volume: 0.4})
+    this.animateExplode(scene, x, y)
+    sound.play('explode1', {volume: 0.1})
     energy.parent.removeChild(energy)
+  }
+
+  private async animateExplode(scene: ViewportScene, x: number, y: number) {
+    const sheet = await Assets.load<Spritesheet>('/animations/explosion1.json')
+    const frames = sheet.animations['explode']
+    const container = scene.addImage('', {x: x - 2, y: y - 3.1, w: 5, h: 5})
+    const sprite = container.getChildAt(0) as Sprite
+    await this.animation.animateOnce(sprite, frames, 3)
+
+    container.parent.removeChild(container)
   }
 
   private moveObject(object: Container, px: number, py: number, tx: number, ty: number): Promise<void> {
