@@ -2,7 +2,7 @@ import { useAccount, useChainId, useConfig, usePublicClient, useWatchContractEve
 
 import { IPFSService } from '@/lib/IPFSService'
 import { rtcConnectAbi } from './rtcConnectAbi'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { RTCService } from '@/lib/RTCService'
 import { watchContractEvent } from 'viem/actions'
 
@@ -94,11 +94,9 @@ export function useWebRTCConnect({ onReceiveData, onConnectStateChange: onConnec
     })
 
     rtcService.onMessage = (data) => {
-      // this.onReceiveData(from, data)
       onReceiveData(from, data)
     }
     rtcService.onConnect = () => {
-      // this.onConnect(from)
       onConnectStateChange(from, RTCConnectState.Connected)
     }
 
@@ -114,33 +112,32 @@ export function useWebRTCConnect({ onReceiveData, onConnectStateChange: onConnec
     services[from] = rtcService
   }, [writeContractAsync, onConnectStateChange, onReceiveData])
 
-  useWatchContractEvent({
-    address: RTC_CONTRACT_ADDR,
-    abi: rtcConnectAbi,
-    eventName: 'OfferConnect',
-    args: {
-      to: myAddr
-    },
-    async onLogs(logs) {
-      console.log('New logs abcd!', logs)
-      for (const log of logs) {
-        console.log('Offer', (log as any).args)
-        // got the offer
-        const { from, to, cid } = (log as any).args as RTCEventData
-        proceedOffer(from, cid)
-      }
-    },
-  })
-
-  // const unwatch = client?.watchContractEvent({
-  //   address: RTC_CONTRACT_ADDR,
-  //   abi: rtcConnectAbi,
-  //   onLogs(logs) {
-  //     console.log('New logs!', logs)
-  //   }
-  // })
-
   const client = usePublicClient()
+
+  // wait for connect offer from others
+  useEffect(() => {
+    if (!client || !myAddr) return () => {}
+
+    const unsub = watchContractEvent(client, {
+      address: RTC_CONTRACT_ADDR,
+      abi: rtcConnectAbi,
+      eventName: 'OfferConnect',
+      args: {
+        to: myAddr
+      },
+      async onLogs(logs) {
+        console.log('New logs abcd!', logs)
+        for (const log of logs) {
+          console.log('Offer', (log as any).args)
+          // got the offer
+          const { from, to, cid } = (log as any).args as RTCEventData
+          proceedOffer(from, cid)
+        }
+      },
+    })
+
+    return () => unsub
+  }, [client, myAddr])
 
   const offerConnect = useCallback((target: Address) => {
     if (!client) return
@@ -148,7 +145,6 @@ export function useWebRTCConnect({ onReceiveData, onConnectStateChange: onConnec
     const rtcService = new RTCService(ipfs, async (cid) => {
       // after uploading answer to IPFS and got the cid, answer the connect
       console.log('Offering onchain', target)
-      // await contract.offerConnect(addr, cid)
 
       await writeContractAsync({
         abi: rtcConnectAbi,
