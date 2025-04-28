@@ -350,7 +350,7 @@ export class AdventureMonster {
     const sprite = this.getMonsterDraw()
     const sheet = await Assets.load<Spritesheet>(this.drawInfo.spritesheet)
     const frames = sheet.animations[state] || []
-    const tickPerFrame = (state === DrawBaseState.Stand || state === DrawActionState.Die) ? 15 : 8
+    const tickPerFrame = (state === DrawBaseState.Stand || state === DrawActionState.Die) ? 10 : 5
 
     return this.animation.animate(sprite, frames, tickPerFrame, onloop)
   }
