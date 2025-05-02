@@ -50,11 +50,7 @@ export const GameMap: React.FC<Props> = (props) => {
   // server run
   const startServer = useCallback(async () => {
     if (!adventures || adventures.isServer) return
-    // await adventures.rtcClients.connectWallet()
     adventures.startServer()
-    // adventures.addMonsters([
-    //   {id: 0, pos: {x: 55, y: 50}, target: {x: 55, y: 50}, hp: 10, type: MonsterType.MEGAMAN},
-    // ])
 
     setIsMenuModalOpen(false)
   }, [adventures])
@@ -76,7 +72,7 @@ export const GameMap: React.FC<Props> = (props) => {
 
   return (
     <>
-      <canvas ref={(c) => setCanvas(c)} className='w-full' style={{border: '1px solid #ccc'}} />
+      <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
       {/* <MonsterControl onSetMode={(m) => {if (adventures) adventures.mode = m}} openConnectInfo={() => setIsConnectingStatesOpen(true)} /> */}
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
       {isConnectingStatesOpen && <ConnectingState states={connectStates} onClose={() => setIsConnectingStatesOpen(false)} />}

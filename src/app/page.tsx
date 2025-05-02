@@ -13,9 +13,9 @@ export default function Page() {
 
   return (
     <Web3Provider>
-      <div className='flex flex-col h-lvh'>
+      <div className='flex flex-col h-screen'>
         <Header />
-        <div className='flex-grow overflow-hidden'>
+        <div className='flex-1'>
           <GameMap />
           {/* <TestConnect /> */}
         </div>

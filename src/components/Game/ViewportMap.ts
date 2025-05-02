@@ -93,16 +93,14 @@ export class ViewportMap {
     this.updateMinimap()
   }
 
-  async init() {
+  async init(w: number, h: number) {
     const canvas = this.canvas
 
-    const screenWidth = 100
-    const screenHeight = 100
-    await this.renderer.init({ canvas, width: 100, height: 100, antialias: true, backgroundColor: 0xffffff })
-    
+    await this.renderer.init({ canvas, width: w, height: h, antialias: true, backgroundColor: 0xffffff })
+
     const viewport = this.viewport = new Viewport({
-      screenWidth,
-      screenHeight,
+      screenWidth: w,
+      screenHeight: h,
       worldWidth: WORLD_WIDTH,    // update when open scene
       worldHeight: WORLD_HEIGHT,  // update when open scene
       passiveWheel: false,

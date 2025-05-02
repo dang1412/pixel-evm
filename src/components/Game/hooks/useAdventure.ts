@@ -15,16 +15,15 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
         for (let entry of entries) {
           // adjust the canvas size since we only watch canvas
           const {width, height} = entry.contentRect
-          vpmap.resize(width, height)
+          vpmap.resize(width - 2, height - 2)
         }
       })
 
       resizeObserver.observe(c.parentNode as HTMLDivElement)
 
       ;(async () => {
-        await vpmap.init()
         const { width, height } = (c.parentNode as HTMLDivElement).getBoundingClientRect()
-        vpmap.resize(width, height)
+        await vpmap.init(width - 2, height - 2)
         vpmap.moveCenter()
 
         // Adventure game
