@@ -22,6 +22,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
       }
       console.log('New monster', newMonster)
       states.monsters[newId] = newMonster
+      states.monsterServerStates[newId] = { attackState: 0, lastActionTs: 0, isLeft: false }
       updates.monsters[newId] = newMonster
 
       // update cover pixels
@@ -50,7 +51,7 @@ export function mainLoop(states: AdventureStates, actions: AdventureAction[]): A
 }
 
 function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
-  const { monsters, monsterIsLeft } = states
+  const { monsters, monsterServerStates } = states
   for (const monster of Object.values(monsters)) {
     const curp = monster.pos
     const tarp = monster.target
@@ -65,9 +66,9 @@ function proceedMoves(states: AdventureStates, updates: AdventureStateUpdates) {
 
       // update isLeft
       if (curp.x < tarp.x) {
-        monsterIsLeft[monster.id] = false
+        monsterServerStates[monster.id].isLeft = false
       } else if (curp.x > tarp.x) {
-        monsterIsLeft[monster.id] = true
+        monsterServerStates[monster.id].isLeft = true
       }
 
       // check if can move

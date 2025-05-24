@@ -55,7 +55,7 @@ const controlButtons = ['/svgs/back.svg', '/svgs/door.svg']
 const usedImages = ['/images/energy2.png', '/images/select_aura.png']
 
 export class Adventures {
-  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterIsLeft: {}, imageBlocks: [], monsterAttackStates: {}, lastId: 0, mainMapIdx: 0 }
+  states: AdventureStates = { mapIdxPosMonsters: {}, monsters: {}, mapIdxMonsterCoverPixels: {}, monsterServerStates: {}, imageBlocks: [], lastId: 0, mainMapIdx: 0 }
   bufferActions: AdventureAction[] = []
 
   // rtcClients = new RTCConnectClients()

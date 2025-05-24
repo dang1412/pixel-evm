@@ -72,8 +72,7 @@ export function decodeStates(data: ArrayBuffer): AdventureStates {
     mapIdxPosMonsters: {},
     monsters: {},
     mapIdxMonsterCoverPixels: {},
-    monsterIsLeft: {},
-    monsterAttackStates: {},
+    monsterServerStates: {},
     imageBlocks: [],
     lastId: 0,
     mainMapIdx: 100

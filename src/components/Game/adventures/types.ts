@@ -1,6 +1,7 @@
 import { PointData } from 'pixi.js'
 import { PixelImage } from '../types'
 
+// State that sends to client
 export interface MonsterState {
   id: number  // 8bit
   hp: number  // 4bit
@@ -8,6 +9,13 @@ export interface MonsterState {
   target: PointData // 16bit
   pos: PointData // 24bit
   mapIdx: number // 8bit
+}
+
+// State that only server uses
+export interface MonsterServerState {
+  attackState: number
+  isLeft: boolean
+  lastActionTs: number
 }
 
 export interface AdventureStates {
@@ -22,10 +30,10 @@ export interface AdventureStates {
   // mapIdx, monsterId to cover pixels
   mapIdxMonsterCoverPixels: {[idx: number]: {[id: number]: number[]}}
   // monsterIsLeft
-  monsterIsLeft: {[id: number]: boolean}
+  // monsterIsLeft: {[id: number]: boolean}
 
   // attack state 0,1,2...
-  monsterAttackStates: {[id: number]: number}
+  monsterServerStates: {[id: number]: MonsterServerState}
 
   // image blocks
   imageBlocks: PixelImage[]
