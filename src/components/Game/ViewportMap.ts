@@ -132,7 +132,10 @@ export class ViewportMap {
     })
 
     viewport.on('zoomed', () => this.updateMinimap())
-    viewport.on('moved', () => this.updateMinimap())
+    viewport.on('moved', () => {
+      this.updateMinimap()
+      downPx = -1, downPy = -1
+    })
 
     viewport.on('drag-start', (e) => {
       // console.log('drag-start', e.screen, e.world)
@@ -146,8 +149,11 @@ export class ViewportMap {
       console.log(width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels)
     })
 
+    let downPx = -1, downPy = -1
     const mousedown = (e: MouseEvent) => {
       const [px, py, rawx, rawy] = this.getPixelXY(e)
+      downPx = px
+      downPy = py
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixeldown', {detail: [px, py, rawx, rawy]}))
       console.log('Pixel down xy', px, py)
     }
@@ -156,6 +162,12 @@ export class ViewportMap {
       const [px, py] = this.getPixelXY(e)
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelup', {detail: [px, py]}))
       console.log('Pixel up xy', px, py)
+      if (downPx === px && downPy === py) {
+        // clicked
+        this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelclick', {detail: [px, py]}))
+        downPx = downPy = -1
+        console.log('Pixel click xy', px, py)
+      }
     }
 
     let curx = -1, cury = -1

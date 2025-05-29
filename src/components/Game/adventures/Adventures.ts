@@ -65,7 +65,7 @@ export class Adventures {
   mode = ActionMode.MOVE
 
   constructor(public map: ViewportMap, private options: AdventureOptions) {
-    this.map.subscribe('pixeldown', (e) => {
+    this.map.subscribe('pixelclick', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
       const posMonsters = this.states.mapIdxPosMonsters[this.curMapIdx] || {}

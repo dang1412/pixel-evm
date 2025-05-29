@@ -206,6 +206,8 @@ export class AdventureMonster {
       // }
     }, LOOP_TIME)
 
+    this.map.pauseDrag()
+
     this.game.startDrag(imageMove, {
       onDrop: (px, py) => {
         // on drop
@@ -224,7 +226,7 @@ export class AdventureMonster {
   startShoot() {
     this.game.startDrag('/images/energy2.png', {
       onDrop: (x, y) => {
-        this.map.resumeDrag()
+        // this.map.resumeDrag()
         if (x !== this.state.target.x || y !== this.state.target.y) {
           this.game.requestAction({id: this.state.id, type: ActionType.SHOOT, pos: {x, y}})
         }
@@ -273,6 +275,9 @@ export class AdventureMonster {
     monsterDraw.x = offX * PIXEL_SIZE
     monsterDraw.y = offY * PIXEL_SIZE
     monsterContainer.addChild(monsterDraw) // 1
+
+    monsterDraw.interactive = true
+    monsterDraw.on('pointerdown', (e) => this.startMove())
 
     // hp
     const hp = new Graphics()
