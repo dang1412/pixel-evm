@@ -64,7 +64,7 @@ export class Adventures {
 
   mode = ActionMode.MOVE
 
-  constructor(public map: ViewportMap, private options: AdventureOptions) {
+  constructor(public map: ViewportMap, private options?: AdventureOptions) {
     this.map.subscribe('pixelclick', (e) => {
       const [x, y] = e.detail
       const pos = y * 100 + x
@@ -111,6 +111,10 @@ export class Adventures {
     //     this.sendActionToServer({ id: type, type: ActionType.ONBOARD, val: pos })
     //   }
     // }
+  }
+
+  updateOptions(options: AdventureOptions) {
+    this.options = options
   }
 
   async init() {
@@ -469,7 +473,7 @@ export class Adventures {
   sendActionToServer(action: AdventureAction) {
     // client
     const encode = encodeAction(action)
-    this.options.sendTo(this.serverAddr as Address, encode)
+    this.options?.sendTo(this.serverAddr as Address, encode)
     console.log('Send action to server', this.serverAddr, encode)
   }
 
@@ -487,7 +491,7 @@ export class Adventures {
     if (data) {
       console.log('updates', updates)
       // send updates to clients
-      this.options.sendAll(data)
+      this.options?.sendAll(data)
       // server draw updates states
       this.drawUpdates(updates)
     }
@@ -496,7 +500,7 @@ export class Adventures {
   // Server send a client all current states
   sendStates(addr: Address) {
     const data = encodeUpdates({monsters: this.states.monsters, actions: []})
-    if (data) this.options.sendTo(addr, data)
+    if (data) this.options?.sendTo(addr, data)
   }
 
   // Server receives action from client
@@ -509,6 +513,7 @@ export class Adventures {
   // Client receives updates from server
   receiveUpdatesData(data: ArrayBuffer) {
     const updates = decodeUpdates(data)
+    console.log('receiveUpdatesData', updates)
     // update states's monsters
     Object.assign(this.states.monsters, updates.monsters)
     // apply updates
@@ -561,21 +566,21 @@ export class Adventures {
   private async drawMonsters(monsters: MonsterState[]) {
     for (const monster of monsters) {
       // update monsterState for client
-      // if (!this.isServer) this.updateMonsterState(monsterState)
+      if (!this.isServer) this.updateMonsterState(monster)
       this.drawMonster(monster)
     }
   }
 
   // update state and postion - only client
-  // private updateMonsterState(state: MonsterState) {
-  //   const { x, y } = state.pos
-  //   const nextCoverPixels = getMonsterPixels(x, y, state.type)
-  //   updateCoverPixel(this.states, state.id, nextCoverPixels)
-  //   console.log('updateCoverPixel', this.states, state)
+  private updateMonsterState(state: MonsterState) {
+    const { x, y } = state.pos
+    const nextCoverPixels = getMonsterPixels(x, y, state.type)
+    updateCoverPixel(this.states, state.id, nextCoverPixels)
+    console.log('updateCoverPixel', this.states, state)
 
-  //   // update state
-  //   this.states.monsters[state.id] = state
-  // }
+    // update state
+    this.states.monsters[state.id] = state
+  }
 
   private async drawMonster(monsterState: MonsterState) {
     const monster = this.monsterMap[monsterState.id]

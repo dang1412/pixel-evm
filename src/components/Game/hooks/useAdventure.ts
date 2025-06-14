@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Adventures } from '../adventures/Adventures'
 import { ViewportMap } from '../ViewportMap'
 import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
 
-export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc): [Adventures | undefined] {
-  const [adventures, setAdventures] = useState<Adventures | undefined>()
+export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc) {
+  // const [adventures, setAdventures] = useState<Adventures | undefined>()
+  const adventuresRef = useRef<Adventures>()
 
   useEffect(() => {
     if (c) {
@@ -27,14 +28,13 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
         vpmap.moveCenter()
 
         // Adventure game
-        const myadventures = new Adventures(vpmap, {
-          sendAll,
-          sendTo
-        })
-
-        setAdventures(myadventures)
-
+        const myadventures = new Adventures(vpmap)
         await myadventures.init()
+
+        adventuresRef.current = myadventures
+
+        // setAdventures(myadventures)
+
       })()
 
       return () => {
@@ -43,5 +43,16 @@ export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, 
     }
   }, [c])
 
-  return [adventures]
+  // Update adventures options when sendAll or sendTo changes
+  useEffect(() => {
+    const adventures = adventuresRef.current
+    if (adventures) {
+      adventures.updateOptions({
+        sendAll,
+        sendTo
+      })
+    }
+  }, [sendAll, sendTo])
+
+  return adventuresRef
 }
