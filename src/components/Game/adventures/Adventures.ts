@@ -207,6 +207,7 @@ export class Adventures {
     this.loadMonsterList()
 
     this.drawControls()
+    console.log('Draw back button')
     this.drawBackButton()
   }
 
