@@ -22,14 +22,22 @@ export interface MonsterState {
   id: number  // 4bit
   type: MonsterType // 4bit
   hp: number  // 4bit
-  vehicle: number  // 4bit
+  vehicle: VehicleType  // 4bit
   pos: PointData // 16bit
-  target: PointData // 16bit
-  action: ActionType // 8bit
   weapons: { // 8bit
     [ActionType.ShootBomb]: number,
     [ActionType.ShootFire]: number,
   }
+}
+
+export interface ArenaAction {
+  id: number  // 4bit
+  actionType: ActionType  // 4bit
+  target: PointData  // 16bit
+}
+
+export interface ArenaGameState {
+  monsters: { [id: number]: MonsterState }
 }
 
 export enum UpdateType {
@@ -40,20 +48,12 @@ export enum UpdateType {
   Weapon,
 }
 
-export interface ArenaAction {
-  id: number  // 4bit
-  type: ActionType  // 4bit
-  pos: PointData  // 16bit
-}
-
-export interface ArenaGameState {
-  monsters: { [id: number]: MonsterState }
+export interface MonsterUpdate {
+  type: UpdateType  // 8bit
+  data: Partial<MonsterState> // depends on type
 }
 
 export interface ArenaGameUpdates {
-  updates: {
-    type: UpdateType  // 8bit
-    data: Partial<MonsterState> // depends on type
-  }[]
+  updates: MonsterUpdate[]
   actions: ArenaAction[]
 }
