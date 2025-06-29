@@ -38,6 +38,11 @@ export interface ArenaAction {
 
 export interface ArenaGameState {
   monsters: { [id: number]: MonsterState }
+  positionMonsterMap: { [pos: number]: number } // pixel to monster id
+  roundActions: { [id: number]: ArenaAction }
+  currentRound: number
+  aliveNumber: number
+  executedOrder: number[]
 }
 
 export enum UpdateType {

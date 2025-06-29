@@ -43,6 +43,8 @@ export class ViewportMap {
       this.activate(name)
     }
 
+    this.eventTarget.dispatchEvent(new CustomEvent('sceneadded', { detail: name }))
+
     return scene
   }
 
@@ -73,6 +75,8 @@ export class ViewportMap {
       this.viewport.moveCenter(newWorldWidth / 2, newWorldHeight / 2)
       this.updateMinimap()
       this.markDirty()
+
+      this.eventTarget.dispatchEvent(new CustomEvent('sceneactivated', { detail: name }))
     }
   }
 

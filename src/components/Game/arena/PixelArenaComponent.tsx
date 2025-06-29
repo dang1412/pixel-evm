@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { createViewportMap } from '../helpers/createViewportMap'
-import { PixelArenaGame } from './PixelArenaGame'
+import { PixelArenaMap } from './PixelArenaMap'
 
 interface Props {}
 
 const PixelArenaComponent: React.FC<Props> = () => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement>()
-  const gameRef = useRef<PixelArenaGame>()
+  const gameRef = useRef<PixelArenaMap>()
 
   useEffect(() => {
     if (canvas && !gameRef.current) {
       console.log('Create game')
       const { vpmap, disconnect } = createViewportMap(canvas)
 
-      const pixelArena = new PixelArenaGame(vpmap)
+      const pixelArena = new PixelArenaMap(vpmap, 'scene-3')
       gameRef.current = pixelArena
 
       return disconnect
