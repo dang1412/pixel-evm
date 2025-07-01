@@ -7,6 +7,7 @@ import { ViewportScene } from './ViewportScene'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
+
 export interface PixelArea {
   x: number
   y: number
@@ -16,6 +17,13 @@ export interface PixelArea {
 
 export interface ViewportMapOptions {
   onDrop?: (data: DataTransfer, px: number, py: number) => void
+}
+
+export interface DragOptions {
+  onDrop: (x: number, y: number) => void
+  onMove?: (x: number, y: number) => void
+  w?: number
+  h?: number
 }
 
 export class ViewportMap {
@@ -258,6 +266,62 @@ export class ViewportMap {
 
   getPixelSize(): number {
     return PIXEL_SIZE
+  }
+
+  startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {
+    const scene = this.getActiveScene()
+    if (!scene) return
+    const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
+    shadow.alpha = 0.4
+
+    const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      shadow.x = px * PIXEL_SIZE
+      shadow.y = py * PIXEL_SIZE
+      onMove(px, py)
+      this.markDirty()
+    })
+
+    this.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+      unsub()
+      shadow.parent.removeChild(shadow)
+      onDrop(px, py)
+
+      this.markDirty()
+    })
+  }
+
+  moveObject(object: Container, px: number, py: number, tx: number, ty: number): Promise<void> {
+    let x = px * PIXEL_SIZE
+    let y = py * PIXEL_SIZE
+
+    const tarX = tx * PIXEL_SIZE
+    const tarY = ty * PIXEL_SIZE
+
+    const deltaX = tarX - x
+    const deltaY = tarY - y
+
+    return new Promise((res) => {
+      const unsub = this.subscribe('tick', () => {
+        // moving in 15 ticks
+        x += deltaX / 15
+        y += deltaY / 15
+        
+        if (deltaX >= 0 === x >= tarX) x = tarX
+        if (deltaY >= 0 === y >= tarY) y = tarY
+
+        object.x = x
+        object.y = y
+
+        this.markDirty()
+        
+        if (x === tarX && y === tarY) {
+          unsub()
+          res()
+        }
+      })
+    })
   }
 
   // async animate(area: PixelArea, frameCount: number, prefix = '', slow = 3): Promise<void> {

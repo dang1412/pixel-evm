@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, Sprite, Texture } from 'pixi.js'
+import { Assets, Container, Graphics, PointData, Sprite, Texture } from 'pixi.js'
 
 import { PixelArea, ViewportMap } from './ViewportMap'
 import { PIXEL_SIZE } from './utils'
@@ -71,5 +71,18 @@ export class ViewportScene {
       g.lineTo(worldWidth, pos)
       g.stroke({ width: 0.4, color: 0x888888 })
     }
+  }
+
+  drawLine(start: PointData, end: PointData) {
+    const g = new Graphics()
+    this.container.addChild(g)
+
+    // g.lineStyle(style.width || 1, style.color || 0x000000)
+    g.moveTo(start.x * PIXEL_SIZE, start.y * PIXEL_SIZE)
+    g.lineTo(end.x * PIXEL_SIZE, end.y * PIXEL_SIZE)
+    g.stroke({ width: 0.6, color: 0xffd700 })
+    // g.closePath()
+
+    return g
   }
 }
