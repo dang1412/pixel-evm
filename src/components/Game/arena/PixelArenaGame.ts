@@ -1,11 +1,12 @@
-import { PointData } from 'pixi.js';
-import { xyToPosition } from '../utils';
+import { PointData } from 'pixi.js'
+
+import { xyToPosition } from '../utils'
 import { ActionType, ArenaAction, ArenaGameState, MonsterState, MonsterType, VehicleType } from './types'
 
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
 export class PixelArenaGame {
-  constructor(public state: ArenaGameState) {
+  constructor(public state: ArenaGameState, private onNextRound: (actions: ArenaAction[]) => void) {
     // The game object can be used to access game state, methods, etc.
     // For example, you might want to initialize some game settings here.
   }
@@ -20,12 +21,14 @@ export class PixelArenaGame {
     console.log('Game stopped');
   }
 
-  private nextRound() {
+  private nextRound(actions: ArenaAction[]) {
     // Logic to advance to the next round
     this.state.currentRound += 1
     console.log(`Advancing to round ${this.state.currentRound}`)
     this.state.roundActions = {} // Reset actions for the new round
     this.state.executedOrder = [] // Reset done actions count
+
+    this.onNextRound(actions) // Process actions and notify the next round
   }
 
   addMonster(id: number, pos: PointData, hp: number): MonsterState {
@@ -56,24 +59,27 @@ export class PixelArenaGame {
     // TODO check monster alive
 
     // Count 
-    if (!this.state.roundActions[action.id]) {
-      // override previous action
-      const index = this.state.executedOrder.indexOf(action.id)
-      if (index >= 0) {
-        // If the action id already exists, remove it from the executed order
-        this.state.executedOrder.splice(index, 1)
-        // Add to the last
-        this.state.executedOrder.push(action.id)
-      }
+    // Override previous action
+    const index = this.state.executedOrder.indexOf(action.id)
+    if (index >= 0) {
+      // If the action id already exists, remove it from the executed order
+      this.state.executedOrder.splice(index, 1)
     }
+    // Add to the last
+    this.state.executedOrder.push(action.id)
     // Update action
     this.state.roundActions[action.id] = action
+
+    console.log(`executedOrder: ${this.state.executedOrder}, aliveNumber: ${this.state.aliveNumber}`)
 
     // if all done
     if (this.state.executedOrder.length == this.state.aliveNumber) {
       console.log('All actions have been made for the round, execute')
-      this.processActions() // Process all actions
-      this.nextRound() // Proceed to the next round
+      const actions = this.processActions() // Process all actions
+      setTimeout(() => {
+        console.log('Processing actions for the round:', actions)
+        this.nextRound(actions) // Proceed to the next round
+      }, 200) // Delay for processing actions
     } else {
       console.log(`Action received: ${action.actionType} by monster ${action.id}`)
     }

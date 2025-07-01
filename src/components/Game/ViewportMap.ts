@@ -302,6 +302,8 @@ export class ViewportMap {
     const deltaX = tarX - x
     const deltaY = tarY - y
 
+    this.markDirty()
+
     return new Promise((res) => {
       const unsub = this.subscribe('tick', () => {
         // moving in 15 ticks

@@ -29,9 +29,10 @@ export class ViewportScene {
     return Promise.all(promises).then(() => this.map.markDirty())
   }
 
-  addImage(url: string, area: PixelArea): Container {
+  addImage(url: string, area: PixelArea, _c?: Container): Container {
     // create container
-    const container = new Container()
+    const container = _c || new Container()
+    container.removeChildren()
 
     container.x = area.x * PIXEL_SIZE
     container.y = area.y * PIXEL_SIZE
@@ -73,15 +74,14 @@ export class ViewportScene {
     }
   }
 
-  drawLine(start: PointData, end: PointData) {
-    const g = new Graphics()
+  drawLine(start: PointData, end: PointData, _g?: Graphics) {
+    const g = _g || new Graphics()
     this.container.addChild(g)
+    g.clear()
 
-    // g.lineStyle(style.width || 1, style.color || 0x000000)
     g.moveTo(start.x * PIXEL_SIZE, start.y * PIXEL_SIZE)
     g.lineTo(end.x * PIXEL_SIZE, end.y * PIXEL_SIZE)
     g.stroke({ width: 0.6, color: 0xffd700 })
-    // g.closePath()
 
     return g
   }

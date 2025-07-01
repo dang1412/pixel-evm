@@ -90,6 +90,9 @@ function initMapWithScenes(map: ViewportMap, images: PixelImage[]) {
 
     // open scene when click on image
     map.subscribe('pixelclick', (e) => {
+      if (map.activeScene !== 'main') {
+        return
+      }
       const [x, y] = e.detail
       // open map
       const pixel = xyToPosition(x, y)
