@@ -1,17 +1,26 @@
-import { Assets, Container, Graphics } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite } from 'pixi.js'
 
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, ArenaAction, MonsterState } from './types'
+import { actionImages } from './constants'
 
-Assets.load(['/images/characters/axie.png', '/images/energy2.png'])
+Assets.load([
+  '/images/characters/axie.png',
+  '/images/energy2.png',
+  '/svgs/walk.svg',
+  '/svgs/crosshairs.svg',
+])
 
 export class PixelArenaMonster {
   private monsterContainer: Container
 
   // draw
   // action line
-  actionLineGraphics?: Graphics
-  shadowContainer?: Container
+  private actionLineGraphics?: Graphics
+  private shadowContainer?: Container
+
+  actionType = ActionType.Move
+  private actionTypeSprite: Sprite
 
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
     const scene = arenaMap.map.getActiveScene()!
@@ -20,6 +29,10 @@ export class PixelArenaMonster {
     // this.monsterContainer.on('pointerdown', () => {
     //   this.startShoot()
     // })
+    this.actionTypeSprite = new Sprite()
+    this.actionTypeSprite.alpha = 0.8
+    this.monsterContainer.addChild(this.actionTypeSprite)
+    this.drawActionType()
   }
 
   private draw() {
@@ -62,8 +75,25 @@ export class PixelArenaMonster {
     this.draw()
   }
 
-  controlAction(actionType: ActionType) {
+  updateActionType(actionType: ActionType) {
+    this.actionType = actionType
+    // Update the monster's action type
+    // This could change the appearance or behavior of the monster
+    this.drawActionType()
+  }
+
+  private drawActionType() {
+    const actionImage = actionImages[this.actionType]
+    this.actionTypeSprite.texture = Assets.get(actionImage) // Default texture
+    this.actionTypeSprite.width = 12
+    this.actionTypeSprite.height = 12
+
+    this.arenaMap.map.markDirty()
+  }
+
+  controlAction() {
     // initiate an action
+    const actionType = this.actionType
     const action: ArenaAction = {
       id: this.state.id,
       actionType,

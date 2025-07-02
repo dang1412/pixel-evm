@@ -62,3 +62,10 @@ export interface ArenaGameUpdates {
   updates: MonsterUpdate[]
   actions: ArenaAction[]
 }
+
+export interface MonsterDrawInfo {
+  type: MonsterType
+  image: string
+  w: number
+  h: number
+}
