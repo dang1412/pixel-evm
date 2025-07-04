@@ -292,7 +292,7 @@ export class ViewportMap {
     })
   }
 
-  moveObject(object: Container, px: number, py: number, tx: number, ty: number): Promise<void> {
+  moveObject(object: Container, px: number, py: number, tx = px, ty = py): Promise<void> {
     let x = px * PIXEL_SIZE
     let y = py * PIXEL_SIZE
 

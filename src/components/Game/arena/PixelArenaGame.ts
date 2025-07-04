@@ -1,7 +1,7 @@
 import { PointData } from 'pixi.js'
 
 import { xyToPosition } from '../utils'
-import { ActionType, ArenaAction, ArenaGameState, MonsterState, MonsterType, VehicleType } from './types'
+import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType, VehicleType } from './types'
 
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
@@ -31,7 +31,7 @@ export class PixelArenaGame {
     this.onNextRound(actions) // Process actions and notify the next round
   }
 
-  addMonster(id: number, pos: PointData, hp: number): MonsterState {
+  addMonster(id: number, pos: PointData, hp: number, type: MonsterType): MonsterState {
     // Add a new monster to the game state
     if (this.state.monsters[id]) {
       console.warn(`Monster with id ${id} already exists, updating position and HP`)
@@ -40,7 +40,7 @@ export class PixelArenaGame {
       id,
       pos,
       hp,
-      type: MonsterType.Axie,
+      type,
       vehicle: VehicleType.None,
       weapons: {
         [ActionType.ShootBomb]: 0,
@@ -50,9 +50,13 @@ export class PixelArenaGame {
     this.state.monsters[id] = monster // Add monster to the state
     this.state.positionMonsterMap[xyToPosition(pos.x, pos.y)] = id // Map position to monster id
     this.state.aliveNumber += 1 // Increment alive monster count
-    console.log(`Monster ${id} added at position (${pos.x}, ${pos.y}) with HP ${hp}`)
 
     return monster
+  }
+
+  addItem(pos: PointData, itemType: MapItemType) {
+    const pixelPos = xyToPosition(pos.x, pos.y)
+    this.state.positionItemMap[pixelPos] = itemType // Map position to item type
   }
 
   receiveAction(action: ArenaAction) {
@@ -134,7 +138,28 @@ export class PixelArenaGame {
     monster.pos = action.target // Update position
     console.log(`Monster ${action.id} moved to ${action.target.x}, ${action.target.y}`)
 
+    // check if received items
+    if (this.state.positionItemMap[targetPos] !== undefined && monster.vehicle === VehicleType.None) {
+      const itemType = this.state.positionItemMap[targetPos]
+      console.log(`Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`)
+      // Handle item pickup logic here if needed
+      delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
+      this.pickupItem(monster, itemType) // Process item pickup
+    }
+
     return true
+  }
+
+  private pickupItem(monster: MonsterState, itemType: MapItemType) {
+    // Logic to handle item pickup by a monster
+    if (itemType === MapItemType.Car) {
+      monster.vehicle = VehicleType.Car // Update monster's vehicle type
+    } else if (itemType === MapItemType.Bomb || itemType === MapItemType.Fire) {
+      // Increment the weapon count for the monster
+      const type = itemType === MapItemType.Bomb ? ActionType.ShootBomb : ActionType.ShootFire
+      monster.weapons[type] += 1
+      console.log(`Monster ${monster.id} picked up a ${itemType}, total: ${monster.weapons[type]}`)
+    }
   }
 
   private processShootAction(action: ArenaAction): boolean {

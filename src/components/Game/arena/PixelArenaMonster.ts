@@ -2,10 +2,13 @@ import { Assets, Container, Graphics, Sprite } from 'pixi.js'
 
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, ArenaAction, MonsterState } from './types'
-import { actionImages } from './constants'
+import { actionImages, itemImages, monsterInfos, vehicleImages } from './constants'
+import { PIXEL_SIZE } from '../utils'
 
 Assets.load([
   '/images/characters/axie.png',
+  '/images/characters/Tralalero-Tralala.png',
+  '/images/characters/Trippi-Troppi.png',
   '/images/energy2.png',
   '/svgs/walk.svg',
   '/svgs/crosshairs.svg',
@@ -22,21 +25,35 @@ export class PixelArenaMonster {
   actionType = ActionType.Move
   private actionTypeSprite: Sprite
 
+  // draw vehicle
+  private vehicleSprite = new Sprite()
+
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
     const scene = arenaMap.map.getActiveScene()!
-    this.monsterContainer = scene.addImage('/images/characters/axie.png', { x: state.pos.x, y: state.pos.y, w: 1.4, h: 1 })
-    // this.monsterContainer.interactive = true
-    // this.monsterContainer.on('pointerdown', () => {
-    //   this.startShoot()
-    // })
+    const { image, w, h } = monsterInfos[state.type]
+    this.monsterContainer = scene.addImage(image, { x: state.pos.x, y: state.pos.y, w, h })
+
     this.actionTypeSprite = new Sprite()
     this.actionTypeSprite.alpha = 0.8
     this.monsterContainer.addChild(this.actionTypeSprite)
     this.drawActionType()
+
+    this.draw()
   }
 
   private draw() {
-
+    // vehicle
+    if (this.state.vehicle) {
+      const vehicleImage = vehicleImages[this.state.vehicle]
+      this.vehicleSprite.texture = Assets.get(vehicleImage)
+      this.vehicleSprite.width = PIXEL_SIZE
+      this.vehicleSprite.height = PIXEL_SIZE
+      this.vehicleSprite.x = -4
+      this.vehicleSprite.y = 6
+      this.monsterContainer.addChild(this.vehicleSprite)
+    } else {
+      this.vehicleSprite.removeFromParent()
+    }
   }
 
   private drawAction(action: ArenaAction) {
@@ -47,11 +64,13 @@ export class PixelArenaMonster {
       this.actionLineGraphics
     )
 
+    const info = monsterInfos[this.state.type]
+
     const image = action.actionType === ActionType.Move
-      ? '/images/characters/axie.png'
+      ? info.image
       : '/images/energy2.png'
 
-    const w = action.actionType === ActionType.Move ? 1.4 : 1
+    const w = action.actionType === ActionType.Move ? info.w : 1
     this.shadowContainer = scene.addImage(image, {
       x: action.target.x,
       y: action.target.y,
@@ -70,7 +89,6 @@ export class PixelArenaMonster {
 
   updateState(state: MonsterState) {
     this.state = state
-    // this.monsterContainer.position.set(state.pos.x, state.pos.y)
     // TODO update other properties like hp, etc.
     this.draw()
   }
@@ -100,11 +118,13 @@ export class PixelArenaMonster {
       target: { x: 0, y: 0 }
     }
 
+    const info = monsterInfos[this.state.type]
+
     const image = actionType === ActionType.Move
-      ? '/images/characters/axie.png'
+      ? info.image
       : '/images/energy2.png'
 
-    const w = actionType === ActionType.Move ? 1.4 : 1
+    const w = actionType === ActionType.Move ? info.w : 1
 
     let g: Graphics
     const scene = this.arenaMap.map.getActiveScene()!

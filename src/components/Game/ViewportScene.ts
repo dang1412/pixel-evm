@@ -34,9 +34,6 @@ export class ViewportScene {
     const container = _c || new Container()
     container.removeChildren()
 
-    container.x = area.x * PIXEL_SIZE
-    container.y = area.y * PIXEL_SIZE
-
     // add image
     const image = new Sprite(url ? Texture.from(url) : undefined)
     if (area.w && area.h) {
@@ -47,7 +44,14 @@ export class ViewportScene {
 
     this.container.addChild(container)
 
+    this.setPosition(container, area.x, area.y)
+
     return container
+  }
+
+  setPosition(container: Container, x: number, y: number) {
+    container.x = x * PIXEL_SIZE
+    container.y = y * PIXEL_SIZE
   }
 
   private drawGrid() {

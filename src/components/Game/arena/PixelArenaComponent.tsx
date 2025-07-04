@@ -15,6 +15,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
   const [actionType, setActionType] = useState(ActionType.Move)
 
   const changeMonster = useCallback((monster: MonsterState, actionType: ActionType) => {
+    console.log('Change monster:', monster, actionType)
     setMonster(monster)
     setActionType(actionType)
   }, [])

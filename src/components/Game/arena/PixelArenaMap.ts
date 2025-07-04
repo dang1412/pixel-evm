@@ -1,13 +1,18 @@
 import { Assets, Container, PointData } from 'pixi.js'
 
 import { ViewportMap } from '../ViewportMap'
-import { xyToPosition } from '../utils'
+import { positionToXY, xyToPosition } from '../utils'
 
 import { PixelArenaGame } from './PixelArenaGame'
-import { ActionType, ArenaAction, ArenaGameState, MonsterState } from './types'
+import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType } from './types'
 import { PixelArenaMonster } from './PixelArenaMonster'
+import { itemImages } from './constants'
 
-Assets.load(['/images/select_aura.png'])
+Assets.load([
+  '/images/select_aura.png',
+  '/svgs/car.svg',
+  '/svgs/rocket.svg',
+])
 
 export class PixelArenaMap {
   game: PixelArenaGame
@@ -19,6 +24,9 @@ export class PixelArenaMap {
 
   private auraContainer?: Container
 
+  // Items on map
+  private itemContainers: {[pos: number]: Container} = {}
+
   constructor(public map: ViewportMap, public sceneName: string, private onSelectMonster?: (monster: MonsterState, type: ActionType) => void) {
     const state: ArenaGameState = {
       monsters: {},
@@ -27,6 +35,7 @@ export class PixelArenaMap {
       currentRound: 0,
       aliveNumber: 0,
       executedOrder: [],
+      positionItemMap: {}
     }
 
     this.game = new PixelArenaGame(state, this.onNextRound.bind(this))
@@ -73,18 +82,20 @@ export class PixelArenaMap {
     } else {
       const tx = monster.state.pos.x - 0.4
       const ty = monster.state.pos.y - 0.5
-      const sx = this.selectedMonster ? this.selectedMonster.state.pos.x - 0.4 : tx
-      const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
-      this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
+      // const sx = this.selectedMonster ? this.selectedMonster.state.pos.x - 0.4 : tx
+      // const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
+      this.map.moveObject(this.auraContainer!, tx, ty)
       this.selectedMonster = monster
       if (this.onSelectMonster) this.onSelectMonster({...monster.state}, monster.actionType)
     }
   }
 
-  private onNextRound(actions: ArenaAction[]) {
+  private async onNextRound(actions: ArenaAction[]) {
     console.log('Next round actions:', actions)
     const monsters = this.game.state.monsters
     const ids = Object.keys(monsters).map(id => parseInt(id, 10))
+
+    let movePromise = Promise.resolve()
 
     // apply moves
     for (const id of ids) {
@@ -109,9 +120,22 @@ export class PixelArenaMap {
         }
 
         // monster move
-        monster.applyAction({ id, actionType: ActionType.Move, target: monsterState.pos })
+        movePromise = monster.applyAction({ id, actionType: ActionType.Move, target: monsterState.pos })
+      }
+
+      // update monster state after move (if any)
+      movePromise.then(() => monster.updateState({...monsterState}))
+
+      // infrom UI if selected
+      if (this.selectedMonster && this.selectedMonster.state.id === id) {
+        if (this.onSelectMonster) {
+          this.onSelectMonster({...monsterState}, monster.actionType)
+        }
       }
     }
+
+    // redraw map items
+    movePromise.then(() => this.updateMapItems())
 
     // apply shoots
     for (const action of actions) {
@@ -125,22 +149,65 @@ export class PixelArenaMap {
   }
 
   private initGame() {
-    this.addMonster(1, { x: 3, y: 3 }, 3) // Example monster
-    this.addMonster(2, { x: 5, y: 3 }, 3) // Example monster
-    this.addMonster(3, { x: 7, y: 3 }, 3) // Example monster
-
     // aura
     const scene = this.map.getActiveScene()!
     this.auraContainer = scene.addImage('/images/select_aura.png', { x: 0, y: 0, w: 2, h: 2 })
+
+    // items
+    this.game.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
+    this.game.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
+    this.game.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
+    this.updateMapItems()
+
+    // monsters
+    this.addMonster(1, { x: 3, y: 3 }, 3) // Example monster
+    this.addMonster(2, { x: 5, y: 3 }, 3) // Example monster
+    this.addMonster(3, { x: 7, y: 3 }, 3, MonsterType.TrippiTroppi) // Example monster
+    this.addMonster(4, { x: 10, y: 5 }, 3, MonsterType.Tralarelo) // Example monster
   }
 
-  private addMonster(id: number, pos: PointData, hp: number) {
-    const monsterState = this.game.addMonster(id, pos, hp)
+  // Update items's draw on the map
+  private updateMapItems() {
+    const scene = this.map.getActiveScene()!
+    const positionItemMap = this.game.state.positionItemMap
+    // update existing items
+    for (const pixelStr of Object.keys(positionItemMap)) {
+      const pixel = Number(pixelStr)
+      if (!this.itemContainers[pixel]) {
+        // If item container does not exist, create it
+        const { x, y } = positionToXY(pixel)
+        const type = positionItemMap[pixel]
+        const image = itemImages[type]
+        this.itemContainers[pixel] = scene.addImage(image, { x, y, w: 1, h: 1 })
+      }
+    }
+
+    // remove items that no longer exist
+    console.log(this.itemContainers, positionItemMap)
+    for (const pixelStr of Object.keys(this.itemContainers)) {
+      const pixel = Number(pixelStr)
+      if (positionItemMap[pixel] === undefined) {
+        // If item no longer exists, remove its container
+        console.log(pixelStr, pixel)
+        this.itemContainers[pixel].destroy()
+        delete this.itemContainers[pixel]
+      }
+    }
+  }
+
+  /**
+   * Add a monster to the arena map.
+   * @param id - Unique identifier for the monster.
+   * @param pos - Position of the monster on the map.
+   * @param hp - Health points of the monster.
+   * @param type - Type of the monster (default is Axie).
+   */
+  private addMonster(id: number, pos: PointData, hp: number, type = MonsterType.Axie): void {
+    const monsterState = this.game.addMonster(id, pos, hp, type)
     const monster = new PixelArenaMonster(this, {...monsterState})
     this.monsters[id] = monster
 
     const posVal = xyToPosition(pos.x, pos.y)
     this.pixelToMonsterMap[posVal] = monster
-    console.log(`Added monster ${monsterState.id} at position (${monsterState.pos.x}, ${monsterState.pos.y}) with HP ${monsterState.hp}`)
   }
 }

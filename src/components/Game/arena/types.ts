@@ -2,7 +2,9 @@ import { PointData } from 'pixi.js'
 import { PixelImage } from '../types'
 
 export enum MonsterType {
-  Axie
+  Axie,
+  Tralarelo,
+  TrippiTroppi,
 }
 
 export enum ActionType {
@@ -10,11 +12,18 @@ export enum ActionType {
   Shoot,
   ShootBomb,
   ShootFire,
+  DropVehicle,
 }
 
 export enum VehicleType {
   None,
   Car,
+}
+
+export enum MapItemType {
+  Car,
+  Bomb,
+  Fire,
 }
 
 // State that sends to client
@@ -39,10 +48,13 @@ export interface ArenaAction {
 export interface ArenaGameState {
   monsters: { [id: number]: MonsterState }
   positionMonsterMap: { [pos: number]: number } // pixel to monster id
+
   roundActions: { [id: number]: ArenaAction }
   currentRound: number
   aliveNumber: number
   executedOrder: number[]
+
+  positionItemMap: { [pos: number]: MapItemType } // pixel to item type
 }
 
 export enum UpdateType {
