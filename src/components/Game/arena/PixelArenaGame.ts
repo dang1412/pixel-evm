@@ -6,7 +6,7 @@ import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, Mon
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
 export class PixelArenaGame {
-  constructor(public state: ArenaGameState, private onNextRound: (actions: ArenaAction[]) => void) {
+  constructor(public state: ArenaGameState, private onNextRound: (actions: ArenaAction[], states: MonsterState[]) => void) {
     // The game object can be used to access game state, methods, etc.
     // For example, you might want to initialize some game settings here.
   }
@@ -21,14 +21,16 @@ export class PixelArenaGame {
     console.log('Game stopped');
   }
 
-  private nextRound(actions: ArenaAction[]) {
+  private nextRound(actions: ArenaAction[], monsters: MonsterState[] = []) {
     // Logic to advance to the next round
     this.state.currentRound += 1
     console.log(`Advancing to round ${this.state.currentRound}`)
     this.state.roundActions = {} // Reset actions for the new round
     this.state.executedOrder = [] // Reset done actions count
 
-    this.onNextRound(actions) // Process actions and notify the next round
+    // TODO: remove dead monsters
+
+    this.onNextRound(actions, monsters) // Process actions and notify the next round
   }
 
   addMonster(id: number, pos: PointData, hp: number, type: MonsterType): MonsterState {
@@ -79,17 +81,17 @@ export class PixelArenaGame {
     // if all done
     if (this.state.executedOrder.length == this.state.aliveNumber) {
       console.log('All actions have been made for the round, execute')
-      const actions = this.processActions() // Process all actions
+      const { appliedActions, changedStates } = this.processActions() // Process all actions
       setTimeout(() => {
-        console.log('Processing actions for the round:', actions)
-        this.nextRound(actions) // Proceed to the next round
+        console.log('Processing actions for the round:', appliedActions)
+        this.nextRound(appliedActions, changedStates) // Proceed to the next round
       }, 200) // Delay for processing actions
     } else {
       console.log(`Action received: ${action.actionType} by monster ${action.id}`)
     }
   }
 
-  private processActions(): ArenaAction[] {
+  private processActions(): { appliedActions: ArenaAction[], changedStates: MonsterState[] } {
     // Process all actions for the current round
     const appliedActions: ArenaAction[] = []
 
@@ -97,36 +99,45 @@ export class PixelArenaGame {
     for (const id of this.state.executedOrder) {
       const action = this.state.roundActions[id]
       if (action.actionType === ActionType.Move) {
-        this.processMoveAction(action)
+        const executed = this.processMoveAction(action)
+        if (executed) {
+          appliedActions.push(executed)
+        } else {
+          console.warn(`Move action for monster ${action.id} was not executed due to invalid position`)
+        }
       }
     }
+
+    const updatedMonsterIds = new Set<number>()
 
     // Process shoot actions
     for (const id of this.state.executedOrder) {
       const action = this.state.roundActions[id]
       if (action.actionType === ActionType.Shoot || action.actionType === ActionType.ShootBomb || action.actionType === ActionType.ShootFire) {
-        const executed = this.processShootAction(action)
+        const executed = this.processShootAction(action, updatedMonsterIds)
         if (executed) {
-          appliedActions.push(action)
+          appliedActions.push(executed)
         }
       }
     }
 
-    return appliedActions
+    const changedStates = Array.from(updatedMonsterIds).map(id => ({...this.state.monsters[id]}))
+
+    return { appliedActions, changedStates }
   }
 
-  private processMoveAction(action: ArenaAction): boolean {
+  private processMoveAction(action: ArenaAction): ArenaAction | undefined {
     // Logic to move the monster based on the action
     const monster = this.state.monsters[action.id]
     if (!monster) {
       console.warn(`Monster ${action.id} not found for move action`)
-      return false
+      return
     }
 
     // Check if target position is empty
     const targetPos = xyToPosition(action.target.x, action.target.y)
     if (this.state.positionMonsterMap[targetPos] !== undefined) {
-      return false
+      return
     }
 
     // Move the monster to the new position
@@ -147,7 +158,7 @@ export class PixelArenaGame {
       this.pickupItem(monster, itemType) // Process item pickup
     }
 
-    return true
+    return action
   }
 
   private pickupItem(monster: MonsterState, itemType: MapItemType) {
@@ -162,20 +173,23 @@ export class PixelArenaGame {
     }
   }
 
-  private processShootAction(action: ArenaAction): boolean {
+  private processShootAction(action: ArenaAction, updatedMonsterIds: Set<number>): ArenaAction | undefined {
     const { monsters, positionMonsterMap } = this.state
     const monster = monsters[action.id]
     if (!monster) {
       console.warn(`Monster ${action.id} not found for shoot action`)
-      return false
+      return
     }
 
     const targetPos = xyToPosition(action.target.x, action.target.y)
     if (positionMonsterMap[targetPos] !== undefined) {
-      this.monsterGotHit(positionMonsterMap[targetPos])
+      const monsterId = positionMonsterMap[targetPos]
+      this.monsterGotHit(monsterId)
+
+      updatedMonsterIds.add(monsterId) // Track updated monster ids
     }
 
-    return true
+    return action
   }
 
   private monsterGotHit(monsterId: number, damage = 1) {
@@ -189,7 +203,7 @@ export class PixelArenaGame {
     if (monster.hp <= 0) {
       console.log(`Monster ${monsterId} has been defeated`)
       delete this.state.positionMonsterMap[xyToPosition(monster.pos.x, monster.pos.y)]
-      delete this.state.monsters[monsterId]
+      // delete this.state.monsters[monsterId]
       this.state.aliveNumber -= 1
     } else {
       console.log(`Monster ${monsterId} hit, remaining HP: ${monster.hp}`)

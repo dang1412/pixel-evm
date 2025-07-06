@@ -38,7 +38,9 @@ export class PixelArenaMap {
       positionItemMap: {}
     }
 
-    this.game = new PixelArenaGame(state, this.onNextRound.bind(this))
+    this.game = new PixelArenaGame(state, (actions: ArenaAction[], monsters: MonsterState[]) => {
+      this.onNextRound(actions, monsters)
+    })
 
     // Init game when entered the scene
     const unsubscene = map.subscribe('sceneactivated', (event: CustomEvent) => {
@@ -90,64 +92,96 @@ export class PixelArenaMap {
     }
   }
 
-  private async onNextRound(actions: ArenaAction[]) {
-    console.log('Next round actions:', actions)
-    const monsters = this.game.state.monsters
-    const ids = Object.keys(monsters).map(id => parseInt(id, 10))
+  private async onNextRound(actions: ArenaAction[], monsters: MonsterState[]) {
+    console.log('Next round actions:', actions, monsters)
 
-    let movePromise = Promise.resolve()
+    // apply moves and shoots
+    const moves = this.processMoveActions(actions)
+    const shoots = this.processShootActions(actions)
+    await Promise.all([moves, shoots])
 
-    // apply moves
-    for (const id of ids) {
-      const monster = this.monsters[id]
-      const monsterState = monsters[id]
+    // Update map items after actions
+    this.updateMapItems()
 
-      if (monster.state.pos !== monsterState.pos) {
-        const oldPosVal = xyToPosition(monster.state.pos.x, monster.state.pos.y)
-        const newPosVal = xyToPosition(monsterState.pos.x, monsterState.pos.y)
-        // remove old position from pixelToMonsterMap
-        delete this.pixelToMonsterMap[oldPosVal]
-        // add new position to pixelToMonsterMap
-        this.pixelToMonsterMap[newPosVal] = monster
-
-        // move aura if selected
-        if (this.selectedMonster && this.selectedMonster.state.id === id) {
-          const sx = monster.state.pos.x - 0.4
-          const sy = monster.state.pos.y - 0.5
-          const tx = monsterState.pos.x - 0.4
-          const ty = monsterState.pos.y - 0.5
-          this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
-        }
-
-        // monster move
-        movePromise = monster.applyAction({ id, actionType: ActionType.Move, target: monsterState.pos })
-      }
-
-      // update monster state after move (if any)
-      movePromise.then(() => monster.updateState({...monsterState}))
-
-      // infrom UI if selected
-      if (this.selectedMonster && this.selectedMonster.state.id === id) {
-        if (this.onSelectMonster) {
-          this.onSelectMonster({...monsterState}, monster.actionType)
-        }
-      }
-    }
-
-    // redraw map items
-    movePromise.then(() => this.updateMapItems())
-
-    // apply shoots
-    for (const action of actions) {
-      const monster = this.monsters[action.id]
+    // Update states
+    for (const state of monsters) {
+      const monster = this.monsters[state.id]
       if (monster) {
-        monster.applyAction(action)
+        // Hp, vehicle, and other state updates (including position)
+        monster.updateState({...state})
+        // Inform UI new state if selected
+        if (this.selectedMonster && this.selectedMonster.state.id === state.id) {
+          if (this.onSelectMonster) {
+            this.onSelectMonster({...state}, monster.actionType)
+          }
+        }
+
+        // If monster hp is 0, remove it from the arena
+        if (state.hp <= 0) {
+          this.selectedMonster = undefined // Unselect monster
+          const pos = monster.remove() // Remove monster if hp is 0
+          delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
+        }
       } else {
-        console.warn(`Monster with id ${action.id} not found for action ${action.actionType}`)
+        console.warn(`Monster with id ${state.id} not found for state update`)
       }
     }
   }
 
+  private async processMoveActions(actions: ArenaAction[]) {
+    // Process move actions for monsters
+    const movePrommises: Promise<void>[] = []
+    for (const action of actions) {
+      if (action.actionType === ActionType.Move) {
+        const monster = this.monsters[action.id]
+        if (monster) {
+          const oldPosVal = xyToPosition(monster.state.pos.x, monster.state.pos.y)
+          const newPosVal = xyToPosition(action.target.x, action.target.y)
+          // remove old position from pixelToMonsterMap
+          delete this.pixelToMonsterMap[oldPosVal]
+          // add new position to pixelToMonsterMap
+          this.pixelToMonsterMap[newPosVal] = monster
+          const move = monster.applyAction(action)
+          movePrommises.push(move)
+
+          // move aura if selected
+          if (this.selectedMonster && this.selectedMonster.state.id === action.id) {
+            const sx = monster.state.pos.x - 0.4
+            const sy = monster.state.pos.y - 0.5
+            const tx = action.target.x - 0.4
+            const ty = action.target.y - 0.5
+            this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
+
+            // Inform new postion after move
+            move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
+          }
+        } else {
+          console.warn(`Monster with id ${action.id} not found for move action`)
+        }
+      }
+    }
+
+    return Promise.all(movePrommises)
+  }
+
+  private async processShootActions(actions: ArenaAction[]) {
+    // Process shoot actions for monsters
+    const shootPromises: Promise<void>[] = []
+    for (const action of actions) {
+      if (action.actionType === ActionType.Shoot) {
+        const monster = this.monsters[action.id]
+        if (monster) {
+          const shoot = monster.applyAction(action)
+          shootPromises.push(shoot)
+        } else {
+          console.warn(`Monster with id ${action.id} not found for shoot action`)
+        }
+      }
+    }
+
+    return Promise.all(shootPromises)
+  }
+  
   private initGame() {
     // aura
     const scene = this.map.getActiveScene()!

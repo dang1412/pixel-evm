@@ -3,7 +3,7 @@ import { Assets, Container, Graphics, Sprite } from 'pixi.js'
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, ArenaAction, MonsterState } from './types'
 import { actionImages, itemImages, monsterInfos, vehicleImages } from './constants'
-import { PIXEL_SIZE } from '../utils'
+import { PIXEL_SIZE, xyToPosition } from '../utils'
 
 Assets.load([
   '/images/characters/axie.png',
@@ -193,5 +193,14 @@ export class PixelArenaMonster {
     // this.animateExplode(scene, x, y)
     // sound.play('explode1', {volume: 0.1})
     energy.parent.removeChild(energy)
+  }
+
+  remove(): number {
+    console.log(`Removing monster ${this.state.id} from arena`, this.state)
+    this.monsterContainer.destroy()
+    this.actionLineGraphics?.destroy()
+    this.shadowContainer?.destroy()
+
+    return xyToPosition(this.state.pos.x, this.state.pos.y)
   }
 }
