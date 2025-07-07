@@ -1,4 +1,4 @@
-import { ActionType, MapItemType, MonsterDrawInfo, MonsterType, VehicleType } from "./types";
+import { ActionType, MapItemType, MonsterDrawInfo, MonsterType } from "./types";
 
 export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
   [MonsterType.Axie]: {
@@ -22,11 +22,12 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
 }
 
 export const actionImages: Record<ActionType, string> = {
+  [ActionType.None]: '/svgs/walk.svg',
   [ActionType.Move]: '/svgs/walk.svg',
   [ActionType.Shoot]: '/svgs/crosshairs.svg',
   [ActionType.ShootBomb]: '/svgs/crosshairs.svg',
   [ActionType.ShootFire]: '/svgs/crosshairs.svg',
-  [ActionType.DropVehicle]: '',
+  [ActionType.Drop]: '',
 }
 
 export const itemImages: Record<MapItemType, string> = {
@@ -35,7 +36,7 @@ export const itemImages: Record<MapItemType, string> = {
   [MapItemType.Fire]: '/svgs/rocket.svg',
 }
 
-export const vehicleImages: Record<VehicleType, string> = {
-  [VehicleType.None]: '',
-  [VehicleType.Car]: itemImages[MapItemType.Car],
-}
+// export const vehicleImages: Record<VehicleType, string> = {
+//   [VehicleType.None]: '',
+//   [VehicleType.Car]: itemImages[MapItemType.Car],
+// }

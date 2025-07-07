@@ -2,7 +2,7 @@ import { Assets, Container, Graphics, Sprite } from 'pixi.js'
 
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, ArenaAction, MonsterState } from './types'
-import { actionImages, itemImages, monsterInfos, vehicleImages } from './constants'
+import { actionImages, itemImages, monsterInfos } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
 
 Assets.load([
@@ -43,8 +43,8 @@ export class PixelArenaMonster {
 
   private draw() {
     // vehicle
-    if (this.state.vehicle) {
-      const vehicleImage = vehicleImages[this.state.vehicle]
+    if (this.state.vehicle !== undefined) {
+      const vehicleImage = itemImages[this.state.vehicle]
       this.vehicleSprite.texture = Assets.get(vehicleImage)
       this.vehicleSprite.width = PIXEL_SIZE
       this.vehicleSprite.height = PIXEL_SIZE

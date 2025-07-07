@@ -86,7 +86,7 @@ export class PixelArenaGame {
       console.log('All actions have been made for the round, execute')
       const { appliedActions, changedStates } = this.processActions() // Process all actions
       setTimeout(() => {
-        console.log('Processing actions for the round:', appliedActions)
+        console.log('Processing actions for the round:', appliedActions, changedStates)
         this.nextRound(appliedActions, changedStates) // Proceed to the next round
       }, 200) // Delay for processing actions
     } else {
@@ -97,12 +97,13 @@ export class PixelArenaGame {
   private processActions(): { appliedActions: ArenaAction[], changedStates: MonsterState[] } {
     // Process all actions for the current round
     const appliedActions: ArenaAction[] = []
+    const updatedMonsterIds = new Set<number>()
 
     // Process move actions first
     for (const id of this.state.executedOrder) {
       const action = this.state.roundActions[id]
       if (action.actionType === ActionType.Move) {
-        const executed = this.processMoveAction(action)
+        const executed = this.processMoveAction(action, updatedMonsterIds)
         if (executed) {
           appliedActions.push(executed)
         } else {
@@ -110,8 +111,6 @@ export class PixelArenaGame {
         }
       }
     }
-
-    const updatedMonsterIds = new Set<number>()
 
     // Process shoot actions
     for (const id of this.state.executedOrder) {
@@ -129,7 +128,7 @@ export class PixelArenaGame {
     return { appliedActions, changedStates }
   }
 
-  private processMoveAction(action: ArenaAction): ArenaAction | undefined {
+  private processMoveAction(action: ArenaAction, updatedMonsterIds: Set<number>): ArenaAction | undefined {
     // Logic to move the monster based on the action
     const monster = this.state.monsters[action.id]
     if (!monster) {
@@ -159,6 +158,7 @@ export class PixelArenaGame {
       // Handle item pickup logic here if needed
       delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
       this.pickupItem(monster, itemType) // Process item pickup
+      updatedMonsterIds.add(monster.id)
     }
 
     return action

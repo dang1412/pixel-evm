@@ -233,15 +233,15 @@ export class PixelArenaMap {
 
   /**
    * Add a monster to the arena map.
-   * @param id - Unique identifier for the monster.
+   * @param ownerId - owner id.
    * @param pos - Position of the monster on the map.
    * @param hp - Health points of the monster.
    * @param type - Type of the monster (default is Axie).
    */
-  private addMonster(id: number, pos: PointData, hp: number, type = MonsterType.Axie): void {
-    const monsterState = this.game.addMonster(id, pos, hp, type)
+  private addMonster(ownerId: number, pos: PointData, hp: number, type = MonsterType.Axie): void {
+    const monsterState = this.game.addMonster(ownerId, pos, hp, type)
     const monster = new PixelArenaMonster(this, {...monsterState})
-    this.monsters[id] = monster
+    this.monsters[monsterState.id] = monster
 
     const posVal = xyToPosition(pos.x, pos.y)
     this.pixelToMonsterMap[posVal] = monster
