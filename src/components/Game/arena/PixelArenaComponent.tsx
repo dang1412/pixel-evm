@@ -40,7 +40,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
   return (
     <>
       <canvas ref={(c) => setCanvas(c || undefined)} className='' style={{border: '1px solid #ccc'}} />
-      <div className="fixed bottom-6 left-6 z-10">
+      <div className="fixed bottom-2 left-2 z-10">
         {monster && <MonsterCard state={monster} actionType={actionType} onActionChange={onActionChange} />}
       </div>
     </>

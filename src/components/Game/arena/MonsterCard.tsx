@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaWalking, FaCrosshairs, FaBomb, FaFire } from 'react-icons/fa'
+import { FaWalking, FaCrosshairs, FaBomb, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
 import { ActionType, MonsterState } from './types'
 import { monsterInfos } from './constants'
 
@@ -8,8 +8,6 @@ type MonsterCardProps = {
   actionType: ActionType
   onActionChange?: (action: ActionType) => void
 }
-
-// type MonsterAction = 'move' | 'shoot' | 'shootbomb' | 'shootfire'
 
 const actionOptions: { type: ActionType; icon: React.ReactNode; label: string }[] = [
   { type: ActionType.Move, icon: <FaWalking />, label: 'Move' },
@@ -25,50 +23,63 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
 }) => {
   const { id, hp, pos } = state
   const name = `monster-${id}`
-
-  // const [selectedAction, setSelectedAction] = useState(ActionType.Move)
   const imageUrl = monsterInfos[state.type]?.image || ''
 
+  const [isVisible, setIsVisible] = useState(true)
+
   const handleActionChange = (action: ActionType) => {
-    // setSelectedAction(action)
     onActionChange?.(action)
   }
 
+  const toggleVisibility = () => {
+    setIsVisible((prev) => !prev)
+  }
+
   return (
-    <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
-      <img
-        src={imageUrl}
-        className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700'
-      />
-      <div className='text-large font-bold text-white mb-2'>{name} ({pos.x}, {pos.y})</div>
-      <div className='flex items-center mb-4'>
-        <span className='text-green-400 font-semibold mr-2'>HP:</span>
-        <span className='text-white'>{hp}</span>
-      </div>
-      <div className='flex space-x-2'>
-        {actionOptions.map((option) => (
-          <label
-            key={option.type}
-            className={`flex flex-col items-center cursor-pointer p-2 rounded transition
-              ${
-                actionType === option.type
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-          >
-            <input
-              type='radio'
-              name='monster-action'
-              value={option.type}
-              checked={actionType === option.type}
-              onChange={() => handleActionChange(option.type)}
-              className='hidden'
-            />
-            <span className='text-xl mb-1'>{option.icon}</span>
-            {/* <span className='text-xs'>{option.label}</span> */}
-          </label>
-        ))}
-      </div>
+    <div>
+      <button
+        onClick={toggleVisibility}
+        className='bg-blue-500 text-white px-4 py-2 rounded mb-1 flex items-center justify-center'
+      >
+        {isVisible ? <FaEye /> : <FaEyeSlash />}
+      </button>
+      {isVisible && (
+        <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
+          <img
+            src={imageUrl}
+            className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700'
+          />
+          <div className='text-large font-bold text-white mb-2'>
+            {name} ({pos.x}, {pos.y})
+          </div>
+          <div className='flex items-center mb-4'>
+            <span className='text-green-400 font-semibold mr-2'>HP:</span>
+            <span className='text-white'>{hp}</span>
+          </div>
+          <div className='flex space-x-2'>
+            {actionOptions.map((option) => (
+              <label
+                key={option.type}
+                className={`flex flex-col items-center cursor-pointer p-2 rounded transition ${
+                  actionType === option.type
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                <input
+                  type='radio'
+                  name='monster-action'
+                  value={option.type}
+                  checked={actionType === option.type}
+                  onChange={() => handleActionChange(option.type)}
+                  className='hidden'
+                />
+                <span className='text-xl mb-1'>{option.icon}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
