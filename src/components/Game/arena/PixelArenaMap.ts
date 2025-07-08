@@ -14,6 +14,12 @@ Assets.load([
   '/svgs/rocket.svg',
 ])
 
+export interface PixelArenaMapOpts {
+  sceneName: string
+  onMonstersUpdate: (monsters: MonsterState[]) => void
+  onMonsterSelect: (id: number) => void
+}
+
 export class PixelArenaMap {
   game: PixelArenaGame
 
@@ -29,7 +35,7 @@ export class PixelArenaMap {
 
   ownerId = 1
 
-  constructor(public map: ViewportMap, public sceneName: string, private onSelectMonster?: (monster: MonsterState, type: ActionType) => void) {
+  constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
     const state: ArenaGameState = {
       monsters: {},
       positionMonsterMap: {},
@@ -48,15 +54,16 @@ export class PixelArenaMap {
     const unsubscene = map.subscribe('sceneactivated', (event: CustomEvent) => {
       console.log('Scene activated:', event.detail)
       const addedScene = event.detail
-      if (addedScene === sceneName) {
+      if (addedScene === opts.sceneName) {
         unsubscene()
         this.initGame()
+        this.informUI()
       }
     })
 
     // Control on the scene
     map.subscribe('pixeldown', (event: CustomEvent) => {
-      if (map.activeScene !== sceneName) {
+      if (map.activeScene !== opts.sceneName) {
         return
       }
 
@@ -80,6 +87,11 @@ export class PixelArenaMap {
     }
   }
 
+  selectMonsterById(id: number) {
+    const monster = this.monsters[id]
+    if (monster) this.selectMonster(monster)
+  }
+
   private selectMonster(monster: PixelArenaMonster) {
     if (this.selectedMonster?.state.id === monster.state.id) {
       // unselect the monster
@@ -90,7 +102,7 @@ export class PixelArenaMap {
       // const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
       this.map.moveObject(this.auraContainer!, tx, ty)
       this.selectedMonster = monster
-      if (this.onSelectMonster) this.onSelectMonster({...monster.state}, monster.actionType)
+      this.opts.onMonsterSelect(monster.state.id)
     }
   }
 
@@ -111,12 +123,6 @@ export class PixelArenaMap {
       if (monster) {
         // Hp, vehicle, and other state updates (including position)
         monster.updateState({...state})
-        // Inform UI new state if selected
-        if (this.selectedMonster && this.selectedMonster.state.id === state.id) {
-          if (this.onSelectMonster) {
-            this.onSelectMonster({...state}, monster.actionType)
-          }
-        }
 
         // If monster hp is 0, remove it from the arena
         if (state.hp <= 0) {
@@ -128,6 +134,21 @@ export class PixelArenaMap {
         console.warn(`Monster with id ${state.id} not found for state update`)
       }
     }
+
+    // Inform UI new states
+    // if (this.selectedMonster && this.selectedMonster.state.id === state.id) {
+    //   if (this.onSelectMonster) {
+    //     this.onSelectMonster({...state}, monster.actionType)
+    //   }
+    // }
+    this.informUI()
+  }
+
+  private informUI() {
+    const allMonsters = Object.values(this.monsters)
+      .filter(m => m.state.ownerId === this.ownerId)
+      .map(m => m.state)
+    this.opts.onMonstersUpdate(allMonsters)
   }
 
   private async processMoveActions(actions: ArenaAction[]) {
@@ -155,7 +176,7 @@ export class PixelArenaMap {
             this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
 
             // Inform new postion after move
-            move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
+            // move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
           }
         } else {
           console.warn(`Monster with id ${action.id} not found for move action`)

@@ -1,35 +1,45 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { FaWalking, FaCrosshairs, FaBomb, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
-import { ActionType, MonsterState } from './types'
+import { ActionType, MapItemType, MonsterState, MonsterType } from './types'
 import { monsterInfos } from './constants'
+import { PointData } from 'pixi.js'
 
 type MonsterCardProps = {
-  state: MonsterState
-  actionType: ActionType
-  onActionChange?: (action: ActionType) => void
+  monsters: MonsterState[]
+  selectedMonsterId: number
+  // actionType: ActionType
+  onSelectMonster: (id: number) => void
 }
 
-const actionOptions: { type: ActionType; icon: React.ReactNode; label: string }[] = [
-  { type: ActionType.Move, icon: <FaWalking />, label: 'Move' },
-  { type: ActionType.Shoot, icon: <FaCrosshairs />, label: 'Shoot' },
-  { type: ActionType.ShootBomb, icon: <FaBomb />, label: 'Bomb' },
-  { type: ActionType.ShootFire, icon: <FaFire />, label: 'Fire' },
+const actionOptions: { type: MapItemType.Bomb | MapItemType.Fire; icon: React.ReactNode; label: string }[] = [
+  // { type: ActionType.Move, icon: <FaWalking />, label: 'Move' },
+  // { type: ActionType.Shoot, icon: <FaCrosshairs />, label: 'Shoot' },
+  { type: MapItemType.Bomb, icon: <FaBomb />, label: 'Bomb' },
+  { type: MapItemType.Fire, icon: <FaFire />, label: 'Fire' },
 ]
 
+const emptyMonster: MonsterState = {
+  ownerId: 0,
+  id: 0, hp: 0, pos: { x: 0, y: 0 } as PointData,
+  weapons: { [MapItemType.Bomb]: 0, [MapItemType.Fire]: 0 },
+  type: MonsterType.Axie,
+}
+
 const MonsterCard: React.FC<MonsterCardProps> = ({
-  state,
-  actionType,
-  onActionChange,
+  monsters,
+  selectedMonsterId,
+  onSelectMonster,
 }) => {
-  const { id, hp, pos } = state
+  const selectedMonster = useMemo(() => monsters.find(m => m.id === selectedMonsterId), [monsters, selectedMonsterId])
+  const { id, hp, pos, weapons } = selectedMonster || emptyMonster
   const name = `monster-${id}`
-  const imageUrl = monsterInfos[state.type]?.image || ''
+  // const imageUrl = monsterInfos[state.type]?.image || ''
 
   const [isVisible, setIsVisible] = useState(true)
 
-  const handleActionChange = (action: ActionType) => {
-    onActionChange?.(action)
-  }
+  // const handleActionChange = (action: ActionType) => {
+  //   onActionChange?.(action)
+  // }
 
   const toggleVisibility = () => {
     setIsVisible((prev) => !prev)
@@ -47,13 +57,14 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
         <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
           <div className='w-full overflow-x-auto'>
             <div className='flex flex-row space-x-2'>
-              {[...Array(5)].map((_, idx) => (
-          <img
-            key={idx}
-            src={imageUrl}
-            className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700 flex-shrink-0'
-          />
-              ))}
+                {monsters.map((m, idx) => (
+                <img
+                  key={idx}
+                  src={monsterInfos[m.type].image}
+                  className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700 flex-shrink-0 cursor-pointer'
+                  onClick={() => onSelectMonster(m.id)}
+                />
+                ))}
             </div>
           </div>
           <div className='text-large font-bold text-white mb-2'>
@@ -67,21 +78,22 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
             {actionOptions.map((option) => (
               <label
                 key={option.type}
-                className={`flex flex-col items-center cursor-pointer p-2 rounded transition ${
-                  actionType === option.type
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
+                className={`flex flex-col items-center cursor-pointer p-2 rounded transition bg-gray-700 text-gray-300 hover:bg-gray-600`}
               >
-                <input
+                {/* <input
                   type='radio'
                   name='monster-action'
                   value={option.type}
                   checked={actionType === option.type}
                   onChange={() => handleActionChange(option.type)}
                   className='hidden'
-                />
-                <span className='text-xl mb-1'>{option.icon}</span>
+                /> */}
+                <span className='relative text-xl mb-1'>
+                  {option.icon}
+                  {weapons[option.type] > 0 && <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1">
+                  {weapons[option.type]}
+                  </span>}
+                </span>
               </label>
             ))}
           </div>

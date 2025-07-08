@@ -11,18 +11,31 @@ const PixelArenaComponent: React.FC<Props> = () => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement>()
   const gameRef = useRef<PixelArenaMap>()
 
-  const [monster, setMonster] = useState<MonsterState>()
-  const [actionType, setActionType] = useState(ActionType.Move)
+  const [monsters, setMonsters] = useState<MonsterState[]>([])
+  const [selectedId, setSelectedId] = useState(0)
 
-  const changeMonster = useCallback((monster: MonsterState, actionType: ActionType) => {
-    console.log('Change monster:', monster, actionType)
-    setMonster(monster)
-    setActionType(actionType)
+  const onMonstersUpdate = useCallback((monsters: MonsterState[]) => {
+    setMonsters(monsters)
   }, [])
 
-  const onActionChange = useCallback((actionType: ActionType) => {
-    gameRef.current?.updateMonsterActionType(actionType)
-    setActionType(actionType)
+  const onMonsterSelect = useCallback((id: number) => {
+    setSelectedId(id)
+  }, [])
+
+  // const changeMonster = useCallback((monster: MonsterState, actionType: ActionType) => {
+  //   console.log('Change monster:', monster, actionType)
+  //   setMonster(monster)
+  //   setActionType(actionType)
+  // }, [])
+
+  // const onActionChange = useCallback((actionType: ActionType) => {
+  //   gameRef.current?.updateMonsterActionType(actionType)
+  //   setActionType(actionType)
+  // }, [])
+
+  const selectMonster = useCallback((id: number) => {
+    setSelectedId(id)
+    gameRef.current?.selectMonsterById(id)
   }, [])
 
   useEffect(() => {
@@ -30,7 +43,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       console.log('Create game')
       const { vpmap, disconnect } = createViewportMap(canvas)
 
-      const pixelArena = new PixelArenaMap(vpmap, 'scene-3', changeMonster)
+      const pixelArena = new PixelArenaMap(vpmap, { sceneName: 'scene-3', onMonstersUpdate, onMonsterSelect})
       gameRef.current = pixelArena
 
       return disconnect
@@ -41,7 +54,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
     <>
       <canvas ref={(c) => setCanvas(c || undefined)} className='' style={{border: '1px solid #ccc'}} />
       <div className="fixed bottom-2 left-2 z-10">
-        {monster && <MonsterCard state={monster} actionType={actionType} onActionChange={onActionChange} />}
+        {selectedId && <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />}
       </div>
     </>
   )

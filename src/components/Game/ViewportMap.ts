@@ -274,8 +274,10 @@ export class ViewportMap {
     const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
     shadow.alpha = 0.4
 
+    const transform = ([x, y]: [number, number]) => [x, y]
+
     const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
+      const [px, py] = transform(e.detail)
       shadow.x = px * PIXEL_SIZE
       shadow.y = py * PIXEL_SIZE
       onMove(px, py)
@@ -283,7 +285,7 @@ export class ViewportMap {
     })
 
     this.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = e.detail
+      const [px, py] = transform(e.detail)
       unsub()
       shadow.parent.removeChild(shadow)
       onDrop(px, py)
