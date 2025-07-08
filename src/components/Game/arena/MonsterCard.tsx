@@ -45,10 +45,17 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
       </button>
       {isVisible && (
         <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
+          <div className='w-full overflow-x-auto'>
+            <div className='flex flex-row space-x-2'>
+              {[...Array(5)].map((_, idx) => (
           <img
+            key={idx}
             src={imageUrl}
-            className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700'
+            className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700 flex-shrink-0'
           />
+              ))}
+            </div>
+          </div>
           <div className='text-large font-bold text-white mb-2'>
             {name} ({pos.x}, {pos.y})
           </div>
