@@ -1,5 +1,5 @@
 import { positionToXY, xyToPosition } from '../../utils'
-import { ActionType, MonsterState } from '../types'
+import { ActionType, MapItemType, MonsterState } from '../types'
 import { createEncodeItemsViewFunc, createEncodeItemsFunc, createDecodeItemsFunc } from './common'
 
 export const MonsterEncodeLength = 5
@@ -23,13 +23,13 @@ export function encodeMonsterView(view: DataView, monster: MonsterState, offset 
   const { id, type, hp, vehicle, pos, weapons } = monster
   view.setUint8(offset, id << 4 | type) // id top 4bit and type bottom 4bit
 
-  view.setUint8(offset + 1, hp << 4 | vehicle) // hp and vehicle in 4bit each
+  view.setUint8(offset + 1, hp << 4 | 0) // hp and vehicle in 4bit each
 
   const posVal = xyToPosition(pos.x, pos.y)
   view.setUint16(offset + 2, posVal) // pos 16bit
 
-  const bombCount = weapons[ActionType.ShootBomb]
-  const fireCount = weapons[ActionType.ShootFire]
+  const bombCount = weapons[MapItemType.Bomb]
+  const fireCount = weapons[MapItemType.Fire]
   view.setUint8(offset + 4, bombCount << 4 | fireCount) // weapons in 8bit
 
   return MonsterEncodeLength
@@ -69,14 +69,15 @@ export function decodeMonsterView(view: DataView, offset = 0): MonsterState {
   const fireCount = val4 & 0xF // bottom 4bit
 
   return {
+    ownerId: 1,
     id,
     type,
     hp,
-    vehicle,
+    vehicle: undefined,
     pos,
     weapons: {
-      [ActionType.ShootBomb]: bombCount,
-      [ActionType.ShootFire]: fireCount,
+      [MapItemType.Bomb]: bombCount,
+      [MapItemType.Fire]: fireCount,
     }
   }
 }
