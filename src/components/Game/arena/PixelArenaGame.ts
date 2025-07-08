@@ -1,7 +1,9 @@
 import { PointData } from 'pixi.js'
 
 import { xyToPosition } from '../utils'
-import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType, VehicleType } from './types'
+import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType } from './types'
+
+let curId = 0
 
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
@@ -33,20 +35,21 @@ export class PixelArenaGame {
     this.onNextRound(actions, monsters) // Process actions and notify the next round
   }
 
-  addMonster(id: number, pos: PointData, hp: number, type: MonsterType): MonsterState {
+  addMonster(ownerId: number, pos: PointData, hp: number, type: MonsterType): MonsterState {
     // Add a new monster to the game state
+    const id = curId++
     if (this.state.monsters[id]) {
       console.warn(`Monster with id ${id} already exists, updating position and HP`)
     }
     const monster = {
       id,
+      ownerId,
       pos,
       hp,
       type,
-      vehicle: VehicleType.None,
       weapons: {
-        [ActionType.ShootBomb]: 0,
-        [ActionType.ShootFire]: 0,
+        [MapItemType.Bomb]: 0,
+        [MapItemType.Fire]: 0,
       },
     }
     this.state.monsters[id] = monster // Add monster to the state
@@ -150,7 +153,7 @@ export class PixelArenaGame {
     console.log(`Monster ${action.id} moved to ${action.target.x}, ${action.target.y}`)
 
     // check if received items
-    if (this.state.positionItemMap[targetPos] !== undefined && monster.vehicle === VehicleType.None) {
+    if (this.state.positionItemMap[targetPos] !== undefined && monster.vehicle === undefined) {
       const itemType = this.state.positionItemMap[targetPos]
       console.log(`Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`)
       // Handle item pickup logic here if needed
@@ -164,12 +167,12 @@ export class PixelArenaGame {
   private pickupItem(monster: MonsterState, itemType: MapItemType) {
     // Logic to handle item pickup by a monster
     if (itemType === MapItemType.Car) {
-      monster.vehicle = VehicleType.Car // Update monster's vehicle type
+      monster.vehicle = itemType // Update monster's vehicle type
     } else if (itemType === MapItemType.Bomb || itemType === MapItemType.Fire) {
       // Increment the weapon count for the monster
-      const type = itemType === MapItemType.Bomb ? ActionType.ShootBomb : ActionType.ShootFire
-      monster.weapons[type] += 1
-      console.log(`Monster ${monster.id} picked up a ${itemType}, total: ${monster.weapons[type]}`)
+      // const type = itemType === MapItemType.Bomb ? ActionType.ShootBomb : ActionType.ShootFire
+      monster.weapons[itemType] += 1
+      console.log(`Monster ${monster.id} picked up a ${itemType}, total: ${monster.weapons[itemType]}`)
     }
   }
 

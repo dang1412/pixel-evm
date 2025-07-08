@@ -8,17 +8,18 @@ export enum MonsterType {
 }
 
 export enum ActionType {
+  None,
   Move,
   Shoot,
   ShootBomb,
   ShootFire,
-  DropVehicle,
+  Drop,
 }
 
-export enum VehicleType {
-  None,
-  Car,
-}
+// export enum VehicleType {
+//   None,
+//   Car,
+// }
 
 export enum MapItemType {
   Car,
@@ -29,13 +30,14 @@ export enum MapItemType {
 // State that sends to client
 export interface MonsterState {
   id: number  // 4bit
+  ownerId: number
   type: MonsterType // 4bit
   hp: number  // 4bit
-  vehicle: VehicleType  // 4bit
+  vehicle?: MapItemType.Car  // 4bit
   pos: PointData // 16bit
   weapons: { // 8bit
-    [ActionType.ShootBomb]: number,
-    [ActionType.ShootFire]: number,
+    [MapItemType.Bomb]: number,
+    [MapItemType.Fire]: number,
   }
 }
 

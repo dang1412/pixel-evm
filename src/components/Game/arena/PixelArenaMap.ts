@@ -27,6 +27,8 @@ export class PixelArenaMap {
   // Items on map
   private itemContainers: {[pos: number]: Container} = {}
 
+  ownerId = 1
+
   constructor(public map: ViewportMap, public sceneName: string, private onSelectMonster?: (monster: MonsterState, type: ActionType) => void) {
     const state: ArenaGameState = {
       monsters: {},
@@ -194,10 +196,10 @@ export class PixelArenaMap {
     this.updateMapItems()
 
     // monsters
-    this.addMonster(1, { x: 3, y: 3 }, 3) // Example monster
-    this.addMonster(2, { x: 5, y: 3 }, 3) // Example monster
-    this.addMonster(3, { x: 7, y: 3 }, 3, MonsterType.TrippiTroppi) // Example monster
-    this.addMonster(4, { x: 10, y: 5 }, 3, MonsterType.Tralarelo) // Example monster
+    this.addMonster(this.ownerId, { x: 3, y: 3 }, 3) // Example monster
+    this.addMonster(this.ownerId, { x: 5, y: 3 }, 3) // Example monster
+    this.addMonster(this.ownerId, { x: 7, y: 3 }, 3, MonsterType.TrippiTroppi) // Example monster
+    this.addMonster(this.ownerId, { x: 10, y: 5 }, 3, MonsterType.Tralarelo) // Example monster
   }
 
   // Update items's draw on the map
