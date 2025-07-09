@@ -18,6 +18,7 @@ export interface PixelArenaMapOpts {
   sceneName: string
   onMonstersUpdate: (monsters: MonsterState[]) => void
   onMonsterSelect: (id: number) => void
+  onActionPosition: (action?: ArenaAction, p?: PointData) => void
 }
 
 export class PixelArenaMap {
@@ -34,6 +35,8 @@ export class PixelArenaMap {
   private itemContainers: {[pos: number]: Container} = {}
 
   ownerId = 1
+
+  private tempAction?: ArenaAction
 
   constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
     const state: ArenaGameState = {
@@ -67,6 +70,12 @@ export class PixelArenaMap {
         return
       }
 
+      // hide monster control
+      opts.onActionPosition()
+      // redraw selecting monster action
+      this.selectedMonster?.drawAction()
+      this.map.markDirty()
+
       const [x, y] = event.detail
       const posVal = xyToPosition(x, y)
 
@@ -81,9 +90,21 @@ export class PixelArenaMap {
     })
   }
 
-  updateMonsterActionType(actionType: ActionType) {
-    if (this.selectedMonster) {
-      this.selectedMonster.updateActionType(actionType)
+  // Called by monster after selecting target position
+  onActionPosition(action: ArenaAction, p: PointData) {
+    this.tempAction = action
+    this.opts.onActionPosition(action, p)
+  }
+
+  // receive action type from UI
+  sendMonsterAction(actionType: ActionType) {
+    if (this.selectedMonster && this.tempAction) {
+      const action = {...this.tempAction, actionType}
+      this.selectedMonster.updateActionAndDraw(action)
+      this.map.markDirty()
+      this.tempAction = undefined
+
+      this.game.receiveAction(action)
     }
   }
 

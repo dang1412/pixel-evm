@@ -20,8 +20,8 @@ export interface ViewportMapOptions {
 }
 
 export interface DragOptions {
-  onDrop: (x: number, y: number) => void
-  onMove?: (x: number, y: number) => void
+  onDrop: (x: number, y: number, rx: number, ry: number) => void
+  onMove?: (x: number, y: number, rx: number, ry: number) => void
   w?: number
   h?: number
 }
@@ -171,12 +171,13 @@ export class ViewportMap {
     }
 
     const mouseup = (e: MouseEvent) => {
-      const [px, py] = this.getPixelXY(e)
-      this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelup', {detail: [px, py]}))
+      const data = this.getPixelXY(e)
+      const [px, py] = data
+      this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelup', {detail: data}))
       console.log('Pixel up xy', px, py)
       if (downPx === px && downPy === py) {
         // clicked
-        this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelclick', {detail: [px, py]}))
+        this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelclick', {detail: data}))
         downPx = downPy = -1
         console.log('Pixel click xy', px, py)
       }
@@ -274,21 +275,21 @@ export class ViewportMap {
     const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
     shadow.alpha = 0.4
 
-    const transform = ([x, y]: [number, number]) => [x, y]
+    const transform = ([x, y, rx, ry]: number[]) => [x, y, rx, ry]
 
     const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = transform(e.detail)
+      const [px, py, rx, ry] = transform(e.detail)
       shadow.x = px * PIXEL_SIZE
       shadow.y = py * PIXEL_SIZE
-      onMove(px, py)
+      onMove(px, py, rx, ry)
       this.markDirty()
     })
 
-    this.subscribeOnce('pixelup', (e: CustomEvent<[number, number]>) => {
-      const [px, py] = transform(e.detail)
+    this.subscribeOnce('pixelup', (e: CustomEvent<[number, number, number, number]>) => {
+      const [px, py, rx, ry] = transform(e.detail)
       unsub()
       shadow.parent.removeChild(shadow)
-      onDrop(px, py)
+      onDrop(px, py, rx, ry)
 
       this.markDirty()
     })

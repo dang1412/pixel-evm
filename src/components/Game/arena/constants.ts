@@ -22,11 +22,11 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
 }
 
 export const actionImages: Record<ActionType, string> = {
-  [ActionType.None]: '/svgs/walk.svg',
-  [ActionType.Move]: '/svgs/walk.svg',
-  [ActionType.Shoot]: '/svgs/crosshairs.svg',
-  [ActionType.ShootBomb]: '/svgs/crosshairs.svg',
-  [ActionType.ShootFire]: '/svgs/crosshairs.svg',
+  [ActionType.None]: '/svgs/crosshairs.svg',
+  [ActionType.Move]: '',
+  [ActionType.Shoot]: '/images/energy2.png',
+  [ActionType.ShootBomb]: '/svgs/rocket.svg',
+  [ActionType.ShootFire]: '/svgs/fire.svg',
   [ActionType.Drop]: '',
 }
 

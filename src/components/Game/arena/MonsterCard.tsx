@@ -107,7 +107,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
                 <span className='relative text-xl mb-1'>
                   {option.icon}
                   {weapons[option.type] > 0 && <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1">
-                  {weapons[option.type]}
+                    {weapons[option.type]}
                   </span>}
                 </span>
               </label>

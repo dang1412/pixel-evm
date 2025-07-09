@@ -1,9 +1,11 @@
+import { PointData } from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { createViewportMap } from '../helpers/createViewportMap'
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, MonsterState } from './types'
 import MonsterCard from './MonsterCard'
+import MonsterControlSelect from './MonsterControlSelect'
 
 interface Props {}
 
@@ -13,6 +15,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
 
   const [monsters, setMonsters] = useState<MonsterState[]>([])
   const [selectedId, setSelectedId] = useState(0)
+  const [actionCtrlPos, setActionCtrlPos] = useState<PointData>()
 
   const onMonstersUpdate = useCallback((monsters: MonsterState[]) => {
     setMonsters(monsters)
@@ -43,12 +46,24 @@ const PixelArenaComponent: React.FC<Props> = () => {
       console.log('Create game')
       const { vpmap, disconnect } = createViewportMap(canvas)
 
-      const pixelArena = new PixelArenaMap(vpmap, { sceneName: 'scene-3', onMonstersUpdate, onMonsterSelect})
+      const pixelArena = new PixelArenaMap(vpmap, {
+        sceneName: 'scene-3',
+        onMonstersUpdate,
+        onMonsterSelect,
+        onActionPosition(action, p) {
+          setActionCtrlPos(p)
+        },
+      })
       gameRef.current = pixelArena
 
       return disconnect
     }
   }, [canvas])
+
+  const onSelectAction = useCallback((type: ActionType) => {
+    gameRef.current?.sendMonsterAction(type)
+    setActionCtrlPos(undefined)
+  }, [])
 
   return (
     <>
@@ -56,6 +71,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       <div className="fixed bottom-2 left-2 z-10">
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
       </div>
+      {actionCtrlPos && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} />}
     </>
   )
 }
