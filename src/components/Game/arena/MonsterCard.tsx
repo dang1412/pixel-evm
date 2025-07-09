@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FaWalking, FaCrosshairs, FaBomb, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
 import { ActionType, MapItemType, MonsterState, MonsterType } from './types'
 import { monsterInfos } from './constants'
@@ -45,6 +45,19 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
     setIsVisible((prev) => !prev)
   }
 
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([])
+
+  useEffect(() => {
+    const idx = monsters.findIndex(m => m.id === selectedMonsterId)
+    if (idx !== -1 && imageRefs.current[idx]) {
+      imageRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  }, [selectedMonsterId, monsters])
+
+  const setImageRef = (idx: number, el: HTMLImageElement | null) => {
+    imageRefs.current[idx] = el
+  }
+
   return (
     <div>
       <button
@@ -57,14 +70,17 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
         <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
           <div className='w-full overflow-x-auto'>
             <div className='flex flex-row space-x-2'>
-                {monsters.map((m, idx) => (
+              {monsters.map((m, idx) => (
                 <img
                   key={idx}
+                  ref={el => setImageRef(idx, el)}
                   src={monsterInfos[m.type].image}
-                  className='w-22 h-16 rounded-md mb-4 border-2 border-gray-700 flex-shrink-0 cursor-pointer'
+                  className={`w-22 h-16 rounded-md mb-4 border-2 flex-shrink-0 cursor-pointer ${
+                    m.id === selectedMonsterId ? 'border-blue-500' : 'border-gray-700'
+                  }`}
                   onClick={() => onSelectMonster(m.id)}
                 />
-                ))}
+              ))}
             </div>
           </div>
           <div className='text-large font-bold text-white mb-2'>
