@@ -119,7 +119,7 @@ export class Adventures {
 
   async init() {
     Assets.load<Spritesheet>('/animations/fire3-0.json')
-    Assets.load<Spritesheet>('/animations/explosion1.json')
+    // Assets.load<Spritesheet>('/animations/explosion1.json')
     Assets.load<Spritesheet>('/animations/strike-0.json')
     Assets.load<Spritesheet>('/animations/smash.json')
     await Assets.load([...controlIcons, ...controlButtons, ...usedImages])

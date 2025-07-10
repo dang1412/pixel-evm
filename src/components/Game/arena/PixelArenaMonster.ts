@@ -1,14 +1,17 @@
-import { Assets, Container, Graphics, Sprite } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Spritesheet } from 'pixi.js'
+import { sound } from '@pixi/sound'
 
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, ArenaAction, MonsterState } from './types'
 import { actionImages, itemImages, monsterInfos } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
+import { PixiAnimation } from '../Animation'
 
 Assets.load([
   '/images/characters/axie.png',
   '/images/characters/Tralalero-Tralala.png',
   '/images/characters/Trippi-Troppi.png',
+  '/images/characters/family_brainrot.png',
   '/images/energy2.png',
   '/svgs/walk.svg',
   '/svgs/crosshairs.svg',
@@ -29,6 +32,8 @@ export class PixelArenaMonster {
   // draw vehicle
   private vehicleSprite = new Sprite()
 
+  private animation: PixiAnimation
+
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
     const scene = arenaMap.map.getActiveScene()!
     const { image, w, h } = monsterInfos[state.type]
@@ -40,6 +45,16 @@ export class PixelArenaMonster {
     // this.drawActionType()
 
     this.draw()
+
+    // animation
+    this.animation = new PixiAnimation((f) => {
+      const unsub = arenaMap.map.subscribe('tick', (e: CustomEvent<number>) => {
+        f(e.detail)
+        arenaMap.map.markDirty()
+      })
+
+      return unsub
+    })
   }
 
   private draw() {
@@ -62,6 +77,8 @@ export class PixelArenaMonster {
     this.actionLineGraphics?.clear()
     this.shadowContainer?.removeChildren()
 
+    this.arenaMap.map.markDirty()
+
     if (!action) {
       return
     }
@@ -80,11 +97,12 @@ export class PixelArenaMonster {
       : actionImages[action.actionType]
 
     const w = action.actionType === ActionType.Move ? info.w : 1
+    const h = action.actionType === ActionType.Move ? info.h : 1
     this.shadowContainer = scene.addImage(image, {
       x: action.target.x,
       y: action.target.y,
       w,
-      h: 1,
+      h,
     }, this.shadowContainer)
     this.shadowContainer.alpha = 0.6
   }
@@ -187,14 +205,18 @@ export class PixelArenaMonster {
 
     if (action.actionType === ActionType.Move) {
       await this.moveTo(x, y)
-    } else if (action.actionType === ActionType.Shoot) {
+    } else if ([ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootFire].includes(action.actionType)) {
       await this.drawShoot(x, y)
+      if (action.actionType === ActionType.ShootBomb) {
+        this.animateExplode(x, y)
+      }
     }
   }
 
   private async moveTo(x: number, y: number) {
     const { x: curx, y: cury } = this.state.pos
     this.state.pos = { x, y } // Update monster position
+    sound.play('move', {volume: 0.2})
     await this.arenaMap.map.moveObject(this.monsterContainer, curx, cury, x, y)
     console.log(`Monster ${this.state.id} moved to (${x}, ${y})`)
   }
@@ -206,12 +228,27 @@ export class PixelArenaMonster {
     const curX = this.state.pos.x
     const curY = this.state.pos.y
     const energy = scene.addImage('/images/energy2.png', { x: curX, y: curY, w: 1, h: 1 })
-    // sound.play('shoot', {volume: 0.2})
+    sound.play('shoot', {volume: 0.2})
     await this.arenaMap.map.moveObject(energy, curX, curY, x, y)
-    // scene.animate({x: x - 2, y: y - 3.1, w: 5, h: 5}, 27, 'explo1_')
-    // this.animateExplode(scene, x, y)
-    // sound.play('explode1', {volume: 0.1})
+    
     energy.parent.removeChild(energy)
+  }
+
+  private async animateExplode(x: number, y: number) {
+    const scene = this.arenaMap.map.getActiveScene()
+    if (!scene) return
+    
+    sound.play('explode1', {volume: 0.1})
+    const sheet = await Assets.load<Spritesheet>('/animations/explosion1.json')
+    const frames = sheet.animations['explode']
+    const container = scene.addImage('', {x: x - 2, y: y - 3.1, w: 5, h: 5})
+    const sprite = container.getChildAt(0) as Sprite
+    this.animation.animateOnce(sprite, frames, 3).then(() => {
+      container.parent.removeChild(container)
+    })
+
+    // TODO why setTimeout??
+    setTimeout(() => this.arenaMap.map.markDirty(), 10)
   }
 
   remove(): number {
@@ -219,6 +256,8 @@ export class PixelArenaMonster {
     this.monsterContainer.destroy()
     this.actionLineGraphics?.destroy()
     this.shadowContainer?.destroy()
+
+    sound.play('die', {volume: 0.2})
 
     return xyToPosition(this.state.pos.x, this.state.pos.y)
   }

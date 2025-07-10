@@ -5,6 +5,7 @@ export enum MonsterType {
   Axie,
   Tralarelo,
   TrippiTroppi,
+  FamilyBrainrot,
 }
 
 export enum ActionType {

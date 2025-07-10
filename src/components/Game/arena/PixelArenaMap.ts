@@ -1,4 +1,5 @@
 import { Assets, Container, PointData } from 'pixi.js'
+import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
@@ -12,7 +13,14 @@ Assets.load([
   '/images/select_aura.png',
   '/svgs/car.svg',
   '/svgs/rocket.svg',
+  '/svgs/fire.svg',
 ])
+
+sound.add('move', '/sounds/whistle.mp3')
+sound.add('shoot', '/sounds/sword.mp3')
+sound.add('die', '/sounds/char-die.mp3')
+sound.add('explode1', '/sounds/explosion3.mp3')
+sound.add('explode2', '/sounds/explosion4.mp3')
 
 export interface PixelArenaMapOpts {
   sceneName: string
@@ -168,8 +176,13 @@ export class PixelArenaMap {
   private informUI() {
     const allMonsters = Object.values(this.monsters)
       .filter(m => m.state.ownerId === this.ownerId)
-      .map(m => m.state)
-    this.opts.onMonstersUpdate(allMonsters)
+    const allStates = allMonsters.map(m => m.state)
+    this.opts.onMonstersUpdate(allStates)
+
+    // clear current actions
+    for (const monster of allMonsters) {
+      monster.updateActionAndDraw()
+    }
   }
 
   private async processMoveActions(actions: ArenaAction[]) {
@@ -212,7 +225,7 @@ export class PixelArenaMap {
     // Process shoot actions for monsters
     const shootPromises: Promise<void>[] = []
     for (const action of actions) {
-      if (action.actionType === ActionType.Shoot) {
+      if ([ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootFire].includes(action.actionType)) {
         const monster = this.monsters[action.id]
         if (monster) {
           const shoot = monster.applyAction(action)
@@ -239,7 +252,7 @@ export class PixelArenaMap {
 
     // monsters
     this.addMonster(this.ownerId, { x: 3, y: 3 }, 3) // Example monster
-    this.addMonster(this.ownerId, { x: 5, y: 3 }, 3) // Example monster
+    this.addMonster(this.ownerId, { x: 5, y: 3 }, 3, MonsterType.FamilyBrainrot) // Example monster
     this.addMonster(this.ownerId, { x: 7, y: 3 }, 3, MonsterType.TrippiTroppi) // Example monster
     this.addMonster(this.ownerId, { x: 10, y: 5 }, 3, MonsterType.Tralarelo) // Example monster
   }
@@ -261,7 +274,6 @@ export class PixelArenaMap {
     }
 
     // remove items that no longer exist
-    console.log(this.itemContainers, positionItemMap)
     for (const pixelStr of Object.keys(this.itemContainers)) {
       const pixel = Number(pixelStr)
       if (positionItemMap[pixel] === undefined) {

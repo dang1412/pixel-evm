@@ -1,4 +1,5 @@
-import { ActionType, MapItemType, MonsterDrawInfo, MonsterType } from "./types";
+import { PixelArea } from '../ViewportMap'
+import { ActionType, MapItemType, MonsterDrawInfo, MonsterType } from './types'
 
 export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
   [MonsterType.Axie]: {
@@ -18,6 +19,12 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
     image: '/images/characters/Trippi-Troppi.png',
     w: 1,
     h: 1,
+  },
+  [MonsterType.FamilyBrainrot]: {
+    type: MonsterType.FamilyBrainrot,
+    image: '/images/characters/family_brainrot.png',
+    w: 1.4,
+    h: 2,
   },
 }
 
@@ -40,3 +47,9 @@ export const itemImages: Record<MapItemType, string> = {
 //   [VehicleType.None]: '',
 //   [VehicleType.Car]: itemImages[MapItemType.Car],
 // }
+
+export const damgeAreas: Partial<Record<ActionType, PixelArea>> = {
+  [ActionType.Shoot]: { x: 0, y: 0, w: 1, h: 1 },
+  [ActionType.ShootBomb]: { x: -1, y: -2, w: 3, h: 3 },
+  [ActionType.ShootFire]: { x: -1, y: -2, w: 3, h: 3 },
+}

@@ -1,7 +1,8 @@
 import { PointData } from 'pixi.js'
 
-import { xyToPosition } from '../utils'
+import { getAreaPixels, xyToPosition } from '../utils'
 import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType } from './types'
+import { damgeAreas } from './constants';
 
 let curId = 0
 
@@ -82,7 +83,7 @@ export class PixelArenaGame {
     console.log(`executedOrder: ${this.state.executedOrder}, aliveNumber: ${this.state.aliveNumber}`)
 
     // if all done
-    if (this.state.executedOrder.length == this.state.aliveNumber) {
+    if (this.state.executedOrder.length == 1) {
       console.log('All actions have been made for the round, execute')
       const { appliedActions, changedStates } = this.processActions() // Process all actions
       setTimeout(() => {
@@ -184,12 +185,25 @@ export class PixelArenaGame {
       return
     }
 
-    const targetPos = xyToPosition(action.target.x, action.target.y)
-    if (positionMonsterMap[targetPos] !== undefined) {
-      const monsterId = positionMonsterMap[targetPos]
-      this.monsterGotHit(monsterId)
+    // Update weapons
+    if (action.actionType === ActionType.ShootBomb || action.actionType === ActionType.ShootFire) {
+      const weaponType = action.actionType === ActionType.ShootBomb ? MapItemType.Bomb : MapItemType.Fire
+      if (monster.weapons[weaponType] <= 0) return
+      monster.weapons[weaponType]--
+      updatedMonsterIds.add(action.id)
+    }
 
-      updatedMonsterIds.add(monsterId) // Track updated monster ids
+    const damageArea = damgeAreas[action.actionType]
+    const { x, y, w, h } = damageArea || { x: 0, y: 0, w: 0, h: 0 }
+    const pixels = damageArea ? getAreaPixels({x: action.target.x + x, y: action.target.y + y, w, h}) : []
+
+    for (const pixel of pixels) {
+      if (positionMonsterMap[pixel] !== undefined) {
+        const monsterId = positionMonsterMap[pixel]
+        this.monsterGotHit(monsterId)
+
+        updatedMonsterIds.add(monsterId) // Track updated monster ids
+      }
     }
 
     return action
