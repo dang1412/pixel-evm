@@ -5,9 +5,10 @@ import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
 
 import { PixelArenaGame } from './PixelArenaGame'
-import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType } from './types'
+import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
 import { PixelArenaMonster } from './PixelArenaMonster'
 import { itemImages } from './constants'
+import { ArenaFire } from './ArenaFire'
 
 Assets.load([
   '/images/select_aura.png',
@@ -18,9 +19,12 @@ Assets.load([
 
 sound.add('move', '/sounds/whistle.mp3')
 sound.add('shoot', '/sounds/sword.mp3')
+sound.add('hurt', '/sounds/grunt2.mp3')
 sound.add('die', '/sounds/char-die.mp3')
 sound.add('explode1', '/sounds/explosion3.mp3')
 sound.add('explode2', '/sounds/explosion4.mp3')
+sound.add('beam-fire', '/sounds/beam-fire.mp3')
+sound.add('fire-sound', '/sounds/fire-sound.mp3')
 
 export interface PixelArenaMapOpts {
   sceneName: string
@@ -44,7 +48,11 @@ export class PixelArenaMap {
 
   ownerId = 1
 
+  // temp action for controlling selected monster
   private tempAction?: ArenaAction
+
+  // fires
+  private fires: {[pos: number]: ArenaFire} = {}
 
   constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
     const state: ArenaGameState = {
@@ -54,7 +62,10 @@ export class PixelArenaMap {
       currentRound: 0,
       aliveNumber: 0,
       executedOrder: [],
-      positionItemMap: {}
+      positionItemMap: {},
+
+      fires: [],
+      posFireMap: {}
     }
 
     this.game = new PixelArenaGame(state, (actions: ArenaAction[], monsters: MonsterState[]) => {
@@ -171,6 +182,41 @@ export class PixelArenaMap {
     //   }
     // }
     this.informUI()
+
+    // fires
+    this.updateFires(this.game.state.fires)
+  }
+
+  private updateFires(fires: FireOnMap[]) {
+    console.log('updateFires', fires)
+    const newFirePixels = new Set<number>()
+    for (const fire of fires) {
+      const pixel = xyToPosition(fire.pos.x, fire.pos.y)
+      const arenaFire = this.fires[pixel] || new ArenaFire(this, fire)
+      arenaFire.fire = fire
+
+      this.fires[pixel] = arenaFire
+
+      newFirePixels.add(pixel)
+      sound.play('fire-sound', { loop: true, volume: 0.3 })
+    }
+
+    const currentFires = Object.keys(this.fires)
+      .map(p => Number(p))
+      .filter(p => !newFirePixels.has(p))
+      .map(p => this.fires[p])
+
+    for (const arenaFire of currentFires) {
+      arenaFire.next()
+      if (arenaFire.isStopped()) {
+        const pixel = xyToPosition(arenaFire.fire.pos.x, arenaFire.fire.pos.y)
+        delete this.fires[pixel]
+      }
+    }
+
+    if (Object.keys(this.fires).length === 0) {
+      sound.stop('fire-sound')
+    }
   }
 
   private informUI() {
@@ -180,7 +226,7 @@ export class PixelArenaMap {
     this.opts.onMonstersUpdate(allStates)
 
     // clear current actions
-    for (const monster of allMonsters) {
+    for (const monster of allMonsters) if (monster.state.hp > 0) {
       monster.updateActionAndDraw()
     }
   }
@@ -248,13 +294,18 @@ export class PixelArenaMap {
     this.game.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
     this.game.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
     this.game.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
+    this.game.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
+    this.game.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
+    this.game.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
+    this.game.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
+    this.game.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
     this.updateMapItems()
 
     // monsters
-    this.addMonster(this.ownerId, { x: 3, y: 3 }, 3) // Example monster
-    this.addMonster(this.ownerId, { x: 5, y: 3 }, 3, MonsterType.FamilyBrainrot) // Example monster
-    this.addMonster(this.ownerId, { x: 7, y: 3 }, 3, MonsterType.TrippiTroppi) // Example monster
-    this.addMonster(this.ownerId, { x: 10, y: 5 }, 3, MonsterType.Tralarelo) // Example monster
+    this.addMonster(this.ownerId, { x: 3, y: 3 }, 1) // Example monster
+    this.addMonster(this.ownerId, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    this.addMonster(this.ownerId, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+    this.addMonster(this.ownerId, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
   }
 
   // Update items's draw on the map

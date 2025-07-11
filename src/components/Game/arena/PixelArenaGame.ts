@@ -1,7 +1,7 @@
 import { PointData } from 'pixi.js'
 
-import { getAreaPixels, xyToPosition } from '../utils'
-import { ActionType, ArenaAction, ArenaGameState, MapItemType, MonsterState, MonsterType } from './types'
+import { getAreaPixels, positionToXY, xyToPosition } from '../utils'
+import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
 import { damgeAreas } from './constants';
 
 let curId = 0
@@ -124,6 +124,9 @@ export class PixelArenaGame {
       }
     }
 
+    // Apply fires
+    this.applyFires(updatedMonsterIds)
+
     const changedStates = Array.from(updatedMonsterIds).map(id => ({...this.state.monsters[id]}))
 
     return { appliedActions, changedStates }
@@ -193,9 +196,37 @@ export class PixelArenaGame {
       updatedMonsterIds.add(action.id)
     }
 
-    const damageArea = damgeAreas[action.actionType]
+    // this.applyActionShoot()
+
+    // const damageArea = damgeAreas[action.actionType]
+    // const { x, y, w, h } = damageArea || { x: 0, y: 0, w: 0, h: 0 }
+    // const pixels = damageArea ? getAreaPixels({x: action.target.x + x, y: action.target.y + y, w, h}) : []
+
+    // for (const pixel of pixels) {
+    //   if (positionMonsterMap[pixel] !== undefined) {
+    //     const monsterId = positionMonsterMap[pixel]
+    //     this.monsterGotHit(monsterId)
+
+    //     updatedMonsterIds.add(monsterId) // Track updated monster ids
+    //   }
+    // }
+
+    if (action.actionType === ActionType.ShootFire) {
+      this.addFire(action.id, action.target)
+    } else {
+      this.applyActionShoot(action, updatedMonsterIds)
+    }
+
+    return action
+  }
+
+  private applyActionShoot(action: ArenaAction, updatedMonsterIds: Set<number>) {
+    const { positionMonsterMap } = this.state
+    const { target, actionType } = action
+
+    const damageArea = damgeAreas[actionType]
     const { x, y, w, h } = damageArea || { x: 0, y: 0, w: 0, h: 0 }
-    const pixels = damageArea ? getAreaPixels({x: action.target.x + x, y: action.target.y + y, w, h}) : []
+    const pixels = damageArea ? getAreaPixels({x: target.x + x, y: target.y + y, w, h}) : []
 
     for (const pixel of pixels) {
       if (positionMonsterMap[pixel] !== undefined) {
@@ -205,8 +236,26 @@ export class PixelArenaGame {
         updatedMonsterIds.add(monsterId) // Track updated monster ids
       }
     }
+  }
 
-    return action
+  private addFire(monsterId: number, p: PointData) {
+    const monster = this.state.monsters[monsterId]
+    if (!monster) return
+    const fire: FireOnMap = { pos: p, ownerId: monster.ownerId, living: 3 }
+    this.state.fires.push(fire)
+
+    const pixel = xyToPosition(p.x, p.y)
+    this.state.posFireMap[pixel] = fire
+  }
+
+  private applyFires(updatedMonsterIds: Set<number>) {
+    for (const fire of this.state.fires) {
+      this.applyActionShoot({actionType: ActionType.ShootFire, target: fire.pos, id: 0}, updatedMonsterIds)
+      fire.living --
+    }
+
+    // remove
+    this.state.fires = this.state.fires.filter(f => f.living > 0)
   }
 
   private monsterGotHit(monsterId: number, damage = 1) {

@@ -115,6 +115,10 @@ export class PixelArenaMonster {
   // }
 
   updateState(state: MonsterState) {
+    const prevHp = this.state.hp
+    if (prevHp > state.hp && state.hp > 0) {
+      sound.play('hurt')
+    }
     this.state = state
     // TODO update other properties like hp, etc.
     this.draw()
@@ -206,7 +210,7 @@ export class PixelArenaMonster {
     if (action.actionType === ActionType.Move) {
       await this.moveTo(x, y)
     } else if ([ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootFire].includes(action.actionType)) {
-      await this.drawShoot(x, y)
+      await this.drawShoot(x, y, action.actionType)
       if (action.actionType === ActionType.ShootBomb) {
         this.animateExplode(x, y)
       }
@@ -221,14 +225,14 @@ export class PixelArenaMonster {
     console.log(`Monster ${this.state.id} moved to (${x}, ${y})`)
   }
 
-  private async drawShoot(x: number, y: number) {
+  private async drawShoot(x: number, y: number, type: ActionType) {
     const scene = this.arenaMap.map.getActiveScene()
     if (!scene) return
 
     const curX = this.state.pos.x
     const curY = this.state.pos.y
     const energy = scene.addImage('/images/energy2.png', { x: curX, y: curY, w: 1, h: 1 })
-    sound.play('shoot', {volume: 0.2})
+    sound.play(type === ActionType.ShootFire ? 'beam-fire' : 'shoot', {volume: 0.3})
     await this.arenaMap.map.moveObject(energy, curX, curY, x, y)
     
     energy.parent.removeChild(energy)

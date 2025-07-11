@@ -40,7 +40,7 @@ export const actionImages: Record<ActionType, string> = {
 export const itemImages: Record<MapItemType, string> = {
   [MapItemType.Car]: '/svgs/car.svg',
   [MapItemType.Bomb]: '/svgs/rocket.svg',
-  [MapItemType.Fire]: '/svgs/rocket.svg',
+  [MapItemType.Fire]: '/svgs/fire.svg',
 }
 
 // export const vehicleImages: Record<VehicleType, string> = {

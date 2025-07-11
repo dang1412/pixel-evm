@@ -48,6 +48,12 @@ export interface ArenaAction {
   target: PointData  // 16bit
 }
 
+export interface FireOnMap {
+  pos: PointData
+  living: number
+  ownerId: number
+}
+
 export interface ArenaGameState {
   monsters: { [id: number]: MonsterState }
   positionMonsterMap: { [pos: number]: number } // pixel to monster id
@@ -58,6 +64,9 @@ export interface ArenaGameState {
   executedOrder: number[]
 
   positionItemMap: { [pos: number]: MapItemType } // pixel to item type
+
+  fires: FireOnMap[]
+  posFireMap: { [pos: number]: FireOnMap }
 }
 
 export enum UpdateType {
