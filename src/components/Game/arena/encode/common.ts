@@ -1,5 +1,7 @@
 // Encode functions
 
+import { RTCMessageType } from "../types"
+
 export type EncodeItemFunction<T> = (view: DataView, item: T, offset?: number) => number
 
 export type EncodeItemsFunction<T> = (view: DataView, items: T[]) => number
@@ -23,7 +25,8 @@ export function createEncodeItemFunc<T>(encodeItem: EncodeItemFunction<T>, objEn
 
   return (item: T): ArrayBuffer => {
 
-    const buffer = new ArrayBuffer(objEncodeLength)
+    // add 1 more empty byte at last, for RTCMessageType
+    const buffer = new ArrayBuffer(objEncodeLength + 1)
     const view = new DataView(buffer)
     encodeItem(view, item)
 
@@ -35,7 +38,8 @@ export function createEncodeItemsFunc<T>(encodeItems: EncodeItemsFunction<T>, ob
 
   return (items: T[]): ArrayBuffer => {
 
-    const buffer = new ArrayBuffer(1 + objEncodeLength * items.length)
+    // add 1 more empty byte at last, for RTCMessageType
+    const buffer = new ArrayBuffer(2 + objEncodeLength * items.length)
     const view = new DataView(buffer)
     encodeItems(view, items)
 
@@ -67,4 +71,9 @@ export function createDecodeItemsFunc<T>(decodeItem: DecodeItemFunction<T>, item
 
     return items
   }
+}
+
+export function setRTCMessageType(data: ArrayBuffer, type: RTCMessageType) {
+  const view = new DataView(data)
+  view.setUint8(data.byteLength - 1, type);
 }

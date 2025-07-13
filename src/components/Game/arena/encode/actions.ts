@@ -1,5 +1,6 @@
 import { positionToXY, xyToPosition } from '../../utils'
 import { ArenaAction } from '../types'
+import { createDecodeItemFunc, createDecodeItemsFunc, createEncodeItemFunc, createEncodeItemsFunc, createEncodeItemsViewFunc } from './common'
 
 export const ActionEncodeLength = 3
 
@@ -11,27 +12,34 @@ export function encodeActionView(view: DataView, action: ArenaAction, offset = 0
 
   const val = xyToPosition(target.x, target.y)
   view.setUint16(offset + 1, val) // val top 16bit
+
+  return ActionEncodeLength
 }
 
-export function encodeActionsView(view: DataView, actions: ArenaAction[]): number {
-  view.setUint8(0, actions.length)
+export const encodeAction = createEncodeItemFunc(encodeActionView, ActionEncodeLength)
 
-  let offset = 1
-  for (const action of actions) {
-    encodeActionView(view, action, offset)
-    offset += ActionEncodeLength
-  }
+const encodeActionsView = createEncodeItemsViewFunc(encodeActionView)
+export const encodeActions = createEncodeItemsFunc(encodeActionsView, ActionEncodeLength)
 
-  return offset
-}
+// export function encodeActionsView(view: DataView, actions: ArenaAction[]): number {
+//   view.setUint8(0, actions.length)
 
-export function encodeActions(actions: ArenaAction[]): ArrayBuffer {
-  const buffer = new ArrayBuffer(1 + ActionEncodeLength * actions.length)
-  const view = new DataView(buffer)
-  encodeActionsView(view, actions)
+//   let offset = 1
+//   for (const action of actions) {
+//     encodeActionView(view, action, offset)
+//     offset += ActionEncodeLength
+//   }
 
-  return buffer
-}
+//   return offset
+// }
+
+// export function encodeActions(actions: ArenaAction[]): ArrayBuffer {
+//   const buffer = new ArrayBuffer(1 + ActionEncodeLength * actions.length)
+//   const view = new DataView(buffer)
+//   encodeActionsView(view, actions)
+
+//   return buffer
+// }
 
 // Decode functions
 
@@ -51,19 +59,22 @@ export function decodeActionView(view: DataView, offset = 0): ArenaAction {
   }
 }
 
-export function decodeActionsView(view: DataView): ArenaAction[] {
-  const actions: ArenaAction[] = []
-  const len = view.getUint8(0)
+export const decodeAction = createDecodeItemFunc(decodeActionView)
+export const decodeActions = createDecodeItemsFunc(decodeActionView, ActionEncodeLength)
 
-  for (let i = 0; i < len; i++) {
-    const action = decodeActionView(view, 1 + i * ActionEncodeLength)
-    actions.push(action)
-  }
+// export function decodeActionsView(view: DataView): ArenaAction[] {
+//   const actions: ArenaAction[] = []
+//   const len = view.getUint8(0)
 
-  return actions
-}
+//   for (let i = 0; i < len; i++) {
+//     const action = decodeActionView(view, 1 + i * ActionEncodeLength)
+//     actions.push(action)
+//   }
 
-export function decodeAction(data: ArrayBuffer): ArenaAction {
-  const view = new DataView(data)
-  return decodeActionView(view)
-}
+//   return actions
+// }
+
+// export function decodeAction(data: ArrayBuffer): ArenaAction {
+//   const view = new DataView(data)
+//   return decodeActionView(view)
+// }
