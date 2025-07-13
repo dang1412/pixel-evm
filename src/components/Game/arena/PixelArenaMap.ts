@@ -4,7 +4,6 @@ import { sound } from '@pixi/sound'
 import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
 
-import { PixelArenaGame } from './PixelArenaGame'
 import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
 import { PixelArenaMonster } from './PixelArenaMonster'
 import { itemImages } from './constants'
@@ -34,7 +33,7 @@ export interface PixelArenaMapOpts {
 }
 
 export class PixelArenaMap {
-  game: PixelArenaGame
+  // game: PixelArenaGame
 
   private monsters: {[id: number]: PixelArenaMonster} = {}
   private pixelToMonsterMap: {[pos: number]: PixelArenaMonster} = {}
@@ -55,22 +54,22 @@ export class PixelArenaMap {
   private fires: {[pos: number]: ArenaFire} = {}
 
   constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
-    const state: ArenaGameState = {
-      monsters: {},
-      positionMonsterMap: {},
-      roundActions: {},
-      currentRound: 0,
-      aliveNumber: 0,
-      executedOrder: [],
-      positionItemMap: {},
+    // const state: ArenaGameState = {
+    //   monsters: {},
+    //   positionMonsterMap: {},
+    //   roundActions: {},
+    //   currentRound: 0,
+    //   aliveNumber: 0,
+    //   executedOrder: [],
+    //   positionItemMap: {},
 
-      fires: [],
-      posFireMap: {}
-    }
+    //   fires: [],
+    //   posFireMap: {}
+    // }
 
-    this.game = new PixelArenaGame(state, (actions: ArenaAction[], monsters: MonsterState[]) => {
-      this.onNextRound(actions, monsters)
-    })
+    // this.game = new PixelArenaGame(state, (actions: ArenaAction[], monsters: MonsterState[]) => {
+    //   this.onNextRound(actions, monsters)
+    // })
 
     // Init game when entered the scene
     const unsubscene = map.subscribe('sceneactivated', (event: CustomEvent) => {
@@ -109,21 +108,22 @@ export class PixelArenaMap {
     })
   }
 
-  // Called by monster after selecting target position
+  // receive action target from monster
   onActionPosition(action: ArenaAction, p: PointData) {
     this.tempAction = action
     this.opts.onActionPosition(action, p)
   }
 
   // receive action type from UI
-  sendMonsterAction(actionType: ActionType) {
+  updateSelectingMonsterAction(actionType: ActionType): ArenaAction | undefined {
     if (this.selectedMonster && this.tempAction) {
       const action = {...this.tempAction, actionType}
       this.selectedMonster.updateActionAndDraw(action)
       this.map.markDirty()
       this.tempAction = undefined
 
-      this.game.receiveAction(action)
+      // this.game.receiveAction(action)
+      return action
     }
   }
 
@@ -146,7 +146,7 @@ export class PixelArenaMap {
     }
   }
 
-  private async onNextRound(actions: ArenaAction[], monsters: MonsterState[]) {
+  async onNextRound(actions: ArenaAction[], monsters: MonsterState[]) {
     console.log('Next round actions:', actions, monsters)
 
     // apply moves and shoots
@@ -155,7 +155,7 @@ export class PixelArenaMap {
     await Promise.all([moves, shoots])
 
     // Update map items after actions
-    this.updateMapItems()
+    // this.updateMapItems()
 
     // Update states
     for (const state of monsters) {
@@ -171,24 +171,15 @@ export class PixelArenaMap {
           delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
         }
       } else {
-        console.warn(`Monster with id ${state.id} not found for state update`)
+        this.addMonster(state)
+        console.warn(`Add new monster`)
       }
     }
 
-    // Inform UI new states
-    // if (this.selectedMonster && this.selectedMonster.state.id === state.id) {
-    //   if (this.onSelectMonster) {
-    //     this.onSelectMonster({...state}, monster.actionType)
-    //   }
-    // }
     this.informUI()
-
-    // fires
-    this.updateFires(this.game.state.fires)
   }
 
-  private updateFires(fires: FireOnMap[]) {
-    console.log('updateFires', fires)
+  updateFires(fires: FireOnMap[]) {
     const newFirePixels = new Set<number>()
     for (const fire of fires) {
       const pixel = xyToPosition(fire.pos.x, fire.pos.y)
@@ -291,49 +282,51 @@ export class PixelArenaMap {
     this.auraContainer = scene.addImage('/images/select_aura.png', { x: 0, y: 0, w: 2, h: 2 })
 
     // items
-    this.game.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
-    this.game.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
-    this.game.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
-    this.game.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
-    this.game.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
-    this.game.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
-    this.game.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
-    this.game.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
-    this.updateMapItems()
+    // this.game.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
+    // this.game.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
+    // this.game.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
+    // this.game.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
+    // this.game.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
+    // this.game.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
+    // this.game.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
+    // this.game.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
+    // this.updateMapItems()
 
     // monsters
-    this.addMonster(this.ownerId, { x: 3, y: 3 }, 1) // Example monster
-    this.addMonster(this.ownerId, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    this.addMonster(this.ownerId, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
-    this.addMonster(this.ownerId, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
+    // this.addMonster(this.ownerId, { x: 3, y: 3 }, 1) // Example monster
+    // this.addMonster(this.ownerId, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    // this.addMonster(this.ownerId, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+    // this.addMonster(this.ownerId, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
   }
 
   // Update items's draw on the map
-  private updateMapItems() {
+  updateMapItems(items: [number, MapItemType | undefined][]) {
     const scene = this.map.getActiveScene()!
-    const positionItemMap = this.game.state.positionItemMap
+    // const positionItemMap = this.game.state.positionItemMap
     // update existing items
-    for (const pixelStr of Object.keys(positionItemMap)) {
-      const pixel = Number(pixelStr)
-      if (!this.itemContainers[pixel]) {
+    for (const item of items) {
+      const [pixel, type] = item
+      if (type) {
         // If item container does not exist, create it
         const { x, y } = positionToXY(pixel)
-        const type = positionItemMap[pixel]
         const image = itemImages[type]
-        this.itemContainers[pixel] = scene.addImage(image, { x, y, w: 1, h: 1 })
+        this.itemContainers[pixel] = scene.addImage(image, { x, y, w: 1, h: 1 }, this.itemContainers[pixel])
+      } else {
+        this.itemContainers[pixel]?.destroy()
+        delete this.itemContainers[pixel]
       }
     }
 
     // remove items that no longer exist
-    for (const pixelStr of Object.keys(this.itemContainers)) {
-      const pixel = Number(pixelStr)
-      if (positionItemMap[pixel] === undefined) {
-        // If item no longer exists, remove its container
-        console.log(pixelStr, pixel)
-        this.itemContainers[pixel].destroy()
-        delete this.itemContainers[pixel]
-      }
-    }
+    // for (const pixelStr of Object.keys(this.itemContainers)) {
+    //   const pixel = Number(pixelStr)
+    //   if (positionItemMap[pixel] === undefined) {
+    //     // If item no longer exists, remove its container
+    //     console.log(pixelStr, pixel)
+    //     this.itemContainers[pixel].destroy()
+    //     delete this.itemContainers[pixel]
+    //   }
+    // }
   }
 
   /**
@@ -343,12 +336,12 @@ export class PixelArenaMap {
    * @param hp - Health points of the monster.
    * @param type - Type of the monster (default is Axie).
    */
-  private addMonster(ownerId: number, pos: PointData, hp: number, type = MonsterType.Axie): void {
-    const monsterState = this.game.addMonster(ownerId, pos, hp, type)
-    const monster = new PixelArenaMonster(this, {...monsterState})
-    this.monsters[monsterState.id] = monster
+  private addMonster(state: MonsterState): void {
+    // const monsterState = this.game.addMonster(ownerId, pos, hp, type)
+    const monster = new PixelArenaMonster(this, {...state})
+    this.monsters[state.id] = monster
 
-    const posVal = xyToPosition(pos.x, pos.y)
-    this.pixelToMonsterMap[posVal] = monster
+    const pixel = xyToPosition(state.pos.x, state.pos.y)
+    this.pixelToMonsterMap[pixel] = monster
   }
 }

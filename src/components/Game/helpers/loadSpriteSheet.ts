@@ -6,7 +6,6 @@ import { Assets, Spritesheet, Texture } from 'pixi.js'
 export async function loadMultiPackSpritesheet(path: string, animationName: string): Promise<Texture[]> {
   const sheet = await Assets.load<Spritesheet>(path)
   const linkedSheets = sheet.linkedSheets
-  console.log(sheet, linkedSheets)
   let textures: { [name: string]: Texture } = sheet.textures
   for (const linked of linkedSheets) {
     Object.assign(textures, linked.textures)

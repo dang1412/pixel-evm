@@ -35,7 +35,7 @@ export class ArenaFire {
     const frames = await fireAnimation
     // console.log(sheet)
     // const frames = sheet.animations['flame']
-    const container = scene.addImage('', {x: x - 2, y: y - 3.2, w: 5, h: 5})
+    const container = scene.addImage('', {x: x - 2.2, y: y - 3.2, w: 5, h: 5})
     const sprite = container.getChildAt(0) as Sprite
     this.animation.animate(sprite, frames, 3, () => {})
 

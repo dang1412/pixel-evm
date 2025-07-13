@@ -6,17 +6,50 @@ import { damgeAreas } from './constants';
 
 let curId = 0
 
+interface PixelArenaGameOpts {
+  onNextRound: (actions: ArenaAction[], states: MonsterState[]) => void
+  onItemsUpdate: (items: [number, MapItemType | undefined][]) => void
+  onFiresUpdate: (fires: FireOnMap[]) => void
+}
+
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
 export class PixelArenaGame {
-  constructor(public state: ArenaGameState, private onNextRound: (actions: ArenaAction[], states: MonsterState[]) => void) {
+  private updatedItemPixels: number[] = []
+  private updateFirePixels: number[] = []
+
+  constructor(public state: ArenaGameState, private opts: PixelArenaGameOpts) {
     // The game object can be used to access game state, methods, etc.
     // For example, you might want to initialize some game settings here.
   }
 
   start() {
     // Logic to start the game
-    console.log('Game started');
+    console.log('Game started')
+
+    // items
+    this.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
+    this.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
+    this.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
+    this.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
+    this.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
+    this.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
+    this.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
+    this.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
+
+    // monsters
+    this.addMonster(1, { x: 3, y: 3 }, 1) // Example monster
+    this.addMonster(1, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    this.addMonster(1, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+    this.addMonster(1, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
+
+    // send monsters
+    this.opts.onNextRound([], Object.values(this.state.monsters))
+    // Convert to array of [pos, MapItemType]
+    const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
+      ([pos, type]) => [Number(pos), type]
+    )
+    this.opts.onItemsUpdate(itemsArray)
   }
 
   stop() {
@@ -33,10 +66,26 @@ export class PixelArenaGame {
 
     // TODO: remove dead monsters
 
-    this.onNextRound(actions, monsters) // Process actions and notify the next round
+    this.opts.onNextRound(actions, monsters) // Process actions and notify the next round
+    this.sendUpdatedItems()
+    this.sendUpdatedFires()
   }
 
-  addMonster(ownerId: number, pos: PointData, hp: number, type: MonsterType): MonsterState {
+  private sendUpdatedItems() {
+    const items: [number, MapItemType | undefined][] =
+      this.updatedItemPixels.map(p => [p, this.state.positionItemMap[p]])
+
+    this.updatedItemPixels = []
+    this.opts.onItemsUpdate(items)
+  }
+
+  private sendUpdatedFires() {
+    const fires = this.updateFirePixels.map(p => this.state.posFireMap[p])
+    this.updateFirePixels = []
+    this.opts.onFiresUpdate(fires)
+  }
+
+  addMonster(ownerId: number, pos: PointData, hp: number, type = MonsterType.Axie): MonsterState {
     // Add a new monster to the game state
     const id = curId++
     if (this.state.monsters[id]) {
@@ -89,7 +138,7 @@ export class PixelArenaGame {
       setTimeout(() => {
         console.log('Processing actions for the round:', appliedActions, changedStates)
         this.nextRound(appliedActions, changedStates) // Proceed to the next round
-      }, 200) // Delay for processing actions
+      }, 100) // Delay for processing actions
     } else {
       console.log(`Action received: ${action.actionType} by monster ${action.id}`)
     }
@@ -163,6 +212,9 @@ export class PixelArenaGame {
       delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
       this.pickupItem(monster, itemType) // Process item pickup
       updatedMonsterIds.add(monster.id)
+
+      // item updated at this position
+      this.updatedItemPixels.push(targetPos)
     }
 
     return action
@@ -246,6 +298,8 @@ export class PixelArenaGame {
 
     const pixel = xyToPosition(p.x, p.y)
     this.state.posFireMap[pixel] = fire
+
+    this.updateFirePixels.push(pixel)
   }
 
   private applyFires(updatedMonsterIds: Set<number>) {
@@ -255,7 +309,13 @@ export class PixelArenaGame {
     }
 
     // remove
-    this.state.fires = this.state.fires.filter(f => f.living > 0)
+    this.state.fires = this.state.fires.filter(f => {
+      if (f.living > 0) return true
+
+      const pixel = xyToPosition(f.pos.x, f.pos.y)
+      delete this.state.posFireMap[pixel]
+      return false
+    })
   }
 
   private monsterGotHit(monsterId: number, damage = 1) {
