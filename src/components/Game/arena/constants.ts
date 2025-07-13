@@ -8,6 +8,18 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
     w: 1.4,
     h: 1,
   },
+  [MonsterType.Hero]: {
+    type: MonsterType.Hero,
+    image: '/images/characters/hero.png',
+    w: 1.4,
+    h: 1,
+  },
+  [MonsterType.Aqua]: {
+    type: MonsterType.Aqua,
+    image: '/images/characters/aqua.png',
+    w: 1.4,
+    h: 1,
+  },
   [MonsterType.Tralarelo]: {
     type: MonsterType.Tralarelo,
     image: '/images/characters/Tralalero-Tralala.png',

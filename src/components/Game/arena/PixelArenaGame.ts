@@ -57,8 +57,8 @@ export class PixelArenaGame {
 
   addTeam0() {
     this.addMonster(0, { x: 12, y: 3 }, 1) // Example monster
-    this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+    this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.Hero) // Example monster
+    this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.Aqua) // Example monster
 
     for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 5}, MapItemType.Bomb) }
     for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 6}, MapItemType.Fire) }
@@ -67,7 +67,7 @@ export class PixelArenaGame {
   }
 
   addTeam1() {
-    this.addMonster(1, { x: 12, y: 26 }, 1) // Example monster
+    this.addMonster(1, { x: 12, y: 26 }, 1, MonsterType.Tralarelo) // Example monster
     this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
     this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
 

@@ -9,6 +9,8 @@ import { PixiAnimation } from '../Animation'
 
 Assets.load([
   '/images/characters/axie.png',
+  '/images/characters/hero.png',
+  '/images/characters/aqua.png',
   '/images/characters/Tralalero-Tralala.png',
   '/images/characters/Trippi-Troppi.png',
   '/images/characters/family_brainrot.png',

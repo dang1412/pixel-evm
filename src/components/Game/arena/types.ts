@@ -3,6 +3,8 @@ import { PixelImage } from '../types'
 
 export enum MonsterType {
   Axie,
+  Hero,
+  Aqua,
   Tralarelo,
   TrippiTroppi,
   FamilyBrainrot,
