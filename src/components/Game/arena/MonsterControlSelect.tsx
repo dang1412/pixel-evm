@@ -1,10 +1,10 @@
 import { PointData } from 'pixi.js'
 import { ActionType } from './types'
-import { FaBomb, FaCrosshairs, FaFire, FaWalking } from 'react-icons/fa';
+import { FaBomb, FaCrosshairs, FaFire, FaWalking } from 'react-icons/fa'
 
 interface MonsterControlSelectProps {
   p: PointData
-  onSelect: (index: number) => void;
+  onSelect: (index: number) => void
 }
 
 const actionOptions: { type: ActionType; icon: React.ReactNode; label: string }[] = [
@@ -36,7 +36,7 @@ const actionOptions: { type: ActionType; icon: React.ReactNode; label: string }[
 //       <polygon points="12,2 22,22 2,22" />
 //     </svg>
 //   ),
-// ];
+// ]
 
 const MonsterControlSelect: React.FC<MonsterControlSelectProps> = ({ p, onSelect }) => {
   return (
@@ -64,7 +64,7 @@ const MonsterControlSelect: React.FC<MonsterControlSelectProps> = ({ p, onSelect
         </label>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default MonsterControlSelect;
+export default MonsterControlSelect

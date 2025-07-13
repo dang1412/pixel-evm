@@ -97,8 +97,6 @@ export class PixelArenaMap {
       const [x, y] = event.detail
       const posVal = xyToPosition(x, y)
 
-      console.log(x, y, posVal, this.pixelToMonsterMap)
-
       // Check if there is a monster at the clicked position
       const monster = this.pixelToMonsterMap[posVal]
       if (monster) {
@@ -146,8 +144,8 @@ export class PixelArenaMap {
     }
   }
 
-  async onNextRound(actions: ArenaAction[], monsters: MonsterState[]) {
-    console.log('Next round actions:', actions, monsters)
+  async onNextRound(actions: ArenaAction[]) {
+    console.log('Next round actions:', actions)
 
     // apply moves and shoots
     const moves = this.processMoveActions(actions)
@@ -156,7 +154,9 @@ export class PixelArenaMap {
 
     // Update map items after actions
     // this.updateMapItems()
+  }
 
+  updateMonsterStates(monsters: MonsterState[]) {
     // Update states
     for (const state of monsters) {
       const monster = this.monsters[state.id]
@@ -300,7 +300,7 @@ export class PixelArenaMap {
   }
 
   // Update items's draw on the map
-  updateMapItems(items: [number, MapItemType | undefined][]) {
+  updateMapItems(items: [number, MapItemType][]) {
     const scene = this.map.getActiveScene()!
     // const positionItemMap = this.game.state.positionItemMap
     // update existing items

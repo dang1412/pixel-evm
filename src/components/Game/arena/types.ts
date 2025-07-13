@@ -23,6 +23,7 @@ export enum ActionType {
 // }
 
 export enum MapItemType {
+  None,
   Car,
   Bomb,
   Fire,
@@ -92,4 +93,12 @@ export interface MonsterDrawInfo {
   image: string
   w: number
   h: number
+}
+
+export enum RTCMessageType {
+  Action,
+  Actions,
+  MonsterStates,
+  MapItems,
+  Fires,
 }

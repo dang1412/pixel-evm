@@ -1,5 +1,6 @@
 import { encodeAction, decodeAction, encodeActions, decodeActions, ActionEncodeLength } from './actions'
-import { ActionType, ArenaAction } from '../types'
+import { ActionType, ArenaAction, RTCMessageType } from '../types'
+import { getRTCMessageType, setRTCMessageType } from './common'
 
 describe('actions encode/decode', () => {
   const sampleAction: ArenaAction = {
@@ -12,8 +13,13 @@ describe('actions encode/decode', () => {
     const encoded = encodeAction(sampleAction)
     expect(encoded.byteLength).toBe(ActionEncodeLength + 1)
 
+    setRTCMessageType(encoded, RTCMessageType.Action)
+
     const decoded = decodeAction(encoded)
     expect(decoded).toEqual(sampleAction)
+
+    const type = getRTCMessageType(encoded)
+    expect(type).toBe(RTCMessageType.Action)
   })
 
   it('should encode and decode multiple actions correctly', () => {

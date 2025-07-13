@@ -8,7 +8,7 @@ let curId = 0
 
 interface PixelArenaGameOpts {
   onNextRound: (actions: ArenaAction[], states: MonsterState[]) => void
-  onItemsUpdate: (items: [number, MapItemType | undefined][]) => void
+  onItemsUpdate: (items: [number, MapItemType][]) => void
   onFiresUpdate: (fires: FireOnMap[]) => void
 }
 
@@ -27,29 +27,73 @@ export class PixelArenaGame {
     // Logic to start the game
     console.log('Game started')
 
-    // items
-    this.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
-    this.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
-    this.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
-    this.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
-    this.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
-    this.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
-    this.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
-    this.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
+    this.addTeam0()
+    // this.addTeam1()
 
-    // monsters
-    this.addMonster(1, { x: 3, y: 3 }, 1) // Example monster
-    this.addMonster(1, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    this.addMonster(1, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
-    this.addMonster(1, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
+    // items
+    // this.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
+    // this.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
+    // this.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
+    // this.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
+    // this.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
+    // this.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
+    // this.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
+    // this.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
+
+    // // monsters
+    // this.addMonster(1, { x: 3, y: 3 }, 1) // Example monster
+    // this.addMonster(1, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    // this.addMonster(1, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+    // this.addMonster(1, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
 
     // send monsters
+    // this.opts.onNextRound([], Object.values(this.state.monsters))
+    // // Convert to array of [pos, MapItemType]
+    // const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
+    //   ([pos, type]) => [Number(pos), type]
+    // )
+    // this.opts.onItemsUpdate(itemsArray)
+  }
+
+  addTeam0() {
+    this.addMonster(0, { x: 12, y: 3 }, 1) // Example monster
+    this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
+
+    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 5}, MapItemType.Bomb) }
+    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 6}, MapItemType.Fire) }
+
+    this.outputAllStates()
+  }
+
+  addTeam1() {
+    this.addMonster(1, { x: 12, y: 26 }, 1) // Example monster
+    this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
+
+    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 24}, MapItemType.Bomb) }
+    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 23}, MapItemType.Fire) }
+
+    this.outputAllStates()
+  }
+
+  private outputAllStates() {
     this.opts.onNextRound([], Object.values(this.state.monsters))
-    // Convert to array of [pos, MapItemType]
     const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
       ([pos, type]) => [Number(pos), type]
     )
     this.opts.onItemsUpdate(itemsArray)
+    this.opts.onFiresUpdate(this.state.fires)
+  }
+
+  getAllStates(f: (m: MonsterState[], i: [number, MapItemType][], f: FireOnMap[]) => void) {
+    const monsters = Object.values(this.state.monsters)
+    const items: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
+      ([pos, type]) => [Number(pos), type]
+    )
+    const fires = this.state.fires
+
+    f(monsters, items, fires)
   }
 
   stop() {
@@ -72,7 +116,7 @@ export class PixelArenaGame {
   }
 
   private sendUpdatedItems() {
-    const items: [number, MapItemType | undefined][] =
+    const items: [number, MapItemType][] =
       this.updatedItemPixels.map(p => [p, this.state.positionItemMap[p]])
 
     this.updatedItemPixels = []
@@ -80,7 +124,7 @@ export class PixelArenaGame {
   }
 
   private sendUpdatedFires() {
-    const fires = this.updateFirePixels.map(p => this.state.posFireMap[p])
+    const fires = this.updateFirePixels.map(p => this.state.posFireMap[p] || MapItemType.None)
     this.updateFirePixels = []
     this.opts.onFiresUpdate(fires)
   }

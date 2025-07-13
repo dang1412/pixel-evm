@@ -77,3 +77,10 @@ export function setRTCMessageType(data: ArrayBuffer, type: RTCMessageType) {
   const view = new DataView(data)
   view.setUint8(data.byteLength - 1, type);
 }
+
+export function getRTCMessageType(data: ArrayBuffer): RTCMessageType {
+  const view = new DataView(data)
+  const type = view.getUint8(data.byteLength - 1) as RTCMessageType
+
+  return type
+}

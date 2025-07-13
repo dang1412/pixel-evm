@@ -1,6 +1,6 @@
 import { positionToXY, xyToPosition } from '../../utils'
-import { ArenaAction } from '../types'
-import { createDecodeItemFunc, createDecodeItemsFunc, createEncodeItemFunc, createEncodeItemsFunc, createEncodeItemsViewFunc } from './common'
+import { ArenaAction, RTCMessageType } from '../types'
+import { createDecodeItemFunc, createDecodeItemsFunc, createEncodeItemFunc, createEncodeItemsFunc, createEncodeItemsViewFunc, setRTCMessageType } from './common'
 
 export const ActionEncodeLength = 3
 
@@ -78,3 +78,17 @@ export const decodeActions = createDecodeItemsFunc(decodeActionView, ActionEncod
 //   const view = new DataView(data)
 //   return decodeActionView(view)
 // }
+
+export function encodeActionWithType(action: ArenaAction): ArrayBuffer {
+  const data = encodeAction(action)
+  setRTCMessageType(data, RTCMessageType.Action)
+
+  return data
+}
+
+export function encodeActionsWithType(actions: ArenaAction[]): ArrayBuffer {
+  const data = encodeActions(actions)
+  setRTCMessageType(data, RTCMessageType.Actions)
+
+  return data
+}

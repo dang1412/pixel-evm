@@ -1,12 +1,18 @@
 import { PointData } from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { Address } from '@/lib/RTCConnectClients'
+
 import { createViewportMap } from '../helpers/createViewportMap'
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, MonsterState } from './types'
 import MonsterCard from './MonsterCard'
 import MonsterControlSelect from './MonsterControlSelect'
 import { ArenaNetwork } from './ArenaNetwork'
+import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
+import { getAccountConnectService, useWebRTCConnect } from '@/lib/webRTC/hooks/useWebRTCConnect'
+import { MenuModal } from '../MenuModal'
+import { useAccount } from 'wagmi'
 
 interface Props {}
 
@@ -47,13 +53,23 @@ const PixelArenaComponent: React.FC<Props> = () => {
       console.log('Create game')
       const { vpmap, disconnect } = createViewportMap(canvas)
 
+      const sceneName = 'scene-3'
       const pixelArena = new PixelArenaMap(vpmap, {
-        sceneName: 'scene-3',
+        sceneName,
         onMonstersUpdate,
         onMonsterSelect,
         onActionPosition(action, p) {
           setActionCtrlPos(p)
         },
+      })
+
+      const unsub = pixelArena.map.subscribe('sceneactivated', (event: CustomEvent) => {
+        console.log('Scene activated:', event.detail)
+        const addedScene = event.detail
+        if (addedScene === sceneName) {
+          unsub()
+          setIsMenuModalOpen(true)
+        }
       })
 
       const network = new ArenaNetwork(pixelArena)
@@ -69,11 +85,61 @@ const PixelArenaComponent: React.FC<Props> = () => {
     setActionCtrlPos(undefined)
   }, [])
 
+  const { state: { addressList } } = useWebRTC()
+
+  const sendAll = useCallback((data: ArrayBuffer) => {
+    console.log('sendAll', addressList, data)
+    for (const addr of addressList) {
+      getAccountConnectService(addr)?.sendMessage(data)
+    }
+  }, [addressList])
+
+  // send data to specific address
+  const sendTo = useCallback((addr: Address, data: ArrayBuffer) => {
+    console.log('sendTo', addr, data)
+    getAccountConnectService(addr)?.sendMessage(data)
+  }, [])
+
+  useEffect(() => {
+    networkRef.current?.setOpts({ sendAll, sendTo })
+  }, [sendAll, sendTo])
+
+  const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
+    const network = networkRef.current
+    if (!network) return
+
+    if (typeof data === 'string') {
+      if (data === '_connected_') {
+        network.connected(from as Address)
+      }
+    } else {
+      network.receiveData(from, data)
+    }
+  }, [])
+  
+  const { offerConnect } = useWebRTCConnect(onMsg)
+
+  // connect to server
+  const connect = useCallback(async (addr: string) => {
+    offerConnect(addr as Address)
+    setIsMenuModalOpen(false)
+  }, [offerConnect])
+
+  const [isMenuModalOpen, setIsMenuModalOpen] = useState(false)
+
+  const { address } = useAccount()
+  const startServer = useCallback(() => {
+    if (address && networkRef.current) {
+      networkRef.current.startServer(address)
+      setIsMenuModalOpen(false)
+    }
+  }, [address])
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c || undefined)} className='' style={{border: '1px solid #ccc'}} />
       <div className="fixed bottom-2 left-2 z-10">
-        <button
+        {/* <button
           className="px-4 py-2 mb-2 mr-2 bg-red-600 text-white rounded hover:bg-blue-700 transition"
           onClick={() => networkRef.current?.startServer('aaa')}
         >
@@ -84,10 +150,11 @@ const PixelArenaComponent: React.FC<Props> = () => {
           onClick={() => {}}
         >
           Join
-        </button>
+        </button> */}
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
       </div>
       {actionCtrlPos && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} />}
+      {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
     </>
   )
 }
