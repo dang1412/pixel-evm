@@ -183,8 +183,9 @@ export class PixelArenaMap {
     const newFirePixels = new Set<number>()
     for (const fire of fires) {
       const pixel = xyToPosition(fire.pos.x, fire.pos.y)
-      const arenaFire = this.fires[pixel] || new ArenaFire(this, fire)
-      arenaFire.fire = fire
+      const f = {...fire}
+      const arenaFire = this.fires[pixel] || new ArenaFire(this, f)
+      arenaFire.setFire(f)
 
       this.fires[pixel] = arenaFire
 
@@ -200,7 +201,8 @@ export class PixelArenaMap {
     for (const arenaFire of currentFires) {
       arenaFire.next()
       if (arenaFire.isStopped()) {
-        const pixel = xyToPosition(arenaFire.fire.pos.x, arenaFire.fire.pos.y)
+        const { x, y } = arenaFire.getPos()
+        const pixel = xyToPosition(x, y)
         delete this.fires[pixel]
       }
     }
