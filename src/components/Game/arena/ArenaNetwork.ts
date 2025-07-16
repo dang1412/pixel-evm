@@ -75,7 +75,8 @@ export class ArenaNetwork {
     })
 
     this.map.ownerId = 0
-    this.game.addTeam0()
+    this.game.start()
+    // this.game.addTeam0()
     // this.game.getAllStates((monsters, items, fires) => {
     //   this.map.updateMonsterStates(monsters)
     //   this.map.updateMapItems(items)
@@ -100,16 +101,21 @@ export class ArenaNetwork {
       this.opponentAddr = addr
       if (this.isServer && this.game) {
         this.addrToIdMap[addr] = 1
+        this.game.getAllStates((monsters, items, fires) => {
+          const data1 = encodeMonsters(monsters)
+          setRTCMessageType(data1, RTCMessageType.MonsterStates)
+          this.opts?.sendTo(addr, data1)
+
+          const data2 = encodeFiresWithType(fires)
+          this.opts?.sendTo(addr, data2)
+
+          const data3 = encodeMapItemsWithType(items)
+          this.opts?.sendTo(addr, data3)
+        })
+
         this.game.addTeam1()
-        // this.game.getAllStates((monsters, items, fires) => {
-        //   const data = encodeMonsters(monsters)
-        //   setRTCMessageType(data, RTCMessageType.MonsterStates)
-        //   this.opts?.sendTo(addr, data)
-        //   this.map.updateMonsterStates(monsters)
-        //   this.map.updateMapItems(items)
-        //   this.map.updateFires(fires)
-        // })
       } else {
+        this.map.ownerId = 1
         this.addrToIdMap[addr] = 0
       }
     }

@@ -78,7 +78,7 @@ export class PixelArenaMap {
       if (addedScene === opts.sceneName) {
         unsubscene()
         this.initGame()
-        this.informUI()
+        // this.informUI()
       }
     })
 
@@ -101,7 +101,9 @@ export class PixelArenaMap {
       const monster = this.pixelToMonsterMap[posVal]
       if (monster) {
         this.selectMonster(monster)
-        monster.controlAction()
+        if (monster.state.ownerId === this.ownerId) {
+          monster.controlAction()
+        }
       }
     })
   }
@@ -141,6 +143,7 @@ export class PixelArenaMap {
       this.map.moveObject(this.auraContainer!, tx, ty)
       this.selectedMonster = monster
       this.opts.onMonsterSelect(monster.state.id)
+      this.informUI()
     }
   }
 
@@ -213,10 +216,15 @@ export class PixelArenaMap {
   }
 
   private informUI() {
+    const selectingOwnerId = this.selectedMonster?.state.ownerId
+    if (selectingOwnerId === undefined) return
+
+    // inform UI current owner's alive monsters
     const allMonsters = Object.values(this.monsters)
-      .filter(m => m.state.ownerId === this.ownerId)
-    const allStates = allMonsters.map(m => m.state)
-    this.opts.onMonstersUpdate(allStates)
+    const currentOwnerMonsters = allMonsters
+      .filter(m => m.state.ownerId === selectingOwnerId && m.state.hp > 0)
+      .map(m => m.state)
+    this.opts.onMonstersUpdate(currentOwnerMonsters)
 
     // clear current actions
     for (const monster of allMonsters) if (monster.state.hp > 0) {

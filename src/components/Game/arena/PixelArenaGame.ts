@@ -1,6 +1,6 @@
 import { PointData } from 'pixi.js'
 
-import { getAreaPixels, positionToXY, xyToPosition } from '../utils'
+import { getAreaPixels, xyToPosition } from '../utils'
 import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
 import { damgeAreas } from './constants';
 
@@ -28,6 +28,18 @@ export class PixelArenaGame {
     console.log('Game started')
 
     this.addTeam0()
+
+    const itemsArray: [number, MapItemType][] = []
+    for (let x = 3; x < 27; x += 2) {
+      const item = this.addItem({x, y: 14}, MapItemType.Bomb)
+      itemsArray.push(item)
+    }
+    for (let x = 3; x < 27; x += 2) {
+      const item = this.addItem({x, y: 15}, MapItemType.Fire)
+      itemsArray.push(item)
+    }
+
+    this.opts.onItemsUpdate(itemsArray)
     // this.addTeam1()
 
     // items
@@ -56,35 +68,33 @@ export class PixelArenaGame {
   }
 
   addTeam0() {
-    this.addMonster(0, { x: 12, y: 3 }, 1) // Example monster
-    this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.Hero) // Example monster
-    this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.Aqua) // Example monster
+    const m1 = this.addMonster(0, { x: 12, y: 3 }, 1) // Example monster
+    const m2 = this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.Hero) // Example monster
+    const m3 = this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.Aqua) // Example monster
 
-    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 5}, MapItemType.Bomb) }
-    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 6}, MapItemType.Fire) }
-
-    this.outputAllStates()
+    this.opts.onNextRound([], [m1, m2, m3])
   }
 
   addTeam1() {
-    this.addMonster(1, { x: 12, y: 26 }, 1, MonsterType.Tralarelo) // Example monster
-    this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
+    const m1 = this.addMonster(1, { x: 12, y: 26 }, 1, MonsterType.Tralarelo) // Example monster
+    const m2 = this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    const m3 = this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
 
-    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 24}, MapItemType.Bomb) }
-    for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 23}, MapItemType.Fire) }
+    // for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 24}, MapItemType.Bomb) }
+    // for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 23}, MapItemType.Fire) }
 
-    this.outputAllStates()
+    // this.outputAllStates()
+    this.opts.onNextRound([], [m1, m2, m3])
   }
 
-  private outputAllStates() {
-    this.opts.onNextRound([], Object.values(this.state.monsters))
-    const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
-      ([pos, type]) => [Number(pos), type]
-    )
-    this.opts.onItemsUpdate(itemsArray)
-    this.opts.onFiresUpdate(this.state.fires)
-  }
+  // private outputAllStates() {
+  //   this.opts.onNextRound([], Object.values(this.state.monsters))
+  //   const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
+  //     ([pos, type]) => [Number(pos), type]
+  //   )
+  //   this.opts.onItemsUpdate(itemsArray)
+  //   this.opts.onFiresUpdate(this.state.fires)
+  // }
 
   getAllStates(f: (m: MonsterState[], i: [number, MapItemType][], f: FireOnMap[]) => void) {
     const monsters = Object.values(this.state.monsters)
@@ -153,9 +163,11 @@ export class PixelArenaGame {
     return monster
   }
 
-  addItem(pos: PointData, itemType: MapItemType) {
+  private addItem(pos: PointData, itemType: MapItemType): [number, MapItemType] {
     const pixelPos = xyToPosition(pos.x, pos.y)
     this.state.positionItemMap[pixelPos] = itemType // Map position to item type
+
+    return [pixelPos, itemType]
   }
 
   receiveAction(action: ArenaAction) {
