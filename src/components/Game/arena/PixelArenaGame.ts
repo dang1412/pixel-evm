@@ -40,31 +40,6 @@ export class PixelArenaGame {
     }
 
     this.opts.onItemsUpdate(itemsArray)
-    // this.addTeam1()
-
-    // items
-    // this.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
-    // this.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
-    // this.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
-    // this.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
-    // this.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
-    // this.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
-    // this.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
-    // this.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
-
-    // // monsters
-    // this.addMonster(1, { x: 3, y: 3 }, 1) // Example monster
-    // this.addMonster(1, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    // this.addMonster(1, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
-    // this.addMonster(1, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
-
-    // send monsters
-    // this.opts.onNextRound([], Object.values(this.state.monsters))
-    // // Convert to array of [pos, MapItemType]
-    // const itemsArray: [number, MapItemType][] = Object.entries(this.state.positionItemMap).map(
-    //   ([pos, type]) => [Number(pos), type]
-    // )
-    // this.opts.onItemsUpdate(itemsArray)
   }
 
   addTeam0() {
@@ -80,10 +55,6 @@ export class PixelArenaGame {
     const m2 = this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
     const m3 = this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
 
-    // for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 24}, MapItemType.Bomb) }
-    // for (let x = 3; x < 27; x += 2) { this.addItem({x, y: 23}, MapItemType.Fire) }
-
-    // this.outputAllStates()
     this.opts.onNextRound([], [m1, m2, m3])
   }
 
@@ -145,12 +116,13 @@ export class PixelArenaGame {
     if (this.state.monsters[id]) {
       console.warn(`Monster with id ${id} already exists, updating position and HP`)
     }
-    const monster = {
+    const monster: MonsterState = {
       id,
       ownerId,
       pos,
       hp,
       type,
+      vehicle: MapItemType.None,
       weapons: {
         [MapItemType.Bomb]: 0,
         [MapItemType.Fire]: 0,
@@ -261,31 +233,36 @@ export class PixelArenaGame {
     console.log(`Monster ${action.id} moved to ${action.target.x}, ${action.target.y}`)
 
     // check if received items
-    if (this.state.positionItemMap[targetPos] !== undefined && monster.vehicle === undefined) {
+    if (this.state.positionItemMap[targetPos]) {
       const itemType = this.state.positionItemMap[targetPos]
-      console.log(`Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`)
       // Handle item pickup logic here if needed
-      delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
-      this.pickupItem(monster, itemType) // Process item pickup
-      updatedMonsterIds.add(monster.id)
-
-      // item updated at this position
-      this.updatedItemPixels.push(targetPos)
+      if (this.tryPickupItem(monster, itemType)) { // Process item pickup
+        console.log(`Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`)
+        delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
+        updatedMonsterIds.add(monster.id)
+        // item updated at this position
+        this.updatedItemPixels.push(targetPos)
+      }
     }
 
     return action
   }
 
-  private pickupItem(monster: MonsterState, itemType: MapItemType) {
+  private tryPickupItem(monster: MonsterState, itemType: MapItemType) {
     // Logic to handle item pickup by a monster
-    if (itemType === MapItemType.Car) {
+    if (itemType === MapItemType.Car && monster.vehicle === MapItemType.None) {
       monster.vehicle = itemType // Update monster's vehicle type
-    } else if (itemType === MapItemType.Bomb || itemType === MapItemType.Fire) {
+      return true
+    }
+    if (itemType === MapItemType.Bomb || itemType === MapItemType.Fire) {
       // Increment the weapon count for the monster
       // const type = itemType === MapItemType.Bomb ? ActionType.ShootBomb : ActionType.ShootFire
       monster.weapons[itemType] += 1
       console.log(`Monster ${monster.id} picked up a ${itemType}, total: ${monster.weapons[itemType]}`)
+      return true
     }
+
+    return false
   }
 
   private processShootAction(action: ArenaAction, updatedMonsterIds: Set<number>): ArenaAction | undefined {

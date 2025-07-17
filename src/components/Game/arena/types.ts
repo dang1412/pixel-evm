@@ -33,11 +33,11 @@ export enum MapItemType {
 
 // State that sends to client
 export interface MonsterState {
-  id: number  // 4bit
-  ownerId: number
+  id: number  // 8bit
+  ownerId: number  // 4bit
   type: MonsterType // 4bit
   hp: number  // 4bit
-  vehicle?: MapItemType.Car  // 4bit
+  vehicle: MapItemType.None | MapItemType.Car  // 4bit
   pos: PointData // 16bit
   weapons: { // 8bit
     [MapItemType.Bomb]: number,

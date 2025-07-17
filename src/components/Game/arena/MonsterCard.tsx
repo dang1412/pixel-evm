@@ -20,6 +20,7 @@ const actionOptions: { type: MapItemType.Bomb | MapItemType.Fire; icon: React.Re
 
 const emptyMonster: MonsterState = {
   ownerId: 0,
+  vehicle: MapItemType.None,
   id: 0, hp: 0, pos: { x: 0, y: 0 } as PointData,
   weapons: { [MapItemType.Bomb]: 0, [MapItemType.Fire]: 0 },
   type: MonsterType.Axie,

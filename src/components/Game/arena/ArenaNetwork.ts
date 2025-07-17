@@ -1,13 +1,14 @@
 import { Address } from '@/lib/RTCConnectClients'
 
-import { decodeAction, decodeActions, encodeAction, encodeActionsWithType, encodeActionWithType } from './encode/actions'
-import { getRTCMessageType, setRTCMessageType } from './encode/common'
-import { decodeMonstersData, encodeMonsters } from './encode/monsters'
-import { PixelArenaGame } from './PixelArenaGame'
-import { PixelArenaMap } from './PixelArenaMap'
-import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, RTCMessageType } from './types'
+import { getRTCMessageType } from './encode/common'
+import { decodeAction, decodeActions, encodeActionsWithType, encodeActionWithType } from './encode/actions'
+import { decodeMonstersData, encodeMonstersWithType } from './encode/monsters'
 import { decodeMapItems, encodeMapItemsWithType } from './encode/mapItem'
 import { decodeFires, encodeFiresWithType } from './encode/fire'
+
+import { ActionType, ArenaGameState, RTCMessageType } from './types'
+import { PixelArenaGame } from './PixelArenaGame'
+import { PixelArenaMap } from './PixelArenaMap'
 
 
 export interface ArenaNetworkOpts {
@@ -52,8 +53,7 @@ export class ArenaNetwork {
         const actionsData = encodeActionsWithType(actions)
         this.opts?.sendAll(actionsData)
 
-        const monstersData = encodeMonsters(monsters)
-        setRTCMessageType(monstersData, RTCMessageType.MonsterStates)
+        const monstersData = encodeMonstersWithType(monsters)
         this.opts?.sendAll(monstersData)
       },
       onFiresUpdate: (fires) => {
@@ -102,8 +102,7 @@ export class ArenaNetwork {
       if (this.isServer && this.game) {
         this.addrToIdMap[addr] = 1
         this.game.getAllStates((monsters, items, fires) => {
-          const data1 = encodeMonsters(monsters)
-          setRTCMessageType(data1, RTCMessageType.MonsterStates)
+          const data1 = encodeMonstersWithType(monsters)
           this.opts?.sendTo(addr, data1)
 
           const data2 = encodeFiresWithType(fires)

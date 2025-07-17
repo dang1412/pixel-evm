@@ -1,14 +1,14 @@
-import { positionToXY, xyToPosition } from '../../utils'
-import { ActionType, MapItemType, MonsterState } from '../types'
-import { createEncodeItemsViewFunc, createEncodeItemsFunc, createDecodeItemsFunc } from './common'
+import { MapItemType, MonsterState, RTCMessageType } from '../types'
+import { createEncodeItemsViewFunc, createEncodeItemsFunc, createDecodeItemsFunc, setRTCMessageType } from './common'
 
-export const MonsterEncodeLength = 5
+export const MonsterEncodeLength = 6
 
 // Encode functions
 
 // State that sends to client
 // export interface MonsterState {
-//   id: number  // 4bit
+//   id: number  // 8bit
+//   ownerId: number  // 4bit
 //   type: MonsterType // 4bit
 //   hp: number  // 4bit
 //   vehicle: VehicleType  // 4bit
@@ -20,17 +20,21 @@ export const MonsterEncodeLength = 5
 // }
 
 export function encodeMonsterView(view: DataView, monster: MonsterState, offset = 0) {
-  const { id, type, hp, vehicle, pos, weapons } = monster
-  view.setUint8(offset, id << 4 | type) // id top 4bit and type bottom 4bit
+  const { id, ownerId, type, hp, vehicle, pos, weapons } = monster
 
-  view.setUint8(offset + 1, hp << 4 | 0) // hp and vehicle in 4bit each
+  view.setUint8(offset, id) // id 8bit
+  view.setUint8(offset + 1, ownerId << 4 | type) // ownerId top 4bit and type bottom 4bit
 
-  const posVal = xyToPosition(pos.x, pos.y)
-  view.setUint16(offset + 2, posVal) // pos 16bit
+  view.setUint8(offset + 2, hp << 4 | vehicle) // hp and vehicle in 4bit each
+
+  view.setUint8(offset + 3, pos.x)
+  view.setUint8(offset + 4, pos.y)
+  // const posVal = xyToPosition(pos.x, pos.y)
+  // view.setUint16(offset + 2, posVal) // pos 16bit
 
   const bombCount = weapons[MapItemType.Bomb]
   const fireCount = weapons[MapItemType.Fire]
-  view.setUint8(offset + 4, bombCount << 4 | fireCount) // weapons in 8bit
+  view.setUint8(offset + 5, bombCount << 4 | fireCount) // weapons in 8bit
 
   return MonsterEncodeLength
 }
@@ -53,27 +57,30 @@ export const encodeMonsters = createEncodeItemsFunc<MonsterState>(encodeMonsters
 // Decode functions
 
 export function decodeMonsterView(view: DataView, offset = 0): MonsterState {
-  const val1 = view.getUint8(offset)
-  const id = val1 >> 4 // top 4bit
+  const id = view.getUint8(offset)
+
+  const val1 = view.getUint8(offset + 1)
+  const ownerId = val1 >> 4 // top 4bit
   const type = val1 & 0xF // bottom 4bit
 
-  const val2 = view.getUint8(offset + 1)
+  const val2 = view.getUint8(offset + 2)
   const hp = val2 >> 4 // top 4bit
   const vehicle = val2 & 0xF // bottom 4bit
 
-  const posVal = view.getUint16(offset + 2)
-  const pos = positionToXY(posVal)
+  const x = view.getUint8(offset + 3)
+  const y = view.getUint8(offset + 4)
+  const pos = { x, y }
 
-  const val4 = view.getUint8(offset + 4)
+  const val4 = view.getUint8(offset + 5)
   const bombCount = val4 >> 4 // top 4bit
   const fireCount = val4 & 0xF // bottom 4bit
 
   return {
-    ownerId: 1,
+    ownerId,
     id,
     type,
     hp,
-    vehicle: undefined,
+    vehicle,
     pos,
     weapons: {
       [MapItemType.Bomb]: bombCount,
@@ -83,3 +90,10 @@ export function decodeMonsterView(view: DataView, offset = 0): MonsterState {
 }
 
 export const decodeMonstersData = createDecodeItemsFunc<MonsterState>(decodeMonsterView, MonsterEncodeLength)
+
+export function encodeMonstersWithType(monsters: MonsterState[]): ArrayBuffer {
+  const data = encodeMonsters(monsters)
+  setRTCMessageType(data, RTCMessageType.MonsterStates)
+
+  return data
+}
