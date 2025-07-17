@@ -1,5 +1,5 @@
 import { PointData } from 'pixi.js'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Address } from '@/lib/RTCConnectClients'
 
@@ -31,6 +31,8 @@ const PixelArenaComponent: React.FC<Props> = () => {
   const onMonsterSelect = useCallback((id: number) => {
     setSelectedId(id)
   }, [])
+
+  const selectedMonster = useMemo(() => monsters.find(m => m.id === selectedId), [monsters, selectedId])
 
   // const changeMonster = useCallback((monster: MonsterState, actionType: ActionType) => {
   //   console.log('Change monster:', monster, actionType)
@@ -153,7 +155,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
         </button> */}
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
       </div>
-      {actionCtrlPos && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} />}
+      {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
     </>
   )
