@@ -104,3 +104,9 @@ export enum RTCMessageType {
   MapItems,
   Fires,
 }
+
+export enum GameMode {
+  InstantMove,
+  EachPlayerMove,
+  AllMove,
+}

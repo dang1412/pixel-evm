@@ -53,6 +53,8 @@ export class PixelArenaMap {
   // fires
   private fires: {[pos: number]: ArenaFire} = {}
 
+  private actionsExecutedPromise = Promise.resolve({} as any)
+
   constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
     // const state: ArenaGameState = {
     //   monsters: {},
@@ -153,7 +155,8 @@ export class PixelArenaMap {
     // apply moves and shoots
     const moves = this.processMoveActions(actions)
     const shoots = this.processShootActions(actions)
-    await Promise.all([moves, shoots])
+    this.actionsExecutedPromise = Promise.all([moves, shoots])
+    await this.actionsExecutedPromise
 
     // Update map items after actions
     // this.updateMapItems()
@@ -164,7 +167,9 @@ export class PixelArenaMap {
     }
   }
 
-  updateMonsterStates(monsters: MonsterState[]) {
+  async updateMonsterStates(monsters: MonsterState[]) {
+    // wait after actions done
+    await this.actionsExecutedPromise
     // Update states
     for (const state of monsters) {
       const monster = this.monsters[state.id]
@@ -187,7 +192,9 @@ export class PixelArenaMap {
     this.informUI()
   }
 
-  updateFires(fires: FireOnMap[]) {
+  async updateFires(fires: FireOnMap[]) {
+    // wait after actions done
+    await this.actionsExecutedPromise
     const newFirePixels = new Set<number>()
     for (const fire of fires) {
       const pixel = xyToPosition(fire.pos.x, fire.pos.y)
@@ -310,8 +317,10 @@ export class PixelArenaMap {
   }
 
   // Update items's draw on the map
-  updateMapItems(items: [number, MapItemType][]) {
+  async updateMapItems(items: [number, MapItemType][]) {
     const scene = this.map.getActiveScene()!
+    // wait after actions done
+    await this.actionsExecutedPromise
     // const positionItemMap = this.game.state.positionItemMap
     // update existing items
     for (const item of items) {

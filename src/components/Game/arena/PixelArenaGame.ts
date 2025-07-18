@@ -1,7 +1,7 @@
 import { PointData } from 'pixi.js'
 
 import { getAreaPixels, xyToPosition } from '../utils'
-import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
+import { ActionType, ArenaAction, ArenaGameState, FireOnMap, GameMode, MapItemType, MonsterState, MonsterType } from './types'
 import { damgeAreas } from './constants';
 
 let curId = 0
@@ -18,9 +18,16 @@ export class PixelArenaGame {
   private updatedItemPixels: number[] = []
   private updateFirePixels: number[] = []
 
+  private gameMode = GameMode.EachPlayerMove
+  private roundOwnerLastMove: {[ownerId: number]: number} = {}  // ownerId -> monsterId
+
   constructor(public state: ArenaGameState, private opts: PixelArenaGameOpts) {
     // The game object can be used to access game state, methods, etc.
     // For example, you might want to initialize some game settings here.
+  }
+
+  setMode(mode: GameMode) {
+    this.gameMode = mode
   }
 
   start() {
@@ -43,16 +50,16 @@ export class PixelArenaGame {
   }
 
   addTeam0() {
-    const m1 = this.addMonster(0, { x: 12, y: 3 }, 1) // Example monster
-    const m2 = this.addMonster(0, { x: 14, y: 3 }, 15, MonsterType.Hero) // Example monster
-    const m3 = this.addMonster(0, { x: 16, y: 3 }, 1, MonsterType.Aqua) // Example monster
+    const m1 = this.addMonster(0, { x: 12, y: 3 }, 3) // Example monster
+    const m2 = this.addMonster(0, { x: 14, y: 3 }, 6, MonsterType.Hero) // Example monster
+    const m3 = this.addMonster(0, { x: 16, y: 3 }, 3, MonsterType.Aqua) // Example monster
 
     this.opts.onNextRound([], [m1, m2, m3])
   }
 
   addTeam1() {
     const m1 = this.addMonster(1, { x: 12, y: 26 }, 1, MonsterType.Tralarelo) // Example monster
-    const m2 = this.addMonster(1, { x: 14, y: 26 }, 15, MonsterType.FamilyBrainrot) // Example monster
+    const m2 = this.addMonster(1, { x: 14, y: 26 }, 1, MonsterType.FamilyBrainrot) // Example monster
     const m3 = this.addMonster(1, { x: 16, y: 26 }, 1, MonsterType.TrippiTroppi) // Example monster
 
     this.opts.onNextRound([], [m1, m2, m3])
@@ -88,8 +95,10 @@ export class PixelArenaGame {
     console.log(`Advancing to round ${this.state.currentRound}`)
     this.state.roundActions = {} // Reset actions for the new round
     this.state.executedOrder = [] // Reset done actions count
+    this.roundOwnerLastMove = {}
 
-    // TODO: remove dead monsters
+    // Remove dead monsters
+    Object.values(this.state.monsters).filter(m => m.hp <= 0).forEach(m => delete this.state.monsters[m.id])
 
     this.opts.onNextRound(actions, monsters) // Process actions and notify the next round
     this.sendUpdatedItems()
@@ -108,6 +117,30 @@ export class PixelArenaGame {
     const fires = this.updateFirePixels.map(p => this.state.posFireMap[p] || MapItemType.None)
     this.updateFirePixels = []
     this.opts.onFiresUpdate(fires)
+  }
+
+  private isRoundActionsDone() {
+    switch (this.gameMode) {
+      case GameMode.InstantMove: return this.isInstantMoveDone()
+      case GameMode.EachPlayerMove: return this.isEachPlayerMoveDone()
+      case GameMode.AllMove: return this.isAllMoveDone()
+    }
+  }
+
+  private isInstantMoveDone() {
+    return true
+  }
+
+  // Check if all players made the move for current round
+  private isEachPlayerMoveDone() {
+    const playerSet = new Set<number>()
+    Object.values(this.state.monsters).forEach(m => playerSet.add(m.ownerId))
+
+    return Object.keys(this.roundOwnerLastMove).length ===  playerSet.size
+  }
+
+  private isAllMoveDone() {
+    return this.state.executedOrder.length >= this.state.aliveNumber
   }
 
   addMonster(ownerId: number, pos: PointData, hp: number, type = MonsterType.Axie): MonsterState {
@@ -157,10 +190,16 @@ export class PixelArenaGame {
     // Update action
     this.state.roundActions[action.id] = action
 
+    // update owner last move (for EachPlayerMove mode)
+    const monster = this.state.monsters[action.id]
+    if (monster) {
+      this.roundOwnerLastMove[monster.ownerId] = action.id
+    }
+
     console.log(`executedOrder: ${this.state.executedOrder}, aliveNumber: ${this.state.aliveNumber}`)
 
     // if all done
-    if (this.state.executedOrder.length === this.state.aliveNumber) {
+    if (this.isRoundActionsDone()) {
       console.log('All actions have been made for the round, execute')
       const { appliedActions, changedStates } = this.processActions() // Process all actions
       setTimeout(() => {
@@ -172,13 +211,25 @@ export class PixelArenaGame {
     }
   }
 
+  private getExecuteOrder(): number[] {
+    if (this.gameMode !== GameMode.EachPlayerMove) {
+      return this.state.executedOrder
+    }
+
+    // EachPlayerMove execute order
+    // TODO need to maintain the order same as this.state.executedOrder
+    console.log(this.roundOwnerLastMove)
+    return Object.values(this.roundOwnerLastMove)
+  }
+
   private processActions(): { appliedActions: ArenaAction[], changedStates: MonsterState[] } {
     // Process all actions for the current round
     const appliedActions: ArenaAction[] = []
     const updatedMonsterIds = new Set<number>()
 
     // Process move actions first
-    for (const id of this.state.executedOrder) {
+    const executeOrder = this.getExecuteOrder()
+    for (const id of executeOrder) {
       const action = this.state.roundActions[id]
       if (action.actionType === ActionType.Move) {
         const executed = this.processMoveAction(action, updatedMonsterIds)
@@ -191,7 +242,7 @@ export class PixelArenaGame {
     }
 
     // Process shoot actions
-    for (const id of this.state.executedOrder) {
+    for (const id of executeOrder) {
       const action = this.state.roundActions[id]
       if (action.actionType === ActionType.Shoot || action.actionType === ActionType.ShootBomb || action.actionType === ActionType.ShootFire) {
         const executed = this.processShootAction(action, updatedMonsterIds)
@@ -316,7 +367,7 @@ export class PixelArenaGame {
     for (const pixel of pixels) {
       if (positionMonsterMap[pixel] !== undefined) {
         const monsterId = positionMonsterMap[pixel]
-        this.monsterGotHit(monsterId)
+        this.monsterGotHit(monsterId, action.actionType === ActionType.ShootBomb ? 2 : 1)
 
         updatedMonsterIds.add(monsterId) // Track updated monster ids
       }
