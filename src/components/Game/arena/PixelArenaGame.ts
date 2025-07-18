@@ -160,7 +160,7 @@ export class PixelArenaGame {
     console.log(`executedOrder: ${this.state.executedOrder}, aliveNumber: ${this.state.aliveNumber}`)
 
     // if all done
-    if (this.state.executedOrder.length == 1) {
+    if (this.state.executedOrder.length === this.state.aliveNumber) {
       console.log('All actions have been made for the round, execute')
       const { appliedActions, changedStates } = this.processActions() // Process all actions
       setTimeout(() => {

@@ -29,9 +29,8 @@ export class ArenaNetwork {
     this.opts = opts
   }
 
-  startServer(addr: Address) {
+  startServer() {
     this.isServer = true
-    this.addrToIdMap[addr] = 0
     const state: ArenaGameState = {
       monsters: {},
       positionMonsterMap: {},

@@ -157,6 +157,11 @@ export class PixelArenaMap {
 
     // Update map items after actions
     // this.updateMapItems()
+
+    // clear current actions
+    for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
+      monster.updateActionAndDraw()
+    }
   }
 
   updateMonsterStates(monsters: MonsterState[]) {
@@ -225,11 +230,6 @@ export class PixelArenaMap {
       .filter(m => m.state.ownerId === selectingOwnerId && m.state.hp > 0)
       .map(m => m.state)
     this.opts.onMonstersUpdate(currentOwnerMonsters)
-
-    // clear current actions
-    for (const monster of allMonsters) if (monster.state.hp > 0) {
-      monster.updateActionAndDraw()
-    }
   }
 
   private async processMoveActions(actions: ArenaAction[]) {

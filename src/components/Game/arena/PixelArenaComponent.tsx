@@ -129,13 +129,13 @@ const PixelArenaComponent: React.FC<Props> = () => {
 
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false)
 
-  const { address } = useAccount()
+  // const { address } = useAccount()
   const startServer = useCallback(() => {
-    if (address && networkRef.current) {
-      networkRef.current.startServer(address)
+    if (networkRef.current) {
+      networkRef.current.startServer()
       setIsMenuModalOpen(false)
     }
-  }, [address])
+  }, [])
 
   return (
     <>
