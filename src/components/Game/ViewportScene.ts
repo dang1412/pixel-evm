@@ -7,6 +7,10 @@ import { PixelImage } from './types'
 export class ViewportScene {
   container = new Container()
 
+  private scaled = 0
+  private centureX = 0
+  private centureY = 0
+
   constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number, bgUrl = '') {
     this.drawGrid()
     // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
@@ -19,6 +23,32 @@ export class ViewportScene {
     if (bgUrl) {
       const image = this.addImage(bgUrl, { x: 0, y: 0, w: pixelWidth, h: pixelHeight })
       image.alpha = 0.15
+    }
+  }
+
+  closed() {
+    if (!this.map.viewport) return
+    this.scaled = this.map.viewport.scaled || 0
+    const {x, y} = this.map.viewport.center
+    this.centureX = x
+    this.centureY = y
+  }
+
+  opened() {
+    if (!this.map.viewport) return
+
+    const newWorldWidth = PIXEL_SIZE * this.pixelWidth
+    const newWorldHeight = PIXEL_SIZE * this.pixelHeight
+    const { screenWidth, screenHeight, worldWidth, worldHeight } = this.map.viewport
+    console.log(screenWidth, screenHeight, worldWidth, worldHeight, '---', newWorldWidth, newWorldHeight)
+    this.map.viewport.resize(screenWidth, screenHeight, newWorldWidth, newWorldHeight)
+
+    if (this.scaled) {
+      this.map.viewport.setZoom(this.scaled)
+      this.map.viewport.moveCenter(this.centureX, this.centureY)
+    } else {
+      this.map.viewport.fit()
+      this.map.viewport.moveCenter(newWorldWidth / 2, newWorldHeight / 2)
     }
   }
 

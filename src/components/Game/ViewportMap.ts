@@ -69,18 +69,13 @@ export class ViewportMap {
       const prev = this.getActiveScene()
       if (prev) {
         this.viewport.removeChild(prev.container)
+        prev.closed()
       }
       console.log('Activate', name)
       this.activeScene = name
       this.viewport.addChild(scene.container)
+      scene.opened()
 
-      const newWorldWidth = PIXEL_SIZE * scene.pixelWidth
-      const newWorldHeight = PIXEL_SIZE * scene.pixelHeight
-      const { screenWidth, screenHeight, worldWidth, worldHeight } = this.viewport
-      console.log(screenWidth, screenHeight, worldWidth, worldHeight, '---', newWorldWidth, newWorldHeight)
-      this.viewport.resize(screenWidth, screenHeight, newWorldWidth, newWorldHeight)
-      this.viewport.fitWidth()
-      this.viewport.moveCenter(newWorldWidth / 2, newWorldHeight / 2)
       this.updateMinimap()
       this.markDirty()
 
@@ -133,7 +128,7 @@ export class ViewportMap {
       })
       .wheel()
       .clamp({direction: 'all'})
-      .clampZoom({minScale: 1, maxScale: 20})
+      .clampZoom({minScale: 0.8, maxScale: 16})
 
     viewport.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
     // this.drawGrid()
