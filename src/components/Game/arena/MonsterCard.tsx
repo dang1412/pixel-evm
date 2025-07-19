@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FaWalking, FaCrosshairs, FaBomb, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
+import { FaBomb, FaRocket, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
 import { ActionType, MapItemType, MonsterState, MonsterType } from './types'
 import { monsterInfos } from './constants'
 import { PointData } from 'pixi.js'
@@ -11,18 +11,19 @@ type MonsterCardProps = {
   onSelectMonster: (id: number) => void
 }
 
-const actionOptions: { type: MapItemType.Bomb | MapItemType.Fire; icon: React.ReactNode; label: string }[] = [
+const actionOptions: { type: MapItemType.Bomb | MapItemType.Fire | MapItemType.Rocket; icon: React.ReactNode; label: string }[] = [
   // { type: ActionType.Move, icon: <FaWalking />, label: 'Move' },
   // { type: ActionType.Shoot, icon: <FaCrosshairs />, label: 'Shoot' },
-  { type: MapItemType.Bomb, icon: <FaBomb />, label: 'Bomb' },
+  { type: MapItemType.Rocket, icon: <FaRocket />, label: 'Rocket' },
   { type: MapItemType.Fire, icon: <FaFire />, label: 'Fire' },
+  { type: MapItemType.Bomb, icon: <FaBomb />, label: 'Bomb' },
 ]
 
 const emptyMonster: MonsterState = {
   ownerId: 0,
   vehicle: MapItemType.None,
   id: 0, hp: 0, pos: { x: 0, y: 0 } as PointData,
-  weapons: { [MapItemType.Bomb]: 0, [MapItemType.Fire]: 0 },
+  weapons: { [MapItemType.Rocket]: 0, [MapItemType.Fire]: 0, [MapItemType.Bomb]: 0 },
   type: MonsterType.Axie,
 }
 

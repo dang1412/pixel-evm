@@ -211,9 +211,9 @@ export class PixelArenaMonster {
 
     if (action.actionType === ActionType.Move) {
       await this.moveTo(x, y)
-    } else if ([ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootFire].includes(action.actionType)) {
+    } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
       await this.drawShoot(x, y, action.actionType)
-      if (action.actionType === ActionType.ShootBomb) {
+      if (action.actionType === ActionType.ShootRocket) {
         this.animateExplode(x, y)
       }
     }

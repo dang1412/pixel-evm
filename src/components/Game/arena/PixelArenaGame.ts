@@ -38,7 +38,7 @@ export class PixelArenaGame {
 
     const itemsArray: [number, MapItemType][] = []
     for (let x = 3; x < 27; x += 2) {
-      const item = this.addItem({x, y: 14}, MapItemType.Bomb)
+      const item = this.addItem({x, y: 14}, MapItemType.Rocket)
       itemsArray.push(item)
     }
     for (let x = 3; x < 27; x += 2) {
@@ -157,8 +157,9 @@ export class PixelArenaGame {
       type,
       vehicle: MapItemType.None,
       weapons: {
-        [MapItemType.Bomb]: 0,
+        [MapItemType.Rocket]: 0,
         [MapItemType.Fire]: 0,
+        [MapItemType.Bomb]: 0,
       },
     }
     this.state.monsters[id] = monster // Add monster to the state
@@ -244,7 +245,7 @@ export class PixelArenaGame {
     // Process shoot actions
     for (const id of executeOrder) {
       const action = this.state.roundActions[id]
-      if (action.actionType === ActionType.Shoot || action.actionType === ActionType.ShootBomb || action.actionType === ActionType.ShootFire) {
+      if (action.actionType === ActionType.Shoot || action.actionType === ActionType.ShootRocket || action.actionType === ActionType.ShootFire) {
         const executed = this.processShootAction(action, updatedMonsterIds)
         if (executed) {
           appliedActions.push(executed)
@@ -305,9 +306,8 @@ export class PixelArenaGame {
       monster.vehicle = itemType // Update monster's vehicle type
       return true
     }
-    if (itemType === MapItemType.Bomb || itemType === MapItemType.Fire) {
+    if (itemType === MapItemType.Rocket || itemType === MapItemType.Fire) {
       // Increment the weapon count for the monster
-      // const type = itemType === MapItemType.Bomb ? ActionType.ShootBomb : ActionType.ShootFire
       monster.weapons[itemType] += 1
       console.log(`Monster ${monster.id} picked up a ${itemType}, total: ${monster.weapons[itemType]}`)
       return true
@@ -325,8 +325,8 @@ export class PixelArenaGame {
     }
 
     // Update weapons
-    if (action.actionType === ActionType.ShootBomb || action.actionType === ActionType.ShootFire) {
-      const weaponType = action.actionType === ActionType.ShootBomb ? MapItemType.Bomb : MapItemType.Fire
+    if (action.actionType === ActionType.ShootRocket || action.actionType === ActionType.ShootFire) {
+      const weaponType = action.actionType === ActionType.ShootRocket ? MapItemType.Rocket : MapItemType.Fire
       if (monster.weapons[weaponType] <= 0) return
       monster.weapons[weaponType]--
       updatedMonsterIds.add(action.id)
@@ -367,7 +367,7 @@ export class PixelArenaGame {
     for (const pixel of pixels) {
       if (positionMonsterMap[pixel] !== undefined) {
         const monsterId = positionMonsterMap[pixel]
-        this.monsterGotHit(monsterId, action.actionType === ActionType.ShootBomb ? 2 : 1)
+        this.monsterGotHit(monsterId, action.actionType === ActionType.ShootRocket ? 2 : 1)
 
         updatedMonsterIds.add(monsterId) // Track updated monster ids
       }

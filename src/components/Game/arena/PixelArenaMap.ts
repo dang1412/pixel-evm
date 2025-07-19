@@ -279,7 +279,7 @@ export class PixelArenaMap {
     // Process shoot actions for monsters
     const shootPromises: Promise<void>[] = []
     for (const action of actions) {
-      if ([ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootFire].includes(action.actionType)) {
+      if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
         const monster = this.monsters[action.id]
         if (monster) {
           const shoot = monster.applyAction(action)

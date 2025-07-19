@@ -45,15 +45,18 @@ export const actionImages: Record<ActionType, string> = {
   [ActionType.Move]: '',
   [ActionType.Shoot]: '/images/energy2.png',
   [ActionType.ShootBomb]: '/svgs/rocket.svg',
+  [ActionType.ShootRocket]: '/svgs/rocket.svg',
   [ActionType.ShootFire]: '/svgs/fire.svg',
+  [ActionType.FinalBlow]: '/svgs/skull.svg',
   [ActionType.Drop]: '',
 }
 
 export const itemImages: Record<MapItemType, string> = {
   [MapItemType.None]: '',
   [MapItemType.Car]: '/svgs/car.svg',
-  [MapItemType.Bomb]: '/svgs/rocket.svg',
+  [MapItemType.Rocket]: '/svgs/rocket.svg',
   [MapItemType.Fire]: '/svgs/fire.svg',
+  [MapItemType.Bomb]: '/svgs/bomb.svg',
 }
 
 // export const vehicleImages: Record<VehicleType, string> = {
@@ -63,6 +66,6 @@ export const itemImages: Record<MapItemType, string> = {
 
 export const damgeAreas: Partial<Record<ActionType, PixelArea>> = {
   [ActionType.Shoot]: { x: 0, y: 0, w: 1, h: 1 },
-  [ActionType.ShootBomb]: { x: -1, y: -2, w: 3, h: 3 },
+  [ActionType.ShootRocket]: { x: -1, y: -2, w: 3, h: 3 },
   [ActionType.ShootFire]: { x: -1, y: -2, w: 3, h: 3 },
 }

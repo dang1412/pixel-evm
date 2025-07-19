@@ -14,10 +14,14 @@ export enum ActionType {
   None,
   Move,
   Shoot,
+  ShootRocket,
   ShootBomb,
   ShootFire,
+  FinalBlow,
   Drop,
 }
+
+export const shootActions = [ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootRocket, ActionType.ShootFire]
 
 // export enum VehicleType {
 //   None,
@@ -27,8 +31,9 @@ export enum ActionType {
 export enum MapItemType {
   None,
   Car,
-  Bomb,
+  Rocket,
   Fire,
+  Bomb,
 }
 
 // State that sends to client
@@ -40,8 +45,9 @@ export interface MonsterState {
   vehicle: MapItemType.None | MapItemType.Car  // 4bit
   pos: PointData // 16bit
   weapons: { // 8bit
-    [MapItemType.Bomb]: number,
+    [MapItemType.Rocket]: number,
     [MapItemType.Fire]: number,
+    [MapItemType.Bomb]: number,
   }
 }
 
@@ -85,10 +91,10 @@ export interface MonsterUpdate {
   data: Partial<MonsterState> // depends on type
 }
 
-export interface ArenaGameUpdates {
-  updates: MonsterUpdate[]
-  actions: ArenaAction[]
-}
+// export interface ArenaGameUpdates {
+//   updates: MonsterUpdate[]
+//   actions: ArenaAction[]
+// }
 
 export interface MonsterDrawInfo {
   type: MonsterType
