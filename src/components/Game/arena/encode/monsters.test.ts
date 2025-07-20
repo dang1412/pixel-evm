@@ -12,6 +12,7 @@ describe('monsters encode/decode', () => {
     weapons: {
       [MapItemType.Bomb]: 3,
       [MapItemType.Fire]: 2,
+      [MapItemType.Rocket]: 2,
     }
   }
 
@@ -37,6 +38,7 @@ describe('monsters encode/decode', () => {
         weapons: {
           [MapItemType.Bomb]: 0,
           [MapItemType.Fire]: 1,
+          [MapItemType.Rocket]: 2,
         }
       }
     ]
@@ -58,6 +60,7 @@ describe('monsters encode/decode', () => {
       weapons: {
         [MapItemType.Bomb]: 15,
         [MapItemType.Fire]: 15,
+        [MapItemType.Rocket]: 2,
       }
     }
     const encoded = encodeMonsters([monster])
@@ -76,6 +79,7 @@ describe('monsters encode/decode', () => {
       weapons: {
         [MapItemType.Bomb]: 0,
         [MapItemType.Fire]: 0,
+        [MapItemType.Rocket]: 0,
       }
     }
     const encoded = encodeMonsters([monster])
