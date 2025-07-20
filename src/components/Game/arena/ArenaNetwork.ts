@@ -45,7 +45,7 @@ export class ArenaNetwork {
     }
     this.game = new PixelArenaGame(state, {
       onNextRound: (actions, monsters) => {
-        this.map.onNextRound(actions)
+        this.map.onExecutedActions(actions)
         this.map.updateMonsterStates(monsters)
 
         // send to clients
@@ -136,16 +136,18 @@ export class ArenaNetwork {
   receiveData(addr: string, data: ArrayBuffer) {
     const type = getRTCMessageType(data)
     if (this.isServer) {
-      // action
+      // Receive action from client
+      // TODO check if valid
       if (type === RTCMessageType.Action) {
         const action = decodeAction(data)
         this.game?.receiveAction(action)
       }
     } else {
+      // Receive updates from server
       // Actions
       if (type === RTCMessageType.Actions) {
         const actions = decodeActions(data)
-        this.map.onNextRound(actions)
+        this.map.onExecutedActions(actions)
       // Monsters
       } else if (type === RTCMessageType.MonsterStates) {
         const monsters = decodeMonstersData(data)

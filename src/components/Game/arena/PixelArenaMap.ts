@@ -20,6 +20,7 @@ sound.add('move', '/sounds/whistle.mp3')
 sound.add('shoot', '/sounds/sword.mp3')
 sound.add('hurt', '/sounds/grunt2.mp3')
 sound.add('die', '/sounds/char-die.mp3')
+sound.add('scream', '/sounds/scream.mp3')
 sound.add('explode1', '/sounds/explosion3.mp3')
 sound.add('explode2', '/sounds/explosion4.mp3')
 sound.add('beam-fire', '/sounds/beam-fire.mp3')
@@ -149,25 +150,41 @@ export class PixelArenaMap {
     }
   }
 
-  async onNextRound(actions: ArenaAction[]) {
+  async onExecutedActions(actions: ArenaAction[]) {
     console.log('Next round actions:', actions)
+    // wait for previous actions
+    // await this.actionsExecutedPromise
 
-    // apply moves and shoots
-    const moves = this.processMoveActions(actions)
-    const shoots = this.processShootActions(actions)
-    this.actionsExecutedPromise = Promise.all([moves, shoots])
-    await this.actionsExecutedPromise
+    // apply finalblow
+    if (actions.length === 1 && actions[0].actionType === ActionType.FinalBlow) {
+      const final = actions[0]
+      // scream
+      sound.play('scream')
+      // move
+      const monster = this.monsters[final.id]
+      // execute after current actions done
+      this.actionsExecutedPromise = this.actionsExecutedPromise
+        .then(() => monster.applyAction({...final, actionType: ActionType.Move}))
+        .then(() => this.processShootActions([{...final, actionType: ActionType.ShootRocket}]))
+    } else {
+      // apply moves and shoots
+      // execute after current actions done
+      this.actionsExecutedPromise = this.actionsExecutedPromise
+        .then(() => Promise.all([
+          this.processMoveActions(actions),
+          this.processShootActions(actions)
+        ]))
+      await this.actionsExecutedPromise
 
-    // Update map items after actions
-    // this.updateMapItems()
-
-    // clear current actions
-    for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
-      monster.updateActionAndDraw()
+      // clear current actions
+      for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
+        monster.updateActionAndDraw()
+      }
     }
   }
 
   async updateMonsterStates(monsters: MonsterState[]) {
+    console.log('Receive monsters------', monsters)
     // wait after actions done
     await this.actionsExecutedPromise
     // Update states
@@ -196,6 +213,7 @@ export class PixelArenaMap {
     // wait after actions done
     await this.actionsExecutedPromise
     const newFirePixels = new Set<number>()
+    // Update fires from server
     for (const fire of fires) {
       const pixel = xyToPosition(fire.pos.x, fire.pos.y)
       const f = {...fire}
@@ -208,6 +226,7 @@ export class PixelArenaMap {
       sound.play('fire-sound', { loop: true, volume: 0.3 })
     }
 
+    // Update current fires (no update from server)
     const currentFires = Object.keys(this.fires)
       .map(p => Number(p))
       .filter(p => !newFirePixels.has(p))
@@ -239,6 +258,7 @@ export class PixelArenaMap {
     this.opts.onMonstersUpdate(currentOwnerMonsters)
   }
 
+  // Should not update map position in case move by final blow
   private async processMoveActions(actions: ArenaAction[]) {
     // Process move actions for monsters
     const movePrommises: Promise<void>[] = []

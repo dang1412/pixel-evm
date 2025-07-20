@@ -21,7 +21,8 @@ export enum ActionType {
   Drop,
 }
 
-export const shootActions = [ActionType.Shoot, ActionType.ShootBomb, ActionType.ShootRocket, ActionType.ShootFire]
+export const shootWeapons = [ActionType.ShootBomb, ActionType.ShootRocket, ActionType.ShootFire]
+export const shootActions = [ActionType.Shoot, ...shootWeapons]
 
 // export enum VehicleType {
 //   None,
