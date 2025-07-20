@@ -4,7 +4,7 @@ import { sound } from '@pixi/sound'
 import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
 
-import { ActionType, ArenaAction, ArenaGameState, FireOnMap, MapItemType, MonsterState, MonsterType } from './types'
+import { ActionType, ArenaAction, FireOnMap, MapItemType, MonsterState } from './types'
 import { PixelArenaMonster } from './PixelArenaMonster'
 import { itemImages } from './constants'
 import { ArenaFire } from './ArenaFire'
@@ -14,6 +14,7 @@ Assets.load([
   '/svgs/car.svg',
   '/svgs/rocket.svg',
   '/svgs/fire.svg',
+  '/svgs/skull.svg',
 ])
 
 sound.add('move', '/sounds/whistle.mp3')
@@ -210,9 +211,19 @@ export class PixelArenaMap {
   }
 
   async updateFires(fires: FireOnMap[]) {
-    // wait after actions done
+    const firePixels = new Set<number>(fires.map(f => xyToPosition(f.pos.x, f.pos.y)))
+    // Remove stopped fires
+    Object.keys(this.fires)
+      .map(p => Number(p))
+      .filter(p => !firePixels.has(p) || this.fires[p].isStopped())
+      .forEach(p => {
+        const f = this.fires[p]
+        f.stop()
+        delete this.fires[p]
+      })
+
+    // Wait after actions done
     await this.actionsExecutedPromise
-    const newFirePixels = new Set<number>()
     // Update fires from server
     for (const fire of fires) {
       const pixel = xyToPosition(fire.pos.x, fire.pos.y)
@@ -222,23 +233,7 @@ export class PixelArenaMap {
 
       this.fires[pixel] = arenaFire
 
-      newFirePixels.add(pixel)
       sound.play('fire-sound', { loop: true, volume: 0.3 })
-    }
-
-    // Update current fires (no update from server)
-    const currentFires = Object.keys(this.fires)
-      .map(p => Number(p))
-      .filter(p => !newFirePixels.has(p))
-      .map(p => this.fires[p])
-
-    for (const arenaFire of currentFires) {
-      arenaFire.next()
-      if (arenaFire.isStopped()) {
-        const { x, y } = arenaFire.getPos()
-        const pixel = xyToPosition(x, y)
-        delete this.fires[pixel]
-      }
     }
 
     if (Object.keys(this.fires).length === 0) {

@@ -47,18 +47,18 @@ export class ArenaFire {
     this.container = container
   }
 
-  next() {
-    this.fire.living --
-    if (this.fire.living < 0) {
-      this.stop()
-    }
-  }
+  // next() {
+  //   this.fire.living --
+  //   if (this.fire.living <= 0) {
+  //     this.stop()
+  //   }
+  // }
 
   isStopped() {
-    return this.fire.living < 0
+    return this.fire.living <= 0
   }
 
-  private stop() {
+  stop() {
     if (!this.container) return
 
     const sprite = this.container.getChildAt(0) as Sprite

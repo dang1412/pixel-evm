@@ -27,7 +27,7 @@ interface PixelArenaGameOpts {
 // This class handles the game state and actions for the Pixel Arena game.
 export class PixelArenaGame {
   private updatedItemPixels: number[] = [];
-  private updateFirePixels: number[] = [];
+  // private updateFirePixels: number[] = [];
 
   private gameMode = GameMode.AllMove;
   private roundOwnerLastMove: { [ownerId: number]: number } = {}; // ownerId -> monsterId
@@ -46,6 +46,7 @@ export class PixelArenaGame {
     console.log("Game started");
 
     this.addTeam0();
+    // this.addTeam1();
 
     const itemsArray: [number, MapItemType][] = [];
     for (let x = 3; x < 27; x += 2) {
@@ -120,14 +121,15 @@ export class PixelArenaGame {
     this.state.executedOrder = [] // Reset done actions count
     this.roundOwnerLastMove = {}
 
+    this.opts.onNextRound(actions, monsters) // Process actions and notify the next round
+    this.sendUpdatedItems();
+    this.sendUpdatedFires();
+
     // Remove dead monsters
     Object.values(this.state.monsters)
       .filter((m) => m.hp <= 0)
       .forEach((m) => delete this.state.monsters[m.id]);
-
-    this.opts.onNextRound(actions, monsters) // Process actions and notify the next round
-    this.sendUpdatedItems();
-    this.sendUpdatedFires();
+    this.removeEmptyFires()
   }
 
   private sendUpdatedItems() {
@@ -141,10 +143,7 @@ export class PixelArenaGame {
   }
 
   private sendUpdatedFires() {
-    const fires = this.updateFirePixels.map(
-      (p) => this.state.posFireMap[p] || MapItemType.None
-    );
-    this.updateFirePixels = [];
+    const fires = this.state.fires
     this.opts.onFiresUpdate(fires);
   }
 
@@ -464,6 +463,12 @@ export class PixelArenaGame {
 
     // Inform clients
     this.opts.onNextRound([action], changedStates)
+    // Add fire
+    console.log('executeFinalBlow', monster, monster.weapons[MapItemType.Fire])
+    if (monster.weapons[MapItemType.Fire] > 0) {
+      this.addFire(action.id, action.target)
+      this.sendUpdatedFires()
+    }
   }
 
   private applyShootDamage(
@@ -496,14 +501,11 @@ export class PixelArenaGame {
 
   private addFire(monsterId: number, p: PointData) {
     const monster = this.state.monsters[monsterId];
-    if (!monster) return;
-    const fire: FireOnMap = { pos: p, ownerId: monster.ownerId, living: 3 };
+    const fire: FireOnMap = { pos: p, ownerId: monster?.ownerId || 0, living: 3 };
     this.state.fires.push(fire);
 
     const pixel = xyToPosition(p.x, p.y);
     this.state.posFireMap[pixel] = fire;
-
-    this.updateFirePixels.push(pixel);
   }
 
   private applyFires(updatedMonsterIds: Set<number>) {
@@ -514,7 +516,9 @@ export class PixelArenaGame {
       );
       fire.living--;
     }
+  }
 
+  private removeEmptyFires() {
     // remove
     this.state.fires = this.state.fires.filter((f) => {
       if (f.living > 0) return true;
