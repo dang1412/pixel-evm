@@ -11,6 +11,9 @@ import { ArenaFire } from './ArenaFire'
 
 Assets.load([
   '/images/select_aura.png',
+  '/images/palmtree1.png',
+  '/images/palmtree2.png',
+  '/images/mountain.png',
   '/svgs/car.svg',
   '/svgs/rocket.svg',
   '/svgs/fire.svg',
@@ -85,7 +88,16 @@ export class PixelArenaMap {
       if (addedScene === opts.sceneName) {
         unsubscene()
         this.initGame()
-        // this.informUI()
+
+        // Decor
+        const scene = map.getActiveScene()!
+        scene.addImage('/images/palmtree1.png', { x: 3, y: 3, w: 4, h: 4 })
+        scene.addImage('/images/palmtree2.png', { x: 24, y: 3, w: 4, h: 4 })
+
+        scene.addImage('/images/palmtree2.png', { x: 3, y: 24, w: 4, h: 4 })
+        scene.addImage('/images/palmtree1.png', { x: 24, y: 24, w: 4, h: 4 })
+
+        scene.addImage('/images/mountain.png', { x: 13, y: 12, w: 5, h: 5 })
       }
     })
 
@@ -348,6 +360,7 @@ export class PixelArenaMap {
         const { x, y } = positionToXY(pixel)
         const image = itemImages[type]
         this.itemContainers[pixel] = scene.addImage(image, { x, y, w: 1, h: 1 }, this.itemContainers[pixel])
+        this.itemContainers[pixel].alpha = 0.8
       } else {
         this.itemContainers[pixel]?.destroy()
         delete this.itemContainers[pixel]

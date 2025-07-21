@@ -78,12 +78,7 @@ export class PixelArenaMonster {
     }
 
     this.weaponContainer.removeChildren()
-    // const bomb = Sprite.from('/svgs/bomb.svg')
-    // bomb.width = PIXEL_SIZE / 3
-    // bomb.height = PIXEL_SIZE / 3
-    // bomb.x = PIXEL_SIZE / 3
-    // bomb.y = PIXEL_SIZE / 3 * 2
-    // this.weaponContainer.addChild(bomb)
+    this.weaponContainer.alpha = 0.8
     const weapons = [MapItemType.Bomb, MapItemType.Fire, MapItemType.Rocket]
       .filter(w => (this.state.weapons as any)[w] > 0)
 

@@ -17,6 +17,10 @@ import { damgeAreas } from "./constants";
 
 let curId = 0;
 
+function getRandom(from: number, to: number) {
+  return Math.floor(Math.random() * (to - from) + from)
+}
+
 interface PixelArenaGameOpts {
   onNextRound: (actions: ArenaAction[], states: MonsterState[]) => void;
   onItemsUpdate: (items: [number, MapItemType][]) => void;
@@ -26,7 +30,7 @@ interface PixelArenaGameOpts {
 // Game server logic for Pixel Arena
 // This class handles the game state and actions for the Pixel Arena game.
 export class PixelArenaGame {
-  private updatedItemPixels: number[] = [];
+  private updatedItemPixelSet = new Set<number>()
   // private updateFirePixels: number[] = [];
 
   private gameMode = GameMode.EachPlayerMove;
@@ -48,21 +52,22 @@ export class PixelArenaGame {
     this.addTeam0();
     // this.addTeam1();
 
-    const itemsArray: [number, MapItemType][] = [];
-    for (let x = 3; x < 27; x += 2) {
-      const item = this.addItem({ x, y: 14 }, MapItemType.Rocket);
-      itemsArray.push(item);
+    // const itemsArray: [number, MapItemType][] = [];
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
+      // itemsArray.push(item);
     }
-    for (let x = 3; x < 27; x += 2) {
-      const item = this.addItem({ x, y: 15 }, MapItemType.Fire);
-      itemsArray.push(item);
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Fire);
+      // itemsArray.push(item);
     }
-    for (let x = 3; x < 27; x += 2) {
-      const item = this.addItem({ x, y: 16 }, MapItemType.Bomb);
-      itemsArray.push(item);
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Bomb);
+      // itemsArray.push(item);
     }
 
-    this.opts.onItemsUpdate(itemsArray);
+    this.sendUpdatedItems()
+    // this.opts.onItemsUpdate(itemsArray);
   }
 
   addTeam0() {
@@ -137,12 +142,12 @@ export class PixelArenaGame {
   }
 
   private sendUpdatedItems() {
-    const items: [number, MapItemType][] = this.updatedItemPixels.map((p) => [
+    const items: [number, MapItemType][] = Array.from(this.updatedItemPixelSet).map((p) => [
       p,
       this.state.positionItemMap[p],
     ]);
 
-    this.updatedItemPixels = [];
+    this.updatedItemPixelSet.clear()
     this.opts.onItemsUpdate(items);
   }
 
@@ -217,6 +222,7 @@ export class PixelArenaGame {
   ): [number, MapItemType] {
     const pixelPos = xyToPosition(pos.x, pos.y);
     this.state.positionItemMap[pixelPos] = itemType; // Map position to item type
+    this.updatedItemPixelSet.add(pixelPos)
 
     return [pixelPos, itemType];
   }
@@ -314,7 +320,8 @@ export class PixelArenaGame {
       if (
         action.actionType === ActionType.Shoot ||
         action.actionType === ActionType.ShootRocket ||
-        action.actionType === ActionType.ShootFire
+        action.actionType === ActionType.ShootFire ||
+        action.actionType === ActionType.ShootBomb
       ) {
         const executed = this.processShootAction(action, updatedMonsterIds);
         if (executed) {
@@ -373,7 +380,7 @@ export class PixelArenaGame {
         delete this.state.positionItemMap[targetPos]; // Remove item from map after pickup
         updatedMonsterIds.add(monster.id);
         // item updated at this position
-        this.updatedItemPixels.push(targetPos);
+        this.updatedItemPixelSet.add(targetPos);
       }
     }
 
@@ -505,11 +512,17 @@ export class PixelArenaGame {
 
   private addFire(monsterId: number, p: PointData) {
     const monster = this.state.monsters[monsterId];
-    const fire: FireOnMap = { pos: p, ownerId: monster?.ownerId || 0, living: 3 };
-    this.state.fires.push(fire);
+    const newFire: FireOnMap = { pos: p, ownerId: monster?.ownerId || 0, living: 3 };
 
     const pixel = xyToPosition(p.x, p.y);
-    this.state.posFireMap[pixel] = fire;
+    const fire = this.state.posFireMap[pixel];
+    if (fire) {
+      fire.living = newFire.living
+      fire.ownerId = newFire.ownerId
+    } else {
+      this.state.posFireMap[pixel] = newFire
+      this.state.fires.push(newFire)
+    }
   }
 
   private applyFires(updatedMonsterIds: Set<number>) {
