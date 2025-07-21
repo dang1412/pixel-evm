@@ -29,7 +29,7 @@ export class PixelArenaGame {
   private updatedItemPixels: number[] = [];
   // private updateFirePixels: number[] = [];
 
-  private gameMode = GameMode.AllMove;
+  private gameMode = GameMode.EachPlayerMove;
   private roundOwnerLastMove: { [ownerId: number]: number } = {}; // ownerId -> monsterId
 
   constructor(public state: ArenaGameState, private opts: PixelArenaGameOpts) {
@@ -55,6 +55,10 @@ export class PixelArenaGame {
     }
     for (let x = 3; x < 27; x += 2) {
       const item = this.addItem({ x, y: 15 }, MapItemType.Fire);
+      itemsArray.push(item);
+    }
+    for (let x = 3; x < 27; x += 2) {
+      const item = this.addItem({ x, y: 16 }, MapItemType.Bomb);
       itemsArray.push(item);
     }
 
@@ -382,7 +386,7 @@ export class PixelArenaGame {
       monster.vehicle = itemType; // Update monster's vehicle type
       return true;
     }
-    if (itemType === MapItemType.Rocket || itemType === MapItemType.Fire) {
+    if (itemType === MapItemType.Rocket || itemType === MapItemType.Fire || itemType === MapItemType.Bomb) {
       // Increment the weapon count for the monster
       monster.weapons[itemType] += 1;
       console.log(
@@ -538,6 +542,7 @@ export class PixelArenaGame {
 
     monster.hp -= damage;
     if (monster.hp <= 0) {
+      monster.hp = 0
       console.log(`Monster ${monsterId} has been defeated`);
       delete this.state.positionMonsterMap[
         xyToPosition(monster.pos.x, monster.pos.y)

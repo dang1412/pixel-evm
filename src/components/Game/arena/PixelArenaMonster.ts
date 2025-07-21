@@ -2,7 +2,7 @@ import { Assets, Container, Graphics, Sprite, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { PixelArenaMap } from './PixelArenaMap'
-import { ActionType, ArenaAction, MonsterState } from './types'
+import { ActionType, ArenaAction, MapItemType, MonsterState } from './types'
 import { actionImages, itemImages, monsterInfos } from './constants'
 import { PIXEL_SIZE, xyToPosition } from '../utils'
 import { PixiAnimation } from '../Animation'
@@ -26,6 +26,8 @@ export class PixelArenaMonster {
   // action line
   private actionLineGraphics?: Graphics
   private shadowContainer?: Container
+  // weapons
+  private weaponContainer = new Container()
 
   private action?: ArenaAction
   // actionType = ActionType.Move
@@ -45,6 +47,8 @@ export class PixelArenaMonster {
     this.actionTypeSprite.alpha = 0.8
     this.monsterContainer.addChild(this.actionTypeSprite)
     // this.drawActionType()
+
+    this.monsterContainer.addChild(this.weaponContainer)
 
     this.draw()
 
@@ -72,6 +76,32 @@ export class PixelArenaMonster {
     } else {
       this.vehicleSprite.removeFromParent()
     }
+
+    this.weaponContainer.removeChildren()
+    // const bomb = Sprite.from('/svgs/bomb.svg')
+    // bomb.width = PIXEL_SIZE / 3
+    // bomb.height = PIXEL_SIZE / 3
+    // bomb.x = PIXEL_SIZE / 3
+    // bomb.y = PIXEL_SIZE / 3 * 2
+    // this.weaponContainer.addChild(bomb)
+    const weapons = [MapItemType.Bomb, MapItemType.Fire, MapItemType.Rocket]
+      .filter(w => (this.state.weapons as any)[w] > 0)
+
+    for (let i = 0; i < weapons.length; i++) {
+      const w = weapons[i]
+      const item = Sprite.from(itemImages[w])
+      item.width = PIXEL_SIZE / 3
+      item.height = PIXEL_SIZE / 3
+      item.y = PIXEL_SIZE / 3 * 2
+      item.x = i * PIXEL_SIZE / 3
+
+      this.weaponContainer.addChild(item)
+    }
+  }
+
+  private getWeapons() {
+    const weapons = [MapItemType.Bomb, MapItemType.Fire, MapItemType.Rocket]
+    return weapons.filter(w => (this.state.weapons as any)[w] > 0)
   }
 
   drawAction(action = this.action) {
@@ -204,8 +234,8 @@ export class PixelArenaMonster {
     console.log(`Drawing action`, action,`for monster ${this.state.id}`)
 
     // Clear previous action line and shadow
-    this.actionLineGraphics?.clear()
-    this.shadowContainer?.removeChildren()
+    if (this.actionLineGraphics) this.actionLineGraphics.clear()
+    if (this.shadowContainer) this.shadowContainer.removeChildren()
 
     const { x, y } = action.target
 

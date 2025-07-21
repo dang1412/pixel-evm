@@ -1,4 +1,4 @@
-import { Assets, Container, PointData } from 'pixi.js'
+import { Assets, Container, PointData, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
@@ -15,7 +15,10 @@ Assets.load([
   '/svgs/rocket.svg',
   '/svgs/fire.svg',
   '/svgs/skull.svg',
+  '/svgs/bomb.svg',
 ])
+
+Assets.load<Spritesheet>('/animations/explosion1.json')
 
 sound.add('move', '/sounds/whistle.mp3')
 sound.add('shoot', '/sounds/sword.mp3')
