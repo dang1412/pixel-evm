@@ -58,7 +58,7 @@ export interface ArenaAction {
   target: PointData  // 16bit
 }
 
-export interface FireOnMap {
+export interface CountDownItemOnMap {
   pos: PointData
   living: number
   ownerId: number
@@ -75,8 +75,11 @@ export interface ArenaGameState {
 
   positionItemMap: { [pos: number]: MapItemType } // pixel to item type
 
-  fires: FireOnMap[]
-  posFireMap: { [pos: number]: FireOnMap }
+  fires: CountDownItemOnMap[]
+  posFireMap: { [pos: number]: CountDownItemOnMap }
+
+  bombs: CountDownItemOnMap[]
+  posBombMap: { [pos: number]: CountDownItemOnMap }
 }
 
 export enum UpdateType {
@@ -110,6 +113,7 @@ export enum RTCMessageType {
   MonsterStates,
   MapItems,
   Fires,
+  Bombs,
 }
 
 export enum GameMode {

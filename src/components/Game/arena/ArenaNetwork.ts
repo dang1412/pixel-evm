@@ -4,7 +4,7 @@ import { getRTCMessageType } from './encode/common'
 import { decodeAction, decodeActions, encodeActionsWithType, encodeActionWithType } from './encode/actions'
 import { decodeMonstersData, encodeMonstersWithType } from './encode/monsters'
 import { decodeMapItems, encodeMapItemsWithType } from './encode/mapItem'
-import { decodeFires, encodeFiresWithType } from './encode/fire'
+import { decodeFires, encodeBombsWithType, encodeFiresWithType } from './encode/fire'
 
 import { ActionType, ArenaGameState, RTCMessageType } from './types'
 import { PixelArenaGame } from './PixelArenaGame'
@@ -41,7 +41,10 @@ export class ArenaNetwork {
       positionItemMap: {},
 
       fires: [],
-      posFireMap: {}
+      posFireMap: {},
+
+      bombs: [],
+      posBombMap: {},
     }
     this.game = new PixelArenaGame(state, {
       onNextRound: (actions, monsters) => {
@@ -63,12 +66,20 @@ export class ArenaNetwork {
         const data = encodeFiresWithType(fires)
         this.opts?.sendAll(data)
       },
-      onItemsUpdate:(items) => {
+      onItemsUpdate: (items) => {
         console.log('onItemsUpdate', items)
         this.map.updateMapItems(items)
 
         // send to clients
         const data = encodeMapItemsWithType(items)
+        this.opts?.sendAll(data)
+      },
+      onBombsUpdate: (bombs) => {
+        console.log('onBombsUpdate', bombs)
+        this.map.updateBombs(bombs)
+
+        // send to clients
+        const data = encodeBombsWithType(bombs)
         this.opts?.sendAll(data)
       },
     })
@@ -160,6 +171,10 @@ export class ArenaNetwork {
       } else if (type === RTCMessageType.Fires) {
         const fires = decodeFires(data)
         this.map.updateFires(fires)
+      // Bombs
+      } else if (type === RTCMessageType.Bombs) {
+        const bombs = decodeFires(data)
+        this.map.updateBombs(bombs)
       }
     }
   }

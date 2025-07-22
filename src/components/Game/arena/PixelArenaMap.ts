@@ -1,19 +1,22 @@
-import { Assets, Container, PointData, Spritesheet } from 'pixi.js'
+import { Assets, Container, PointData, Sprite, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
 
-import { ActionType, ArenaAction, FireOnMap, MapItemType, MonsterState } from './types'
+import { ActionType, ArenaAction, CountDownItemOnMap, MapItemType, MonsterState } from './types'
 import { PixelArenaMonster } from './PixelArenaMonster'
 import { itemImages } from './constants'
 import { ArenaFire } from './ArenaFire'
+import { createAnimation } from '../helpers/createAnimation'
+import { ArenaBomb } from './ArenaBomb'
 
 Assets.load([
   '/images/select_aura.png',
   '/images/palmtree1.png',
   '/images/palmtree2.png',
   '/images/mountain.png',
+  '/images/bomb.png',
   '/svgs/car.svg',
   '/svgs/rocket.svg',
   '/svgs/fire.svg',
@@ -21,7 +24,7 @@ Assets.load([
   '/svgs/bomb.svg',
 ])
 
-Assets.load<Spritesheet>('/animations/explosion1.json')
+const explodePromise = Assets.load<Spritesheet>('/animations/explosion1.json')
 
 sound.add('move', '/sounds/whistle.mp3')
 sound.add('shoot', '/sounds/sword.mp3')
@@ -60,28 +63,13 @@ export class PixelArenaMap {
 
   // fires
   private fires: {[pos: number]: ArenaFire} = {}
+  // bombs
+  private bombs: {[pos: number]: ArenaBomb} = {}
 
   private actionsExecutedPromise = Promise.resolve({} as any)
 
   constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
-    // const state: ArenaGameState = {
-    //   monsters: {},
-    //   positionMonsterMap: {},
-    //   roundActions: {},
-    //   currentRound: 0,
-    //   aliveNumber: 0,
-    //   executedOrder: [],
-    //   positionItemMap: {},
-
-    //   fires: [],
-    //   posFireMap: {}
-    // }
-
-    // this.game = new PixelArenaGame(state, (actions: ArenaAction[], monsters: MonsterState[]) => {
-    //   this.onNextRound(actions, monsters)
-    // })
-
-    // Init game when entered the scene
+    // Init map when entered the scene
     const unsubscene = map.subscribe('sceneactivated', (event: CustomEvent) => {
       console.log('Scene activated:', event.detail)
       const addedScene = event.detail
@@ -225,7 +213,7 @@ export class PixelArenaMap {
     this.informUI()
   }
 
-  async updateFires(fires: FireOnMap[]) {
+  async updateFires(fires: CountDownItemOnMap[]) {
     const firePixels = new Set<number>(fires.map(f => xyToPosition(f.pos.x, f.pos.y)))
     // Remove stopped fires
     Object.keys(this.fires)
@@ -256,6 +244,22 @@ export class PixelArenaMap {
     }
   }
 
+  async updateBombs(bombs: CountDownItemOnMap[]) {
+    await this.actionsExecutedPromise
+    for (const bomb of bombs) {
+      const pixel = xyToPosition(bomb.pos.x, bomb.pos.y)
+      const arenaBomb = this.bombs[pixel] || new ArenaBomb(this, bomb)
+      arenaBomb.update(bomb.living)
+
+      this.bombs[pixel] = arenaBomb
+    }
+
+    // delete exploded bomb
+    Object.keys(bombs).map(p => Number(p)).forEach(p => {
+
+    })
+  }
+
   private informUI() {
     const selectingOwnerId = this.selectedMonster?.state.ownerId
     if (selectingOwnerId === undefined) return
@@ -268,7 +272,6 @@ export class PixelArenaMap {
     this.opts.onMonstersUpdate(currentOwnerMonsters)
   }
 
-  // Should not update map position in case move by final blow
   private async processMoveActions(actions: ArenaAction[]) {
     // Process move actions for monsters
     const movePrommises: Promise<void>[] = []
@@ -276,7 +279,9 @@ export class PixelArenaMap {
       if (action.actionType === ActionType.Move) {
         const monster = this.monsters[action.id]
         if (monster) {
-          const oldPosVal = xyToPosition(monster.state.pos.x, monster.state.pos.y)
+          const prevx = monster.state.pos.x
+          const prevy = monster.state.pos.y
+          const oldPosVal = xyToPosition(prevx, prevy)
           const newPosVal = xyToPosition(action.target.x, action.target.y)
           // remove old position from pixelToMonsterMap
           delete this.pixelToMonsterMap[oldPosVal]
@@ -287,8 +292,8 @@ export class PixelArenaMap {
 
           // move aura if selected
           if (this.selectedMonster && this.selectedMonster.state.id === action.id) {
-            const sx = monster.state.pos.x - 0.4
-            const sy = monster.state.pos.y - 0.5
+            const sx = prevx - 0.4
+            const sy = prevy - 0.5
             const tx = action.target.x - 0.4
             const ty = action.target.y - 0.5
             this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
@@ -359,7 +364,7 @@ export class PixelArenaMap {
         // If item container does not exist, create it
         const { x, y } = positionToXY(pixel)
         const image = itemImages[type]
-        this.itemContainers[pixel] = scene.addImage(image, { x, y, w: 1, h: 1 }, this.itemContainers[pixel])
+        this.itemContainers[pixel] = scene.addImage(image, { x: x + 0.15, y: y + 0.15, w: 0.7, h: 0.7 }, this.itemContainers[pixel])
         this.itemContainers[pixel].alpha = 0.8
       } else {
         this.itemContainers[pixel]?.destroy()
@@ -393,5 +398,24 @@ export class PixelArenaMap {
 
     const pixel = xyToPosition(state.pos.x, state.pos.y)
     this.pixelToMonsterMap[pixel] = monster
+  }
+
+  async animateExplode(x: number, y: number) {
+    const scene = this.map.getActiveScene()
+    if (!scene) return
+
+    sound.play('explode1', {volume: 0.1})
+    const sheet = await explodePromise
+    const frames = sheet.animations['explode']
+    const container = scene.addImage('', {x: x - 2, y: y - 3.1, w: 5, h: 5})
+    const sprite = container.getChildAt(0) as Sprite
+
+    const animation = createAnimation(this.map)
+    animation.animateOnce(sprite, frames, 3).then(() => {
+      container.parent.removeChild(container)
+    })
+
+    // TODO why setTimeout??
+    setTimeout(() => this.map.markDirty(), 10)
   }
 }

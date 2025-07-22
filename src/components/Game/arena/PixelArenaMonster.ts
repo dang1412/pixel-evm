@@ -36,7 +36,7 @@ export class PixelArenaMonster {
   // draw vehicle
   private vehicleSprite = new Sprite()
 
-  private animation: PixiAnimation
+  // private animation: PixiAnimation
 
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
     const scene = arenaMap.map.getActiveScene()!
@@ -53,14 +53,14 @@ export class PixelArenaMonster {
     this.draw()
 
     // animation
-    this.animation = new PixiAnimation((f) => {
-      const unsub = arenaMap.map.subscribe('tick', (e: CustomEvent<number>) => {
-        f(e.detail)
-        arenaMap.map.markDirty()
-      })
+    // this.animation = new PixiAnimation((f) => {
+    //   const unsub = arenaMap.map.subscribe('tick', (e: CustomEvent<number>) => {
+    //     f(e.detail)
+    //     arenaMap.map.markDirty()
+    //   })
 
-      return unsub
-    })
+    //   return unsub
+    // })
   }
 
   private draw() {
@@ -239,7 +239,7 @@ export class PixelArenaMonster {
     } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
       await this.drawShoot(x, y, action.actionType)
       if (action.actionType === ActionType.ShootRocket) {
-        this.animateExplode(x, y)
+        this.arenaMap.animateExplode(x, y)
       }
     }
   }
@@ -263,23 +263,6 @@ export class PixelArenaMonster {
     await this.arenaMap.map.moveObject(energy, curX, curY, x, y)
     
     energy.parent.removeChild(energy)
-  }
-
-  private async animateExplode(x: number, y: number) {
-    const scene = this.arenaMap.map.getActiveScene()
-    if (!scene) return
-    
-    sound.play('explode1', {volume: 0.1})
-    const sheet = await Assets.load<Spritesheet>('/animations/explosion1.json')
-    const frames = sheet.animations['explode']
-    const container = scene.addImage('', {x: x - 2, y: y - 3.1, w: 5, h: 5})
-    const sprite = container.getChildAt(0) as Sprite
-    this.animation.animateOnce(sprite, frames, 3).then(() => {
-      container.parent.removeChild(container)
-    })
-
-    // TODO why setTimeout??
-    setTimeout(() => this.arenaMap.map.markDirty(), 10)
   }
 
   remove(): number {

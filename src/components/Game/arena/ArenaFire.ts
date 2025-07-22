@@ -4,7 +4,7 @@ import { PixiAnimation } from '../Animation'
 import { loadMultiPackSpritesheet } from '../helpers/loadSpriteSheet'
 
 import { PixelArenaMap } from './PixelArenaMap'
-import { FireOnMap } from './types'
+import { CountDownItemOnMap } from './types'
 
 const fireAnimation = loadMultiPackSpritesheet('/animations/fire3-0.json', 'flame')
 
@@ -12,7 +12,7 @@ export class ArenaFire {
   private animation: PixiAnimation
   private container?: Container
 
-  constructor(private arenaMap: PixelArenaMap, private fire: FireOnMap) {
+  constructor(private arenaMap: PixelArenaMap, private fire: CountDownItemOnMap) {
     // animation
     this.animation = new PixiAnimation((f) => {
       const unsub = arenaMap.map.subscribe('tick', (e: CustomEvent<number>) => {
@@ -25,7 +25,7 @@ export class ArenaFire {
     this.init()
   }
 
-  setFire(f: FireOnMap) {
+  setFire(f: CountDownItemOnMap) {
     this.fire = f
   }
 
