@@ -85,7 +85,7 @@ export class PixelArenaMap {
         scene.addImage('/images/palmtree2.png', { x: 3, y: 24, w: 4, h: 4 })
         scene.addImage('/images/palmtree1.png', { x: 24, y: 24, w: 4, h: 4 })
 
-        scene.addImage('/images/mountain.png', { x: 13, y: 12, w: 5, h: 5 })
+        scene.addImage('/images/mountain.png', { x: 12, y: 13, w: 6, h: 4 })
       }
     })
 

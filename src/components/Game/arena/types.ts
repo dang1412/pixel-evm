@@ -105,6 +105,8 @@ export interface MonsterDrawInfo {
   image: string
   w: number
   h: number
+  dx?: number
+  dy?: number
 }
 
 export enum RTCMessageType {

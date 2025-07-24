@@ -111,7 +111,7 @@ export const mockImages: PixelImage[] = [
       },
       {
         area: {x: 4, y: 2, w: 8, h: 6},
-        imageUrl: '/images/axie3.png',
+        imageUrl: '/images/characters/axie3.png',
         title: 'Cute Mavis',
         subtitle: 'Mystic Koi Cerastes Goda',
         link: 'https://app.axieinfinity.com/marketplace/axies/2078/'
@@ -123,13 +123,13 @@ export const mockImages: PixelImage[] = [
         subtitle: 'BATTLE – HAVE FUN – WIN PRIZES',
         link: 'https://www.mechinfinity.com/en'
       },
-      {
-        area: {x: 12, y: 19, w: 5, h: 5},
-        imageUrl: '/images/shop.png',
-        link: '',
-        title: 'Items Shop',
-        subtitle: 'Craft or trade your item here'
-      }
+      // {
+      //   area: {x: 12, y: 19, w: 5, h: 5},
+      //   imageUrl: '/images/shop.png',
+      //   link: '',
+      //   title: 'Items Shop',
+      //   subtitle: 'Craft or trade your item here'
+      // }
     ]
   },
   {

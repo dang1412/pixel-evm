@@ -9,8 +9,8 @@ import { PixiAnimation } from '../Animation'
 
 Assets.load([
   '/images/characters/axie.png',
-  '/images/characters/hero.png',
-  '/images/characters/aqua.png',
+  '/images/characters/axie3.png',
+  '/images/characters/axie4.png',
   '/images/characters/Tralalero-Tralala.png',
   '/images/characters/Trippi-Troppi.png',
   '/images/characters/family_brainrot.png',
@@ -40,8 +40,12 @@ export class PixelArenaMonster {
 
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
     const scene = arenaMap.map.getActiveScene()!
-    const { image, w, h } = monsterInfos[state.type]
+    const { image, w, h, dx, dy } = monsterInfos[state.type]
     this.monsterContainer = scene.addImage(image, { x: state.pos.x, y: state.pos.y, w, h })
+
+    const monsterSprite = this.monsterContainer.getChildAt(0)
+    monsterSprite.x = (dx || 0) * PIXEL_SIZE
+    monsterSprite.y = (dy || 0) * PIXEL_SIZE
 
     this.actionTypeSprite = new Sprite()
     this.actionTypeSprite.alpha = 0.8

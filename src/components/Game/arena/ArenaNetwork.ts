@@ -6,7 +6,7 @@ import { decodeMonstersData, encodeMonstersWithType } from './encode/monsters'
 import { decodeMapItems, encodeMapItemsWithType } from './encode/mapItem'
 import { decodeFires, encodeBombsWithType, encodeFiresWithType } from './encode/fire'
 
-import { ActionType, ArenaGameState, RTCMessageType } from './types'
+import { ActionType, ArenaGameState, GameMode, RTCMessageType } from './types'
 import { PixelArenaGame } from './PixelArenaGame'
 import { PixelArenaMap } from './PixelArenaMap'
 
@@ -86,12 +86,16 @@ export class ArenaNetwork {
 
     this.map.ownerId = 0
     this.game.start()
-    // this.game.addTeam0()
-    // this.game.getAllStates((monsters, items, fires) => {
-    //   this.map.updateMonsterStates(monsters)
-    //   this.map.updateMapItems(items)
-    //   this.map.updateFires(fires)
-    // })
+    
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') {
+        this.game?.setMode(GameMode.InstantMove)
+      } else if (e.key === '2') {
+        this.game?.setMode(GameMode.EachPlayerMove)
+      } else if (e.key === '3') {
+        this.game?.setMode(GameMode.AllMove)
+      }
+    })
   }
 
   // sendAllStates(monsters: MonsterState[], items: [number, MapItemType][], fires: FireOnMap[]) {

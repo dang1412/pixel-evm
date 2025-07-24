@@ -43,6 +43,7 @@ export class PixelArenaGame {
   }
 
   setMode(mode: GameMode) {
+    console.log('Change game mode', mode)
     this.gameMode = mode;
   }
 
