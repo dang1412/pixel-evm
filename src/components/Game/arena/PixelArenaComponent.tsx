@@ -147,12 +147,13 @@ const PixelArenaComponent: React.FC<Props> = () => {
         >
           Start game
         </button>
+        */}
         <button
           className="px-4 py-2 mb-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          onClick={() => {}}
+          onClick={() => networkRef.current?.restart()}
         >
-          Join
-        </button> */}
+          Restart
+        </button> 
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
       </div>
       {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}

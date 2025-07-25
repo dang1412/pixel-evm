@@ -66,20 +66,9 @@ export interface CountDownItemOnMap {
 
 export interface ArenaGameState {
   monsters: { [id: number]: MonsterState }
-  positionMonsterMap: { [pos: number]: number } // pixel to monster id
-
-  roundActions: { [id: number]: ArenaAction }
-  currentRound: number
-  aliveNumber: number
-  executedOrder: number[]
-
   positionItemMap: { [pos: number]: MapItemType } // pixel to item type
-
   fires: CountDownItemOnMap[]
-  posFireMap: { [pos: number]: CountDownItemOnMap }
-
   bombs: CountDownItemOnMap[]
-  posBombMap: { [pos: number]: CountDownItemOnMap }
 }
 
 export enum UpdateType {

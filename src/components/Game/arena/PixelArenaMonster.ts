@@ -147,10 +147,16 @@ export class PixelArenaMonster {
 
   updateState(state: MonsterState) {
     const prevHp = this.state.hp
+    const prevx = this.state.pos.x
+    const prevy = this.state.pos.y
     if (prevHp > state.hp && state.hp > 0) {
       sound.play('hurt')
     }
     this.state = state
+
+    if (prevx !== state.pos.x || prevy !== state.pos.y) {
+      this.arenaMap.map.moveObject(this.monsterContainer, state.pos.x, state.pos.y)
+    }
     // TODO update other properties like hp, etc.
     this.draw()
   }

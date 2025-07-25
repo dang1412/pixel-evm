@@ -46,7 +46,7 @@ export const actionImages: Record<ActionType, string> = {
   [ActionType.None]: '/svgs/crosshairs.svg',
   [ActionType.Move]: '',
   [ActionType.Shoot]: '/images/energy2.png',
-  [ActionType.ShootBomb]: '/svgs/rocket.svg',
+  [ActionType.ShootBomb]: '/svgs/bomb.svg',
   [ActionType.ShootRocket]: '/svgs/rocket.svg',
   [ActionType.ShootFire]: '/svgs/fire.svg',
   [ActionType.FinalBlow]: '/svgs/skull.svg',

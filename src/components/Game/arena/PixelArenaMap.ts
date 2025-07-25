@@ -195,14 +195,18 @@ export class PixelArenaMap {
     for (const state of monsters) {
       const monster = this.monsters[state.id]
       if (monster) {
+        this.updateMonsterPos(monster, state.pos)
         // Hp, vehicle, and other state updates (including position)
         monster.updateState({...state})
+        // update position on map
+        // const pixel = xyToPosition(state.pos.x, state.pos.y)
 
         // If monster hp is 0, remove it from the arena
         if (state.hp <= 0) {
           this.selectedMonster = undefined // Unselect monster
           const pos = monster.remove() // Remove monster if hp is 0
           delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
+          delete this.monsters[state.id]  // Delete
         }
       } else {
         this.addMonster(state)
@@ -271,6 +275,18 @@ export class PixelArenaMap {
       .map(m => m.state)
     this.opts.onMonstersUpdate(currentOwnerMonsters)
   }
+  
+  private updateMonsterPos(monster: PixelArenaMonster, target: PointData) {
+    const prevx = monster.state.pos.x
+    const prevy = monster.state.pos.y
+    if (prevx === target.x && prevy === target.y) return
+    const oldPosVal = xyToPosition(prevx, prevy)
+    const newPosVal = xyToPosition(target.x, target.y)
+    // remove old position from pixelToMonsterMap
+    delete this.pixelToMonsterMap[oldPosVal]
+    // add new position to pixelToMonsterMap
+    this.pixelToMonsterMap[newPosVal] = monster
+  }
 
   private async processMoveActions(actions: ArenaAction[]) {
     // Process move actions for monsters
@@ -281,12 +297,13 @@ export class PixelArenaMap {
         if (monster) {
           const prevx = monster.state.pos.x
           const prevy = monster.state.pos.y
-          const oldPosVal = xyToPosition(prevx, prevy)
-          const newPosVal = xyToPosition(action.target.x, action.target.y)
-          // remove old position from pixelToMonsterMap
-          delete this.pixelToMonsterMap[oldPosVal]
-          // add new position to pixelToMonsterMap
-          this.pixelToMonsterMap[newPosVal] = monster
+          // const oldPosVal = xyToPosition(prevx, prevy)
+          // const newPosVal = xyToPosition(action.target.x, action.target.y)
+          // // remove old position from pixelToMonsterMap
+          // delete this.pixelToMonsterMap[oldPosVal]
+          // // add new position to pixelToMonsterMap
+          // this.pixelToMonsterMap[newPosVal] = monster
+          this.updateMonsterPos(monster, action.target)
           const move = monster.applyAction(action)
           movePrommises.push(move)
 

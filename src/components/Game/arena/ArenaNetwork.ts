@@ -33,21 +33,12 @@ export class ArenaNetwork {
     this.isServer = true
     const state: ArenaGameState = {
       monsters: {},
-      positionMonsterMap: {},
-      roundActions: {},
-      currentRound: 0,
-      aliveNumber: 0,
-      executedOrder: [],
       positionItemMap: {},
-
       fires: [],
-      posFireMap: {},
-
       bombs: [],
-      posBombMap: {},
     }
     this.game = new PixelArenaGame(state, {
-      onNextRound: (actions, monsters) => {
+      onActionsDone: (actions, monsters) => {
         this.map.onExecutedActions(actions)
         this.map.updateMonsterStates(monsters)
 
@@ -96,6 +87,12 @@ export class ArenaNetwork {
         this.game?.setMode(GameMode.AllMove)
       }
     })
+  }
+
+  restart() {
+    if (this.game) {
+      this.game.restartGame()
+    }
   }
 
   // sendAllStates(monsters: MonsterState[], items: [number, MapItemType][], fires: FireOnMap[]) {
