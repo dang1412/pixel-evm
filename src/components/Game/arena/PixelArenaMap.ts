@@ -168,8 +168,9 @@ export class PixelArenaMap {
       const monster = this.monsters[final.id]
       // execute after current actions done
       this.actionsExecutedPromise = this.actionsExecutedPromise
-        .then(() => monster.applyAction({...final, actionType: ActionType.Move}))
-        .then(() => this.processShootActions([{...final, actionType: ActionType.ShootRocket}]))
+        // .then(() => monster.applyAction({...final, actionType: ActionType.Move}))
+        .then(() => monster.moveTo(final.target.x, final.target.y))
+        .then(() => this.animateExplode(final.target.x, final.target.y))
     } else {
       // apply moves and shoots
       // execute after current actions done
@@ -197,17 +198,15 @@ export class PixelArenaMap {
       if (monster) {
         this.updateMonsterPos(monster, state.pos)
         // Hp, vehicle, and other state updates (including position)
-        monster.updateState({...state})
-        // update position on map
-        // const pixel = xyToPosition(state.pos.x, state.pos.y)
-
-        // If monster hp is 0, remove it from the arena
-        if (state.hp <= 0) {
-          this.selectedMonster = undefined // Unselect monster
-          const pos = monster.remove() // Remove monster if hp is 0
-          delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
-          delete this.monsters[state.id]  // Delete
-        }
+        monster.updateState({...state}).then(() => {
+          // If monster hp is 0, remove it from the arena
+          if (state.hp <= 0) {
+            this.selectedMonster = undefined // Unselect monster
+            const pos = monster.remove() // Remove monster if hp is 0
+            delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
+            delete this.monsters[state.id]  // Delete
+          }
+        })
       } else {
         this.addMonster(state)
         console.warn(`Add new monster`)

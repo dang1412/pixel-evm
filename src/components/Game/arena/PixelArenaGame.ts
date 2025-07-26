@@ -66,20 +66,20 @@ export class PixelArenaGame {
     this.addTeam0();
     // this.addTeam1();
 
-    this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
-    // const itemsArray: [number, MapItemType][] = [];
-    // for (let x = 3; x < 20; x += 1) {
-    //   const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
-    //   // itemsArray.push(item);
-    // }
-    // for (let x = 3; x < 20; x += 1) {
-    //   const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Fire);
-    //   // itemsArray.push(item);
-    // }
-    // for (let x = 3; x < 20; x += 1) {
-    //   const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Bomb);
-    //   // itemsArray.push(item);
-    // }
+    // this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
+    const itemsArray: [number, MapItemType][] = [];
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
+      // itemsArray.push(item);
+    }
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Fire);
+      // itemsArray.push(item);
+    }
+    for (let x = 3; x < 20; x += 2) {
+      const item = this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Bomb);
+      // itemsArray.push(item);
+    }
 
     this.sendUpdatedItems()
     // this.opts.onItemsUpdate(itemsArray);
@@ -632,11 +632,12 @@ export class PixelArenaGame {
   }
 
   restartGame() {
-    this.resetGameState(initialMonsters, initialItems)
+    const monsters = JSON.parse(JSON.stringify(initialMonsters)) as MonsterState[]
+    this.resetGameState(monsters, initialItems)
   }
 
   private resetGameState(monsters: MonsterState[], items: [number, MapItemType][]) {
-    console.log(`Reset game to state ${monsters}, ${items}`)
+    console.log(`Reset game to state`, monsters, items)
     this.currentRound = 0
     this.roundActions = {} // Reset actions for the new round
     this.executedOrder = [] // Reset done actions count

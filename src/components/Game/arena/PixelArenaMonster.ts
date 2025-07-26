@@ -145,7 +145,7 @@ export class PixelArenaMonster {
   //   this.drawAction(action)
   // }
 
-  updateState(state: MonsterState) {
+  async updateState(state: MonsterState) {
     const prevHp = this.state.hp
     const prevx = this.state.pos.x
     const prevy = this.state.pos.y
@@ -155,7 +155,7 @@ export class PixelArenaMonster {
     this.state = state
 
     if (prevx !== state.pos.x || prevy !== state.pos.y) {
-      this.arenaMap.map.moveObject(this.monsterContainer, state.pos.x, state.pos.y)
+      await this.arenaMap.map.moveObject(this.monsterContainer, state.pos.x, state.pos.y)
     }
     // TODO update other properties like hp, etc.
     this.draw()
@@ -246,6 +246,7 @@ export class PixelArenaMonster {
 
     if (action.actionType === ActionType.Move) {
       await this.moveTo(x, y)
+      this.state.pos = { x, y } // Update monster position
     } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
       await this.drawShoot(x, y, action.actionType)
       if (action.actionType === ActionType.ShootRocket) {
@@ -254,9 +255,8 @@ export class PixelArenaMonster {
     }
   }
 
-  private async moveTo(x: number, y: number) {
+  async moveTo(x: number, y: number) {
     const { x: curx, y: cury } = this.state.pos
-    this.state.pos = { x, y } // Update monster position
     sound.play('move', {volume: 0.2})
     await this.arenaMap.map.moveObject(this.monsterContainer, curx, cury, x, y)
     console.log(`Monster ${this.state.id} moved to (${x}, ${y})`)
