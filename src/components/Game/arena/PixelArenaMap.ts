@@ -258,8 +258,11 @@ export class PixelArenaMap {
     }
 
     // delete exploded bomb
-    Object.keys(bombs).map(p => Number(p)).forEach(p => {
-
+    Object.keys(this.bombs).map(p => Number(p)).forEach(p => {
+      const bomb = this.bombs[p]
+      if (bomb && bomb.isExploded()) {
+        delete this.bombs[p]
+      }
     })
   }
 

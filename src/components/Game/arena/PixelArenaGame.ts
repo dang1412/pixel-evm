@@ -453,28 +453,62 @@ export class PixelArenaGame {
       return;
     }
 
-    // Update weapons
-    if (shootWeapons.includes(action.actionType)) {
-      const weaponType =
-        action.actionType === ActionType.ShootRocket
-          ? MapItemType.Rocket
-          : action.actionType === ActionType.ShootBomb
-          ? MapItemType.Bomb
-          : MapItemType.Fire
-      if (monster.weapons[weaponType] <= 0) return;
-      monster.weapons[weaponType]--;
+    // bomb
+    if (action.actionType === ActionType.ShootBomb) {
+      if (monster.weapons[MapItemType.Bomb] <= 0) return;
+      const executed = this.addBomb(action)
+      if (executed) {
+        monster.weapons[MapItemType.Bomb]--
+        updatedMonsterIds.add(action.id)
+      }
+
+      return executed
+    }
+
+    // fire
+    if (action.actionType === ActionType.ShootFire) {
+      if (monster.weapons[MapItemType.Fire] <= 0) return;
+      monster.weapons[MapItemType.Fire]--
+      updatedMonsterIds.add(action.id);
+      this.addFire(action.id, action.target);
+      return action
+    }
+
+    // rocket
+    if (action.actionType === ActionType.ShootRocket) {
+      if (monster.weapons[MapItemType.Rocket] <= 0) return;
+      monster.weapons[MapItemType.Rocket]--
       updatedMonsterIds.add(action.id);
     }
 
-    if (action.actionType === ActionType.ShootFire) {
-      this.addFire(action.id, action.target);
-    } else if (action.actionType === ActionType.ShootBomb) {
-      this.addBomb(action)
-    } else {
-      this.applyShootDamage(action, updatedMonsterIds);
-    }
+    // normal or rocket shoot
+    this.applyShootDamage(action, updatedMonsterIds);
 
-    return action;
+    return action
+
+
+    // Update weapons
+    // if (shootWeapons.includes(action.actionType)) {
+    //   const weaponType =
+    //     action.actionType === ActionType.ShootRocket
+    //       ? MapItemType.Rocket
+    //       : action.actionType === ActionType.ShootBomb
+    //       ? MapItemType.Bomb
+    //       : MapItemType.Fire
+    //   if (monster.weapons[weaponType] <= 0) return;
+    //   monster.weapons[weaponType]--;
+    //   updatedMonsterIds.add(action.id);
+    // }
+
+    // if (action.actionType === ActionType.ShootFire) {
+    //   this.addFire(action.id, action.target);
+    // } else if (action.actionType === ActionType.ShootBomb) {
+    //   this.addBomb(action)
+    // } else {
+    //   this.applyShootDamage(action, updatedMonsterIds);
+    // }
+
+    // return action;
   }
 
   private executeFinalBlow(action: ArenaAction) {
@@ -614,21 +648,24 @@ export class PixelArenaGame {
     }
   }
 
-  private addBomb({ id, target }: ArenaAction) {
+  private addBomb(action: ArenaAction): ArenaAction | undefined {
+    const { id, target } = action
     const monster = this.state.monsters[id];
     const newBomb: CountDownItemOnMap = { pos: target, ownerId: monster?.ownerId || 0, living: 3 };
 
     const pixel = xyToPosition(target.x, target.y);
     const bomb = this.posBombMap[pixel];
     if (bomb) {
+      return undefined
       // update
-      bomb.living = newBomb.living
-      bomb.ownerId = newBomb.ownerId
-    } else {
-      // new
-      this.posBombMap[pixel] = newBomb
-      this.state.bombs.push(newBomb)
+      // bomb.living = newBomb.living
+      // bomb.ownerId = newBomb.ownerId
     }
+    // new
+    this.posBombMap[pixel] = newBomb
+    this.state.bombs.push(newBomb)
+
+    return action
   }
 
   restartGame() {

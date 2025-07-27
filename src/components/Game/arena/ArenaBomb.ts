@@ -44,6 +44,10 @@ export class ArenaBomb {
     if (living === 0) this.explode()
   }
 
+  isExploded() {
+    return this.bomb.living <= 0
+  }
+
   private explode() {
     this.container.destroy()
     this.arenaMap.animateExplode(this.bomb.pos.x, this.bomb.pos.y)
