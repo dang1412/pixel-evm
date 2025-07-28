@@ -22,6 +22,7 @@ export interface ViewportMapOptions {
 export interface DragOptions {
   onDrop: (x: number, y: number, rx: number, ry: number) => void
   onMove?: (x: number, y: number, rx: number, ry: number) => void
+  isInRange?: (x: number, y: number) => boolean
   w?: number
   h?: number
 }
@@ -264,7 +265,7 @@ export class ViewportMap {
     return PIXEL_SIZE
   }
 
-  startDrag(image: string, {onDrop, onMove = (x, y) => {}, w = 0, h = 0}: DragOptions) {
+  startDrag(image: string, {onDrop, onMove = (x, y) => {}, isInRange, w = 0, h = 0}: DragOptions) {
     const scene = this.getActiveScene()
     if (!scene) return
     const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
@@ -272,18 +273,26 @@ export class ViewportMap {
 
     const transform = ([x, y, rx, ry]: number[]) => [x, y, rx, ry]
 
+    this.pauseDrag()
     const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py, rx, ry] = transform(e.detail)
       shadow.x = px * PIXEL_SIZE
       shadow.y = py * PIXEL_SIZE
-      onMove(px, py, rx, ry)
+      if (isInRange && !isInRange(px, py)) {
+        shadow.visible = false
+      } else {
+        shadow.visible = true
+        onMove(px, py, rx, ry)
+      }
       this.markDirty()
     })
 
     this.subscribeOnce('pixelup', (e: CustomEvent<[number, number, number, number]>) => {
       const [px, py, rx, ry] = transform(e.detail)
       unsub()
-      shadow.parent.removeChild(shadow)
+      shadow.destroy()
+      this.resumeDrag()
+      if (isInRange && !isInRange(px, py)) return
       onDrop(px, py, rx, ry)
 
       this.markDirty()

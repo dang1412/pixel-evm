@@ -203,20 +203,18 @@ export class PixelArenaMonster {
 
     const image = '/svgs/crosshairs.svg'
 
-    this.arenaMap.map.pauseDrag()
     this.arenaMap.map.startDrag(image, {
       onDrop: (x, y, rx, ry) => {
-        // if (g) {
-        //   scene.container.removeChild(g)
-        // }
-        this.arenaMap.map.resumeDrag()
-        if (x !== this.state.pos.x || y !== this.state.pos.y) {
-          action.target = { x, y }
-          this.drawAction(action)
-          // this.sendAction(action)
-          // inform map
-          this.arenaMap.onActionPosition(action, { x: rx, y: ry })
-        }
+        action.target = { x, y }
+        this.drawAction(action)
+        // inform map
+        this.arenaMap.onActionPosition(action, { x: rx, y: ry })
+      },
+      isInRange: (x, y) => {
+        const dx = Math.abs(x - this.state.pos.x)
+        const dy = Math.abs(y - this.state.pos.y)
+        const change = dx + dy
+        return change > 0 && dx <= 6 && dy <= 6
       },
       onMove: (x, y) => {
         // Draw a line from the monster's current position to (x, y)

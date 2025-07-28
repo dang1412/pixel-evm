@@ -214,6 +214,8 @@ export class PixelArenaMap {
     }
 
     this.informUI()
+
+    this.map.markDirty()
   }
 
   async updateFires(fires: CountDownItemOnMap[]) {
@@ -391,16 +393,7 @@ export class PixelArenaMap {
       }
     }
 
-    // remove items that no longer exist
-    // for (const pixelStr of Object.keys(this.itemContainers)) {
-    //   const pixel = Number(pixelStr)
-    //   if (positionItemMap[pixel] === undefined) {
-    //     // If item no longer exists, remove its container
-    //     console.log(pixelStr, pixel)
-    //     this.itemContainers[pixel].destroy()
-    //     delete this.itemContainers[pixel]
-    //   }
-    // }
+    this.map.markDirty()
   }
 
   /**
