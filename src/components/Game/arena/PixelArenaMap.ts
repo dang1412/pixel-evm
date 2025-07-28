@@ -16,6 +16,7 @@ Assets.load([
   '/images/palmtree1.png',
   '/images/palmtree2.png',
   '/images/mountain.png',
+  '/images/red-diamond-2.png',
   '/images/bomb.png',
   '/svgs/car.svg',
   '/svgs/rocket.svg',
@@ -86,6 +87,7 @@ export class PixelArenaMap {
         scene.addImage('/images/palmtree1.png', { x: 24, y: 24, w: 4, h: 4 })
 
         scene.addImage('/images/mountain.png', { x: 12, y: 13, w: 6, h: 4 })
+        scene.addImage('/images/red-diamond-2.png', { x: 14, y: 15, w: 2, h: 1.25 })
       }
     })
 

@@ -1,6 +1,6 @@
 import { PointData } from "pixi.js";
 
-import { getAreaPixels, xyToPosition } from "../utils";
+import { getAreaPixels, getPixelsFromLine, xyToPosition } from "../utils";
 import {
   ActionType,
   ArenaAction,
@@ -377,6 +377,38 @@ export class PixelArenaGame {
     return { appliedActions, changedStates };
   }
 
+  private hasMonster(x: number, y: number): boolean {
+    const pixel = xyToPosition(x, y);
+    const monsterId = this.positionMonsterMap[pixel];
+    const monster = this.state.monsters[monsterId];
+
+    return monster && monster.hp > 0
+  }
+
+  private getNextMovePosition(from: PointData, to: PointData): PointData {
+    // Get the next move position based on the current position and target
+    const points = getPixelsFromLine(from.x, from.y, to.x, to.y);
+    let j = 0;
+    for (let i = 1; i < points.length; i++) {
+      const [x, y] = points[i];
+      const pixel = xyToPosition(x, y);
+      if (this.posBombMap[pixel]) {
+        // has bomb
+        break
+      }
+
+      // move next
+      j = i;
+    }
+
+    // move back until found empty position
+    while (j > 0 && this.hasMonster(points[j][0], points[j][1])) {
+      j--;
+    }
+
+    return { x: points[j][0], y: points[j][1] };
+  }
+
   private processMoveAction(
     action: ArenaAction,
     updatedMonsterIds: Set<number>
@@ -387,6 +419,10 @@ export class PixelArenaGame {
       console.warn(`Monster ${action.id} not found or dead for move action`);
       return
     }
+
+    // Check path
+    const target = this.getNextMovePosition(monster.pos, action.target);
+    action.target = target; // Update action target to the next valid position
 
     // Check if target position is empty
     const targetPos = xyToPosition(action.target.x, action.target.y);
@@ -442,6 +478,24 @@ export class PixelArenaGame {
     return false;
   }
 
+  private getShootPosition(from: PointData, to: PointData): PointData {
+    // Get the next move position based on the current position and target
+    const points = getPixelsFromLine(from.x, from.y, to.x, to.y);
+    let j = 0;
+    for (let i = 1; i < points.length; i++) {
+      // move next
+      j = i;
+      const [x, y] = points[i];
+      const pixel = xyToPosition(x, y);
+      if (this.posBombMap[pixel] || this.hasMonster(x, y)) {
+        // has bomb or monster
+        break
+      }
+    }
+
+    return { x: points[j][0], y: points[j][1] };
+  }
+
   private processShootAction(
     action: ArenaAction,
     updatedMonsterIds: Set<number>
@@ -464,6 +518,9 @@ export class PixelArenaGame {
 
       return executed
     }
+
+    // calculate shoot block
+    action.target = this.getShootPosition(monster.pos, action.target);
 
     // fire
     if (action.actionType === ActionType.ShootFire) {
@@ -650,17 +707,17 @@ export class PixelArenaGame {
 
   private addBomb(action: ArenaAction): ArenaAction | undefined {
     const { id, target } = action
-    const monster = this.state.monsters[id];
-    const newBomb: CountDownItemOnMap = { pos: target, ownerId: monster?.ownerId || 0, living: 3 };
 
+    // check if already has bomb at this position
     const pixel = xyToPosition(target.x, target.y);
     const bomb = this.posBombMap[pixel];
     if (bomb) {
       return undefined
-      // update
-      // bomb.living = newBomb.living
-      // bomb.ownerId = newBomb.ownerId
     }
+
+    const monster = this.state.monsters[id];
+    const newBomb: CountDownItemOnMap = { pos: target, ownerId: monster?.ownerId || 0, living: 4 };
+    
     // new
     this.posBombMap[pixel] = newBomb
     this.state.bombs.push(newBomb)

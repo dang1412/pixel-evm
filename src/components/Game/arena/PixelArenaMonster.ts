@@ -214,7 +214,7 @@ export class PixelArenaMonster {
         const dx = Math.abs(x - this.state.pos.x)
         const dy = Math.abs(y - this.state.pos.y)
         const change = dx + dy
-        return change > 0 && dx <= 6 && dy <= 6
+        return change > 0 && dx <= 8 && dy <= 8
       },
       onMove: (x, y) => {
         // Draw a line from the monster's current position to (x, y)
