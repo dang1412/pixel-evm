@@ -5,9 +5,12 @@ export enum MonsterType {
   Axie,
   Hero,
   Aqua,
+  Baby,
   Tralarelo,
   TrippiTroppi,
   FamilyBrainrot,
+  Saitama,
+  Shadow,
 }
 
 export enum ActionType {

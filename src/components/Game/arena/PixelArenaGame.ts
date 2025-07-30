@@ -64,7 +64,7 @@ export class PixelArenaGame {
     console.log("Game started");
 
     this.addTeam0();
-    // this.addTeam1();
+    this.addTeam1();
 
     // this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
     const itemsArray: [number, MapItemType][] = [];
@@ -86,29 +86,21 @@ export class PixelArenaGame {
   }
 
   addTeam0() {
-    const m1 = this.addMonster(0, { x: 12, y: 3 }, 1); // Example monster
+    const m1 = this.addMonster(0, { x: 12, y: 3 }, 3); // Example monster
     const m2 = this.addMonster(0, { x: 14, y: 3 }, 6, MonsterType.Hero); // Example monster
-    const m3 = this.addMonster(0, { x: 16, y: 3 }, 2, MonsterType.Aqua); // Example monster
+    const m3 = this.addMonster(0, { x: 16, y: 3 }, 3, MonsterType.Aqua); // Example monster
+    const m4 = this.addMonster(0, { x: 14, y: 1 }, 2, MonsterType.Baby); // Example monster
 
-    this.opts.onActionsDone([], [m1, m2, m3]);
+    this.opts.onActionsDone([], [m1, m2, m3, m4]);
   }
 
   addTeam1() {
-    const m1 = this.addMonster(1, { x: 12, y: 26 }, 1, MonsterType.Tralarelo); // Example monster
-    const m2 = this.addMonster(
-      1,
-      { x: 14, y: 26 },
-      1,
-      MonsterType.FamilyBrainrot
-    ); // Example monster
-    const m3 = this.addMonster(
-      1,
-      { x: 16, y: 26 },
-      1,
-      MonsterType.TrippiTroppi
-    ); // Example monster
+    const m1 = this.addMonster(1, { x: 12, y: 26 }, 3, MonsterType.Tralarelo); // Example monster
+    const m2 = this.addMonster( 1, { x: 14, y: 26 }, 6, MonsterType.FamilyBrainrot); // Example monster
+    const m3 = this.addMonster( 1, { x: 16, y: 26 }, 3, MonsterType.TrippiTroppi); // Example monster
+    const m4 = this.addMonster( 1, { x: 14, y: 28 }, 3, MonsterType.Saitama); // Example monster
 
-    this.opts.onActionsDone([], [m1, m2, m3]);
+    this.opts.onActionsDone([], [m1, m2, m3, m4]);
   }
 
   // private outputAllStates() {

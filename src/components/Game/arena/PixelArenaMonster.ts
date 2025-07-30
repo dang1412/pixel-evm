@@ -11,9 +11,12 @@ Assets.load([
   '/images/characters/axie.png',
   '/images/characters/axie3.png',
   '/images/characters/axie4.png',
+  '/images/characters/axie5.png',
   '/images/characters/Tralalero-Tralala.png',
   '/images/characters/Trippi-Troppi.png',
   '/images/characters/family_brainrot.png',
+  '/images/characters/saitama.png',
+  '/images/characters/shadow.png',
   '/images/energy2.png',
   '/svgs/walk.svg',
   '/svgs/crosshairs.svg',
@@ -91,7 +94,7 @@ export class PixelArenaMonster {
       const item = Sprite.from(itemImages[w])
       item.width = PIXEL_SIZE / 3
       item.height = PIXEL_SIZE / 3
-      item.y = PIXEL_SIZE / 3 * 2
+      item.y = - PIXEL_SIZE/ 6
       item.x = i * PIXEL_SIZE / 3
 
       this.weaponContainer.addChild(item)
@@ -129,9 +132,11 @@ export class PixelArenaMonster {
 
     const w = action.actionType === ActionType.Move ? info.w : 1
     const h = action.actionType === ActionType.Move ? info.h : 1
+    const dx = action.actionType === ActionType.Move ? info.dx || 0 : 0
+    const dy = action.actionType === ActionType.Move ? info.dy || 0 : 0
     this.shadowContainer = scene.addImage(image, {
-      x: action.target.x,
-      y: action.target.y,
+      x: action.target.x + dx,
+      y: action.target.y + dy,
       w,
       h,
     }, this.shadowContainer)

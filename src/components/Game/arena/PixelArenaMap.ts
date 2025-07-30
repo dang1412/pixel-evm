@@ -110,9 +110,9 @@ export class PixelArenaMap {
       const monster = this.pixelToMonsterMap[posVal]
       if (monster) {
         this.selectMonster(monster)
-        if (monster.state.ownerId === this.ownerId) {
+        // if (monster.state.ownerId === this.ownerId) {
           monster.controlAction()
-        }
+        // }
       }
     })
   }

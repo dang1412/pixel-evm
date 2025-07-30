@@ -22,11 +22,20 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
     h: 1,
     dx: -0.1,
   },
+  [MonsterType.Baby]: {
+    type: MonsterType.Baby,
+    image: '/images/characters/axie5.png',
+    w: 1.35,
+    h: 1,
+    dx: -0.1,
+  },
   [MonsterType.Tralarelo]: {
     type: MonsterType.Tralarelo,
     image: '/images/characters/Tralalero-Tralala.png',
-    w: 1.4,
-    h: 1,
+    w: 1.33,
+    h: 1.2,
+    dx: -0.15,
+    dy: -0.1,
   },
   [MonsterType.TrippiTroppi]: {
     type: MonsterType.TrippiTroppi,
@@ -39,6 +48,24 @@ export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {
     image: '/images/characters/family_brainrot.png',
     w: 1.4,
     h: 2,
+    dx: -0.2,
+    dy: -0.5,
+  },
+  [MonsterType.Saitama]: {
+    type: MonsterType.Saitama,
+    image: '/images/characters/saitama.png',
+    w: 1.2,
+    h: 1.5,
+    dx: -0.1,
+    dy: -0.25,
+  },
+  [MonsterType.Shadow]: {
+    type: MonsterType.Shadow,
+    image: '/images/characters/shadow.png',
+    w: 1.4,
+    h: 2,
+    dx: -0.2,
+    dy: -0.5,
   },
 }
 
