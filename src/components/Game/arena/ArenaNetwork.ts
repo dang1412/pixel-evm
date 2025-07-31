@@ -23,6 +23,8 @@ export class ArenaNetwork {
   addrToIdMap: {[addr: Address]: number} = {}
   opponentAddr?: Address
 
+  gameStarted = false
+
   constructor(public map: PixelArenaMap, private opts?: ArenaNetworkOpts) {}
 
   setOpts(opts: ArenaNetworkOpts) {

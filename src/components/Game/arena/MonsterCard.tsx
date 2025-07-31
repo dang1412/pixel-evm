@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FaBomb, FaRocket, FaFire, FaEye, FaEyeSlash } from 'react-icons/fa'
-import { ActionType, MapItemType, MonsterState, MonsterType } from './types'
+import { FaBomb, FaRocket, FaFire, FaEye, FaTimes, FaOptinMonster } from 'react-icons/fa'
+import { MapItemType, MonsterState, MonsterType } from './types'
 import { monsterInfos } from './constants'
 import { PointData } from 'pixi.js'
 
@@ -62,14 +62,19 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
 
   return (
     <div>
-      <button
+      {!isVisible && <FaOptinMonster
         onClick={toggleVisibility}
-        className='bg-blue-500 text-white px-4 py-2 rounded mb-1 flex items-center justify-center'
-      >
-        {isVisible ? <FaEye /> : <FaEyeSlash />}
-      </button>
+        className="text-gray-700 cursor-pointer mb-1 text-2xl flex items-center justify-center"
+        aria-label="Show"
+      />}
       {isVisible && (
         <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
+          <FaTimes
+            className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-600 z-10 cursor-pointer"
+            onClick={toggleVisibility}
+            aria-label="Close"
+            size={20}
+          />
           <div className='w-full overflow-x-auto'>
             <div className='flex flex-row space-x-2'>
               {monsters.map((m, idx) => (

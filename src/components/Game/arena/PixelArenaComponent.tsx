@@ -1,5 +1,6 @@
 import { PointData } from 'pixi.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FaRotate } from 'react-icons/fa6'
 
 import { Address } from '@/lib/RTCConnectClients'
 
@@ -9,10 +10,9 @@ import { ActionType, MonsterState } from './types'
 import MonsterCard from './MonsterCard'
 import MonsterControlSelect from './MonsterControlSelect'
 import { ArenaNetwork } from './ArenaNetwork'
+import { MenuModal } from '../MenuModal'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { getAccountConnectService, useWebRTCConnect } from '@/lib/webRTC/hooks/useWebRTCConnect'
-import { MenuModal } from '../MenuModal'
-import { useAccount } from 'wagmi'
 
 interface Props {}
 
@@ -23,6 +23,8 @@ const PixelArenaComponent: React.FC<Props> = () => {
   const [monsters, setMonsters] = useState<MonsterState[]>([])
   const [selectedId, setSelectedId] = useState(0)
   const [actionCtrlPos, setActionCtrlPos] = useState<PointData>()
+
+  const [arenaSceneOpening, setArenaSceneOpening] = useState(false)
 
   const onMonstersUpdate = useCallback((monsters: MonsterState[]) => {
     setMonsters(monsters)
@@ -65,12 +67,15 @@ const PixelArenaComponent: React.FC<Props> = () => {
         },
       })
 
-      const unsub = pixelArena.map.subscribe('sceneactivated', (event: CustomEvent) => {
+      pixelArena.map.subscribe('sceneactivated', (event: CustomEvent) => {
         console.log('Scene activated:', event.detail)
         const addedScene = event.detail
         if (addedScene === sceneName) {
-          unsub()
-          setIsMenuModalOpen(true)
+          if (!networkRef.current?.gameStarted) setIsMenuModalOpen(true)
+          setArenaSceneOpening(true)
+        } else {
+          setIsMenuModalOpen(false)
+          setArenaSceneOpening(false)
         }
       })
 
@@ -125,6 +130,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
   const connect = useCallback(async (addr: string) => {
     offerConnect(addr as Address)
     setIsMenuModalOpen(false)
+    if (networkRef.current) networkRef.current.gameStarted = true
   }, [offerConnect])
 
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false)
@@ -132,6 +138,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
   // const { address } = useAccount()
   const startServer = useCallback(() => {
     if (networkRef.current) {
+      networkRef.current.gameStarted = true
       networkRef.current.startServer()
       setIsMenuModalOpen(false)
     }
@@ -140,22 +147,14 @@ const PixelArenaComponent: React.FC<Props> = () => {
   return (
     <>
       <canvas ref={(c) => setCanvas(c || undefined)} className='' style={{border: '1px solid #ccc'}} />
-      <div className="fixed bottom-2 left-2 z-10">
-        {/* <button
-          className="px-4 py-2 mb-2 mr-2 bg-red-600 text-white rounded hover:bg-blue-700 transition"
-          onClick={() => networkRef.current?.startServer('aaa')}
-        >
-          Start game
-        </button>
-        */}
-        <button
-          className="px-4 py-2 mb-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      {arenaSceneOpening && <div className="fixed bottom-2 left-2 z-10">
+        <FaRotate
+          className="text-gray-700 cursor-pointer mb-1 text-2xl flex items-center justify-center"
           onClick={() => networkRef.current?.restart()}
-        >
-          Restart
-        </button> 
+          aria-label="Close"
+        />
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
-      </div>
+      </div>}
       {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
     </>
