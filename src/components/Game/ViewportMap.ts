@@ -42,6 +42,7 @@ export class ViewportMap {
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
+    this.setupSelect()
   }
 
   addScene(name: string, pixelWidth: number, pixelHeight: number, bgUrl = ''): ViewportScene {
@@ -143,6 +144,7 @@ export class ViewportMap {
     viewport.on('moved', () => {
       this.updateMinimap()
       downPx = -1, downPy = -1
+      this.eventTarget.dispatchEvent(new Event('viewportmoved'))
     })
 
     viewport.on('drag-start', (e) => {
@@ -151,10 +153,7 @@ export class ViewportMap {
 
     viewport.on('drag-end', (e) => {
       if (!this.viewport) return
-
-      // console.log('drag-end', e.screen, e.world)
       const { width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels } = viewport
-      console.log(width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels)
     })
 
     let downPx = -1, downPy = -1
@@ -224,9 +223,11 @@ export class ViewportMap {
       func(e)
       unsub()
     })
+
+    return unsub
   }
 
-  getPixelXY(e: {pageX: number, pageY: number}): [number, number, number, number] {
+  private getPixelXY(e: {pageX: number, pageY: number}): [number, number, number, number] {
     const canvas = this.canvas
     const viewport = this.viewport
     if (!viewport) return [0, 0, 0, 0]
@@ -268,6 +269,10 @@ export class ViewportMap {
   startDrag(image: string, {onDrop, onMove = (x, y) => {}, isInRange, w = 0, h = 0}: DragOptions) {
     const scene = this.getActiveScene()
     if (!scene) return
+
+    // emit event 'viewportmoved' to prevent select
+    this.eventTarget.dispatchEvent(new Event('viewportmoved'))
+
     const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
     shadow.alpha = 0.4
 
@@ -380,5 +385,56 @@ export class ViewportMap {
     }
 
     tick()
+  }
+
+  private setupSelect() {
+    // detect long click to start select
+    this.subscribe('pixeldown', (e: CustomEvent<[number, number, number, number]>) => {
+      console.log('Clear select on pixel down', e)
+      this.getActiveScene()?.clearSelect()
+
+      const [px, py] = e.detail
+      if (px < 0 || py < 0) return
+
+      // start select after 500ms
+      const timeout = setTimeout(() => {
+        this.startSelect(px, py)
+      }, 600)
+
+      const unsubmoved = this.subscribeOnce('viewportmoved', () => {
+        console.log('viewportmoved')
+        clearTimeout(timeout)
+      })
+
+      this.subscribeOnce('pixelup', () => {
+        clearTimeout(timeout)
+        unsubmoved()
+      })
+    })
+  }
+
+  private startSelect(x: number, y: number) {
+    this.pauseDrag()
+
+    const scene = this.getActiveScene()
+    if (!scene) return
+
+    scene.selectArea({ x, y, w: 1, h: 1 })
+    let startX = x, startY = y
+
+    const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [px, py] = e.detail
+
+      const x = Math.min(startX, px)
+      const y = Math.min(startY, py)
+      const w = Math.abs(px - startX) + 1
+      const h = Math.abs(py - startY) + 1
+      scene.selectArea({ x, y, w, h })
+    })
+
+    this.subscribeOnce('pixelup', (e: CustomEvent<[number, number, number, number]>) => {
+      unsub()
+      this.resumeDrag()
+    })
   }
 }

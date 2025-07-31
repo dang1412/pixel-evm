@@ -11,6 +11,8 @@ export class ViewportScene {
   private centureX = 0
   private centureY = 0
 
+  private selectPixelsGraphic = new Graphics()
+
   constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number, bgUrl = '') {
     this.drawGrid()
     // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
@@ -24,6 +26,30 @@ export class ViewportScene {
       const image = this.addImage(bgUrl, { x: 0, y: 0, w: pixelWidth, h: pixelHeight })
       image.alpha = 0.15
     }
+
+    // select pixels
+    this.selectPixelsGraphic.alpha = 0.15
+  }
+
+  selectArea(area: PixelArea) {
+    this.clearSelect()
+    if (area && area.w > 0 && area.h > 0) {
+      this.container.addChild(this.selectPixelsGraphic)
+      this.selectPixelsGraphic.rect(
+        area.x * PIXEL_SIZE,
+        area.y * PIXEL_SIZE,
+        area.w * PIXEL_SIZE,
+        area.h * PIXEL_SIZE
+      )
+      this.selectPixelsGraphic.fill({ color: '#0011ffff' })
+
+      this.map.markDirty()
+    }
+  }
+
+  clearSelect() {
+    this.selectPixelsGraphic.clear()
+    this.map.markDirty()
   }
 
   closed() {
