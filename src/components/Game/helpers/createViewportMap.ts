@@ -5,6 +5,7 @@ import { mockImages } from '../mock/images'
 import { PixelImage } from '../types'
 import { getAreaPixels, xyToPosition } from '../utils'
 import { ViewportMap } from '../ViewportMap'
+import { getPixelToImage } from './getPixelToImage'
 
 /**
  * Create viewport map 100x100
@@ -12,7 +13,7 @@ import { ViewportMap } from '../ViewportMap'
  * @param c HTMLCanvasElement
  * @returns vpmap: ViewportMap
  */
-export function createViewportMap(c: HTMLCanvasElement) {
+export function createViewportMap(c: HTMLCanvasElement, images = mockImages) {
   const vpmap = new ViewportMap(c)
   // Create an instance of ResizeObserver
   const resizeObserver = new ResizeObserver(entries => {
@@ -30,12 +31,16 @@ export function createViewportMap(c: HTMLCanvasElement) {
     const { width, height } = (c.parentNode as HTMLDivElement).getBoundingClientRect()
     await vpmap.init(width - 2, height - 2)
     vpmap.moveCenter()
-    initMapWithScenes(vpmap, mockImages)
+    initMapWithScenes(vpmap, images)
   })()
 
   const disconnect = () => resizeObserver.disconnect()
 
-  return { vpmap, disconnect }
+  // pixel to image mapping
+  const pixelToImage = getPixelToImage(images)
+  const getImageFromPixel = (x: number, y: number) => pixelToImage.get(xyToPosition(x, y))
+
+  return { vpmap, disconnect, getImageFromPixel }
 }
 
 function initMapWithScenes(map: ViewportMap, images: PixelImage[]) {

@@ -182,7 +182,8 @@ export class ViewportMap {
 
     let curx = -1, cury = -1
     const mousemove = (e: MouseEvent) => {
-      const [px, py] = this.getPixelXY(e)
+      const [px, py, rx, ry] = this.getPixelXY(e)
+      this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('mousemove', {detail: [rx, ry]}))
       if (curx !== px || cury !== py) {
         this.eventTarget.dispatchEvent(new CustomEvent<[number, number]>('pixelmove', {detail: [px, py]}))
         curx = px
