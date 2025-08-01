@@ -143,7 +143,7 @@ export class ViewportMap {
     viewport.on('zoomed', () => this.updateMinimap())
     viewport.on('moved', () => {
       this.updateMinimap()
-      downPx = -1, downPy = -1
+      downPx = -1, downPy = -1  // prevent click after move
       this.eventTarget.dispatchEvent(new Event('viewportmoved'))
     })
 
@@ -156,11 +156,12 @@ export class ViewportMap {
       const { width, height, worldHeight, worldWidth, x, y, screenHeight, screenWidth, screenHeightInWorldPixels, screenWidthInWorldPixels } = viewport
     })
 
-    let downPx = -1, downPy = -1
+    let downPx = -1, downPy = -1, downtime = 0
     const mousedown = (e: MouseEvent) => {
       const [px, py, rawx, rawy] = this.getPixelXY(e)
       downPx = px
       downPy = py
+      downtime = performance.now()
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixeldown', {detail: [px, py, rawx, rawy]}))
       console.log('Pixel down xy', px, py)
     }
@@ -170,7 +171,8 @@ export class ViewportMap {
       const [px, py] = data
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelup', {detail: data}))
       console.log('Pixel up xy', px, py)
-      if (downPx === px && downPy === py) {
+      const time = performance.now() - downtime
+      if (downPx === px && downPy === py && time < 500) {
         // clicked
         this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelclick', {detail: data}))
         downPx = downPy = -1
@@ -227,7 +229,8 @@ export class ViewportMap {
     return unsub
   }
 
-  private getPixelXY(e: {pageX: number, pageY: number}): [number, number, number, number] {
+  // TODO make private
+  getPixelXY(e: {pageX: number, pageY: number}): [number, number, number, number] {
     const canvas = this.canvas
     const viewport = this.viewport
     if (!viewport) return [0, 0, 0, 0]
@@ -391,7 +394,7 @@ export class ViewportMap {
     // detect long click to start select
     this.subscribe('pixeldown', (e: CustomEvent<[number, number, number, number]>) => {
       console.log('Clear select on pixel down', e)
-      this.getActiveScene()?.clearSelect()
+      // this.getActiveScene()?.clearSelect()
 
       const [px, py] = e.detail
       if (px < 0 || py < 0) return
@@ -410,6 +413,10 @@ export class ViewportMap {
         clearTimeout(timeout)
         unsubmoved()
       })
+    })
+
+    this.subscribe('pixelclick', () => {
+      this.getActiveScene()?.clearSelect()
     })
   }
 
