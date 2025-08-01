@@ -77,17 +77,6 @@ export class PixelArenaMap {
       if (addedScene === opts.sceneName) {
         unsubscene()
         this.initGame()
-
-        // Decor
-        const scene = map.getActiveScene()!
-        scene.addImage('/images/palmtree1.png', { x: 3, y: 3, w: 4, h: 4 })
-        scene.addImage('/images/palmtree2.png', { x: 24, y: 3, w: 4, h: 4 })
-
-        scene.addImage('/images/palmtree2.png', { x: 3, y: 24, w: 4, h: 4 })
-        scene.addImage('/images/palmtree1.png', { x: 24, y: 24, w: 4, h: 4 })
-
-        scene.addImage('/images/mountain.png', { x: 12, y: 13, w: 6, h: 4 })
-        scene.addImage('/images/red-diamond-2.png', { x: 14, y: 15, w: 2, h: 1.25 })
       }
     })
 
@@ -141,15 +130,24 @@ export class PixelArenaMap {
     if (monster) this.selectMonster(monster)
   }
 
+  private moveAura(x: number, y: number, tx = x, ty = y) {
+    if (this.auraContainer) {
+      const dx = 0.45
+      const dy = 0.5
+      this.map.moveObject(this.auraContainer, x - dx, y - dy, tx - dx, ty - dy)
+    }
+  }
+
   private selectMonster(monster: PixelArenaMonster) {
     if (this.selectedMonster?.state.id === monster.state.id) {
       // unselect the monster
     } else {
-      const tx = monster.state.pos.x - 0.4
-      const ty = monster.state.pos.y - 0.5
+      // const tx = monster.state.pos.x - 0.4
+      // const ty = monster.state.pos.y - 0.5
       // const sx = this.selectedMonster ? this.selectedMonster.state.pos.x - 0.4 : tx
       // const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
-      this.map.moveObject(this.auraContainer!, tx, ty)
+      // this.map.moveObject(this.auraContainer!, tx, ty)
+      this.moveAura(monster.state.pos.x, monster.state.pos.y)
       this.selectedMonster = monster
       this.opts.onMonsterSelect(monster.state.id)
       this.informUI()
@@ -172,7 +170,7 @@ export class PixelArenaMap {
       this.actionsExecutedPromise = this.actionsExecutedPromise
         // .then(() => monster.applyAction({...final, actionType: ActionType.Move}))
         .then(() => monster.moveTo(final.target.x, final.target.y))
-        .then(() => this.animateExplode(final.target.x, final.target.y))
+      this.actionsExecutedPromise.then(() => this.animateExplode(final.target.x, final.target.y))
     } else {
       // apply moves and shoots
       // execute after current actions done
@@ -315,11 +313,12 @@ export class PixelArenaMap {
 
           // move aura if selected
           if (this.selectedMonster && this.selectedMonster.state.id === action.id) {
-            const sx = prevx - 0.4
-            const sy = prevy - 0.5
-            const tx = action.target.x - 0.4
-            const ty = action.target.y - 0.5
-            this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
+            // const sx = prevx - 0.4
+            // const sy = prevy - 0.5
+            // const tx = action.target.x - 0.4
+            // const ty = action.target.y - 0.5
+            // this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
+            this.moveAura(prevx, prevy, action.target.x, action.target.y)
 
             // Inform new postion after move
             // move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
@@ -350,28 +349,22 @@ export class PixelArenaMap {
 
     return Promise.all(shootPromises)
   }
-  
+
   private initGame() {
-    // aura
     const scene = this.map.getActiveScene()!
+
+    // Decor
+    scene.addImage('/images/palmtree1.png', { x: 3, y: 3, w: 4, h: 4 })
+    scene.addImage('/images/palmtree2.png', { x: 24, y: 3, w: 4, h: 4 })
+
+    scene.addImage('/images/palmtree2.png', { x: 3, y: 24, w: 4, h: 4 })
+    scene.addImage('/images/palmtree1.png', { x: 24, y: 24, w: 4, h: 4 })
+
+    scene.addImage('/images/mountain.png', { x: 12, y: 13, w: 6, h: 4 })
+    scene.addImage('/images/red-diamond-2.png', { x: 14, y: 15, w: 2, h: 1.25 })
+
+    // aura
     this.auraContainer = scene.addImage('/images/select_aura.png', { x: 0, y: 0, w: 2, h: 2 })
-
-    // items
-    // this.game.addItem({ x: 4, y: 4 }, MapItemType.Car) // Example item
-    // this.game.addItem({ x: 14, y: 14 }, MapItemType.Car) // Example item
-    // this.game.addItem({ x: 6, y: 6 }, MapItemType.Bomb) // Example item
-    // this.game.addItem({ x: 6, y: 8 }, MapItemType.Bomb) // Example item
-    // this.game.addItem({ x: 16, y: 18 }, MapItemType.Bomb) // Example item
-    // this.game.addItem({ x: 7, y: 10 }, MapItemType.Fire) // Example item
-    // this.game.addItem({ x: 7, y: 12 }, MapItemType.Fire) // Example item
-    // this.game.addItem({ x: 7, y: 14 }, MapItemType.Fire) // Example item
-    // this.updateMapItems()
-
-    // monsters
-    // this.addMonster(this.ownerId, { x: 3, y: 3 }, 1) // Example monster
-    // this.addMonster(this.ownerId, { x: 5, y: 3 }, 15, MonsterType.FamilyBrainrot) // Example monster
-    // this.addMonster(this.ownerId, { x: 7, y: 3 }, 1, MonsterType.TrippiTroppi) // Example monster
-    // this.addMonster(this.ownerId, { x: 10, y: 5 }, 1, MonsterType.Tralarelo) // Example monster
   }
 
   // Update items's draw on the map
@@ -425,11 +418,8 @@ export class PixelArenaMap {
     const sprite = container.getChildAt(0) as Sprite
 
     const animation = createAnimation(this.map)
-    animation.animateOnce(sprite, frames, 3).then(() => {
-      container.parent.removeChild(container)
+    return animation.animateOnce(sprite, frames, 3).then(() => {
+      container.destroy()
     })
-
-    // TODO why setTimeout??
-    setTimeout(() => this.map.markDirty(), 10)
   }
 }

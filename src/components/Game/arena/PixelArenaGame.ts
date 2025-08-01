@@ -64,7 +64,7 @@ export class PixelArenaGame {
     console.log("Game started");
 
     this.addTeam0();
-    this.addTeam1();
+    // this.addTeam1();
 
     // this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket);
     const itemsArray: [number, MapItemType][] = [];
