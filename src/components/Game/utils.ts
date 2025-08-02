@@ -1,4 +1,4 @@
-import { PixelArea } from "./ViewportMap"
+import { PixelArea } from "./types"
 
 export const PIXEL_SIZE = 30
 export const MAP_W = 100

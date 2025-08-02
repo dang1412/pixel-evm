@@ -57,7 +57,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       console.log('Create game')
       const { vpmap, disconnect } = createViewportMap(canvas)
 
-      const sceneName = 'scene-3'
+      const sceneName = '4848'
       const pixelArena = new PixelArenaMap(vpmap, {
         sceneName,
         onMonstersUpdate,

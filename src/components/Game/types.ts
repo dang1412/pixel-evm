@@ -1,4 +1,9 @@
-import { PixelArea } from './ViewportMap'
+export interface PixelArea {
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 export interface PixelImage {
   area: PixelArea

@@ -4,16 +4,10 @@ import { Viewport } from 'pixi-viewport'
 import { Minimap } from './Minimap'
 import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
 import { ViewportScene } from './ViewportScene'
+import { PixelArea } from './types'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
-
-export interface PixelArea {
-  x: number
-  y: number
-  w: number
-  h: number
-}
 
 export interface ViewportMapOptions {
   onDrop?: (data: DataTransfer, px: number, py: number) => void
@@ -417,8 +411,13 @@ export class ViewportMap {
     })
 
     this.subscribe('pixelclick', () => {
-      this.getActiveScene()?.clearSelect()
+      this.clearSelect()
     })
+  }
+
+  clearSelect() {
+    this.getActiveScene()?.clearSelect()
+    this.eventTarget.dispatchEvent(new Event('pixelselectclear'))
   }
 
   private startSelect(x: number, y: number) {
@@ -430,6 +429,10 @@ export class ViewportMap {
     scene.selectArea({ x, y, w: 1, h: 1 })
     let startX = x, startY = y
 
+    // emit start select event
+    // this.eventTarget.dispatchEvent(new CustomEvent<PixelArea>('selectstart', { detail: { x, y, w: 1, h: 1 } }))
+    this.eventTarget.dispatchEvent(new CustomEvent<PixelArea>('pixelselect', { detail: { x, y, w: 1, h: 1 } }))
+
     const unsub = this.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
       const [px, py] = e.detail
 
@@ -438,11 +441,14 @@ export class ViewportMap {
       const w = Math.abs(px - startX) + 1
       const h = Math.abs(py - startY) + 1
       scene.selectArea({ x, y, w, h })
+
+      this.eventTarget.dispatchEvent(new CustomEvent<PixelArea>('pixelselect', { detail: { x, y, w, h } }))
     })
 
     this.subscribeOnce('pixelup', (e: CustomEvent<[number, number, number, number]>) => {
       unsub()
       this.resumeDrag()
+      this.eventTarget.dispatchEvent(new Event('pixelselectend'))
     })
   }
 }

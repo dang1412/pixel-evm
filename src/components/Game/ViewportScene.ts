@@ -1,8 +1,8 @@
 import { Assets, Container, Graphics, PointData, Sprite, Texture } from 'pixi.js'
 
-import { PixelArea, ViewportMap } from './ViewportMap'
+import { ViewportMap } from './ViewportMap'
 import { PIXEL_SIZE } from './utils'
-import { PixelImage } from './types'
+import { PixelImage, PixelArea } from './types'
 
 export class ViewportScene {
   container = new Container()
@@ -12,6 +12,7 @@ export class ViewportScene {
   private centureY = 0
 
   private selectPixelsGraphic = new Graphics()
+  private drawColorGraphic = new Graphics()
 
   constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number, bgUrl = '') {
     this.drawGrid()
@@ -29,21 +30,26 @@ export class ViewportScene {
 
     // select pixels
     this.selectPixelsGraphic.alpha = 0.15
+
+    // color graphic
+    this.container.addChild(this.drawColorGraphic)
   }
 
   selectArea(area: PixelArea) {
     this.clearSelect()
     if (area && area.w > 0 && area.h > 0) {
-      this.container.addChild(this.selectPixelsGraphic)
-      this.selectPixelsGraphic.rect(
-        area.x * PIXEL_SIZE,
-        area.y * PIXEL_SIZE,
-        area.w * PIXEL_SIZE,
-        area.h * PIXEL_SIZE
-      )
-      this.selectPixelsGraphic.fill({ color: '#0011ffff' })
+      // move to the top
+      // this.container.addChild(this.selectPixelsGraphic)
+      // this.selectPixelsGraphic.rect(
+      //   area.x * PIXEL_SIZE,
+      //   area.y * PIXEL_SIZE,
+      //   area.w * PIXEL_SIZE,
+      //   area.h * PIXEL_SIZE
+      // )
+      // this.selectPixelsGraphic.fill({ color: '#0011ff' })
 
-      this.map.markDirty()
+      // this.map.markDirty()
+      this.drawColorArea(area, 0x0011ff, undefined, this.selectPixelsGraphic)
     }
   }
 
@@ -142,6 +148,24 @@ export class ViewportScene {
     g.moveTo(start.x * PIXEL_SIZE, start.y * PIXEL_SIZE)
     g.lineTo(end.x * PIXEL_SIZE, end.y * PIXEL_SIZE)
     g.stroke({ width: 0.6, color: 0xffd700 })
+
+    return g
+  }
+
+  drawColorArea(area: PixelArea, color: number, alpha = 1, _g?: Graphics) {
+    const g = _g || new Graphics()
+    this.container.addChild(g)
+    g.clear()
+
+    g.rect(
+      area.x * PIXEL_SIZE,
+      area.y * PIXEL_SIZE,
+      area.w * PIXEL_SIZE,
+      area.h * PIXEL_SIZE
+    )
+    g.fill({ color, alpha })
+
+    this.map.markDirty()
 
     return g
   }
