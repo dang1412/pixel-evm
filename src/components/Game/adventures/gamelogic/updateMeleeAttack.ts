@@ -1,4 +1,4 @@
-import { PixelArea } from '../../ViewportMap'
+import { PixelArea } from '../../types'
 import { ActionType, AdventureAction, AdventureStates, MonsterType } from '../types'
 import { AttackType } from './types'
 

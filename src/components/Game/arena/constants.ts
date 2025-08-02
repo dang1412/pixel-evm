@@ -1,4 +1,4 @@
-import { PixelArea } from '../ViewportMap'
+import { PixelArea } from '../types'
 import { ActionType, MapItemType, MonsterDrawInfo, MonsterType } from './types'
 
 export const monsterInfos: Record<MonsterType, MonsterDrawInfo> = {

@@ -1,7 +1,7 @@
 import { PointData } from 'pixi.js'
 
 import { getAreaPixels } from '../../utils'
-import { PixelArea } from '../../ViewportMap'
+import { PixelArea } from '../../types'
 import { ActionType, AdventureAction, AdventureStates, AdventureStateUpdates, MonsterState } from '../types'
 import { moveToward, updateRemoveMonster } from './utils'
 import { getMonsterInfo } from '../constants'
