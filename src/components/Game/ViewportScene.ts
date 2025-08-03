@@ -97,7 +97,13 @@ export class ViewportScene {
     container.removeChildren()
 
     // add image
-    const image = new Sprite(url ? Texture.from(url) : undefined)
+    const image = new Sprite()
+    // load
+    if (url) Assets.load(url).then(() => {
+      image.texture = Texture.from(url)
+      this.map.markDirty()
+    })
+
     if (area.w && area.h) {
       image.width = area.w * PIXEL_SIZE
       image.height = area.h * PIXEL_SIZE

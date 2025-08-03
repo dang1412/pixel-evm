@@ -30,8 +30,8 @@ export function createViewportMap(c: HTMLCanvasElement, images = mockImages) {
   ;(async () => {
     const { width, height } = (c.parentNode as HTMLDivElement).getBoundingClientRect()
     await vpmap.init(width - 2, height - 2)
-    vpmap.moveCenter()
-    vpmap.addScene('main', 100, 100)
+    // vpmap.moveCenter()
+    // vpmap.addScene('main', 100, 100)
     initMapWithScenes(vpmap, images)
   })()
 

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { PointData } from 'pixi.js'
+import { Assets, PointData } from 'pixi.js'
 
 import { mockImages } from './mock/images'
 import { createViewportMap } from './helpers/createViewportMap'
 import { addOwnedPixels, getAreaOperatable, getImageFromPoint, setPixelToImage } from './helpers/pixelStates'
 import { PixelImage, PixelArea } from './types'
 import { ViewportMap } from './ViewportMap'
+import { PixelMap } from './pixelmap/PixelMap'
 
 const PixelInfo: React.FC<{x: number, y: number}> = ({x, y}) => {
   return (
@@ -54,9 +55,11 @@ const SelectPixels: React.FC<SelectPixelsProps> = ({ area, actionText, takeActio
 
 interface Props {}
 
-const PixelMap: React.FC<Props> = (props) => {
+const PixelMapComponent: React.FC<Props> = (props) => {
   // use ref to hold viewport map instance
   const vpmapRef = useRef<ViewportMap | undefined>()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
 
   const [pointerPos, setPointerPos] = useState<PointData>({x: 100, y: 100})
@@ -74,26 +77,16 @@ const PixelMap: React.FC<Props> = (props) => {
     return ''
   }, [action])
 
-  const doAction = useCallback(() => {
-    if (action.mintable && selectArea) {
-      addOwnedPixels(selectArea)
-      // draw on the map
-      const scene = vpmapRef.current?.getActiveScene()
-      if (scene) {
-        const g = scene.drawColorArea(selectArea, 0x00ff00, 0.25)
-        vpmapRef.current?.clearSelect()
-      }
-    }
-  }, [selectArea, action])
-
   useEffect(() => {
     if (canvas && vpmapRef.current === undefined) {
       console.log('Create game')
-      const { vpmap } = createViewportMap(canvas, mockImages)
-      vpmapRef.current = vpmap
+      // const { vpmap } = createViewportMap(canvas, mockImages)
+      const pixelMap = new PixelMap(canvas)
+      pixelMap.addMainImages(mockImages)
+      const vpmap = vpmapRef.current = pixelMap.getView() 
 
       // Setup images
-      setPixelToImage(mockImages)
+      // setPixelToImage(mockImages)
 
       // Handle viewport events
       let shouldUpdatePointer = true
@@ -106,7 +99,7 @@ const PixelMap: React.FC<Props> = (props) => {
         const [x, y] = e.detail
         setPointerPixel({ x, y })
 
-        const image = getImageFromPoint(x, y)
+        const image = pixelMap.getImageFromPoint(vpmap.activeScene, x, y)
         setImage(image)
       })
 
@@ -130,8 +123,55 @@ const PixelMap: React.FC<Props> = (props) => {
     }
   }, [canvas])
 
+  // when user click button
+  const doAction = useCallback(() => {
+    if (action.mintable && selectArea) {
+      addOwnedPixels(selectArea)
+      // draw on the map
+      const scene = vpmapRef.current?.getActiveScene()
+      if (scene) {
+        const g = scene.drawColorArea(selectArea, 0x00ff00, 0.25)
+        vpmapRef.current?.clearSelect()
+      }
+    } else if (action.uploadable && selectArea) {
+      fileInputRef.current?.click()
+    }
+  }, [selectArea, action])
+
+  // upload image
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async function(ev) {
+      const imgSrc = ev.target?.result as string
+      const scene = vpmapRef.current?.getActiveScene()
+      if (!scene || !selectArea) return
+
+      await Assets.load(imgSrc)
+      const container = scene.addImage(imgSrc, selectArea)
+      container.alpha = 0.8
+      vpmapRef.current?.markDirty()
+
+      // const PIXI = await import('pixi.js')
+      // const texture = PIXI.Texture.from(imgSrc)
+      // const sprite = new PIXI.Sprite(texture)
+      // sprite.x = 0
+      // sprite.y = 0
+      // vpmapRef.current?.getActiveScene()?.container.addChild(sprite)
+    }
+    reader.readAsDataURL(file)
+  }, [selectArea])
+
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
         <div className='absolute' style={{top: pointerPos.y, left: pointerPos.x}}>
           { selectArea ?
@@ -145,4 +185,4 @@ const PixelMap: React.FC<Props> = (props) => {
   )
 }
 
-export default PixelMap
+export default PixelMapComponent

@@ -5,6 +5,7 @@ import { Minimap } from './Minimap'
 import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
 import { ViewportScene } from './ViewportScene'
 import { PixelArea } from './types'
+import { initialize } from 'next/dist/server/lib/render-server'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
@@ -33,10 +34,18 @@ export class ViewportMap {
   scenes: {[name: string]: ViewportScene} = {}
   activeScene = ''
 
+  initialize: Promise<void>
+  private resolveInitialize!: () => void;
+
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
     this.setupSelect()
+
+    // Create the promise and store the resolver
+    this.initialize = new Promise<void>((resolve) => {
+      this.resolveInitialize = resolve
+    })
   }
 
   addScene(name: string, pixelWidth: number, pixelHeight: number, bgUrl = ''): ViewportScene {
@@ -53,8 +62,11 @@ export class ViewportMap {
   }
 
   getActiveScene(): ViewportScene | undefined {
-    const scene = this.scenes[this.activeScene]
-    return scene
+    return this.getScene(this.activeScene)
+  }
+
+  getScene(name: string): ViewportScene | undefined {
+    return this.scenes[name]
   }
 
   activate(name: string) {
@@ -203,6 +215,11 @@ export class ViewportMap {
       console.log('Dropped', e.dataTransfer, px, py)
       if (e.dataTransfer && this.options.onDrop) this.options.onDrop(e.dataTransfer, px, py)
     })
+
+    this.addScene('main', 100, 100)
+    this.moveCenter()
+
+    this.resolveInitialize()
 
     return canvas
   }
