@@ -9,14 +9,8 @@ import { createViewportMap } from './createViewportMap'
 import { getAreaOperatable, getSceneImages, getSubSceneName } from './funcs'
 
 export class PixelMap {
-  // pixelToImage = new Map<number, PixelImage>()
-  // pixelToSubMap?: Map<number, PixelMap>
-
   private mainState: PixelMainMap
   private view: ViewportMap
-
-  // main map's pixel => sceneName
-  // private mainPixelToSceneMap: {[pixel: number]: string} = {}
 
   destroy = () => {}
 
@@ -34,10 +28,6 @@ export class PixelMap {
 
   constructor(c: HTMLCanvasElement) {
     this.mainState = {
-      // images: {
-      //   pixelToImage: new Map<number, PixelImage>(),
-      //   pixelToGraphic: new Map<number, Container>(),
-      // },
       mintedPixelSet: new Set(),
       ownedPixelSet: new Set(),
       sceneToImages: new Map<string, PixelMapImages>(),

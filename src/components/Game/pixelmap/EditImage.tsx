@@ -45,7 +45,7 @@ export const EditImage: React.FC<EditImageProps> = ({ mapRef, image }) => {
         onChange={e => setTitle(e.target.value)}
       />
       <label className="text-sm font-semibold">Description</label>
-      <input
+      <textarea
         className="border rounded px-2 py-1 mb-2"
         value={subtitle}
         onChange={e => setSubtitle(e.target.value)}
