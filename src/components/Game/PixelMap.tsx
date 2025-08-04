@@ -5,6 +5,7 @@ import { FaArrowLeft } from 'react-icons/fa'
 import { mockImages } from './mock/images'
 import { PixelImage, PixelArea } from './types'
 import { PixelMap } from './pixelmap/PixelMap'
+import { EditImage } from './pixelmap/EditImage'
 
 const PixelInfo: React.FC<{x: number, y: number}> = ({x, y}) => {
   return (
@@ -90,9 +91,11 @@ const PixelMapComponent: React.FC<Props> = (props) => {
     if (!action) return ''
     if (action.mintable) return 'mint'
     if (action.uploadable) return 'image'
-    if (action.deletable) return 'remove'
+    if (action.editable) return 'edit'
     return ''
   }, [action])
+
+  const [enableEdit, setEnableEdit] = useState(false)
 
   useEffect(() => {
     if (canvas && mapRef.current === undefined) {
@@ -116,22 +119,25 @@ const PixelMapComponent: React.FC<Props> = (props) => {
 
       vpmap.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
         const [x, y] = e.detail
-        setPointerPixel({ x, y })
-
-        const image = pixelMap.getImageFromPoint(vpmap.activeScene, x, y)
-        setImage(image)
+        if (shouldUpdatePointer) {
+          setPointerPixel({ x, y })
+          const image = pixelMap.getImageFromPoint(vpmap.activeScene, x, y)
+          setImage(image)
+        }
       })
 
       // pixel select
       vpmap.subscribe('pixelselect', (e: CustomEvent<PixelArea>) => {
         const area = e.detail
         setSelectArea(area)
+        shouldUpdatePointer = true
         console.log('Selected area:', area)
       })
 
       // select clear
       vpmap.subscribe('pixelselectclear', () => {
         setSelectArea(undefined)
+        setEnableEdit(false)
         shouldUpdatePointer = true
       })
 
@@ -162,13 +168,22 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       }
     } else if (action.uploadable) {
       fileInputRef.current?.click()
+    } else if (action.editable) {
+      setEnableEdit(true)
     }
   }, [selectArea, action])
 
   // upload image
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    // clean input file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+
     if (!file) return
+
+    const title = file.name
     const reader = new FileReader()
     reader.onload = async function(ev) {
       const map = mapRef.current
@@ -178,16 +193,13 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       map.addPixelImage(view.activeScene, {
         imageUrl: ev.target?.result as string,
         area: selectArea,
-        title: 'Test Image',
-        subtitle: 'Uploaded from local file',
-        link: 'www.abc.com',
+        title,
+        subtitle: '',
+        link: '',
       })
-      // const imgSrc = ev.target?.result as string
-      // await Assets.load(imgSrc)
-      // const container = scene.addImage(imgSrc, selectArea)
-      // container.alpha = 0.8
 
-      // view.markDirty()
+      setSelectArea({...selectArea})
+      setEnableEdit(true)
     }
     reader.readAsDataURL(file)
   }, [selectArea])
@@ -203,7 +215,9 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       />
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
       <div className='absolute' style={{top: pointerPos.y, left: pointerPos.x}}>
-        { selectArea ?
+        { enableEdit && action?.editable ?
+          <EditImage mapRef={mapRef} image={action.editable} /> :
+          selectArea ?
           <SelectPixels area={selectArea} actionText={actionText} takeAction={doAction} /> :
           image ?
           <ImageInfo image={image} p={pointerPixel}/> :

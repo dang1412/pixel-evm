@@ -165,8 +165,8 @@ export class ViewportScene {
   drawColorArea(area: PixelArea, color: number, alpha = 1, _g?: Graphics) {
     const g = _g || new Graphics()
     g.clear()
-    // const p = g.parent || this.container
-    // p.addChild(g)  // move to the top
+    const p = g.parent || this.container
+    p.addChild(g)  // move to the top
 
     g.rect(
       area.x * PIXEL_SIZE,

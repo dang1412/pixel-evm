@@ -101,17 +101,40 @@ export class PixelMap {
     const scene = this.view.getScene(sceneName)
     if (!scene) return
 
-    // draw image on scene
-    const container = scene.addImage(image.imageUrl, image.area)
-
     // get scene's images and update
     const { pixelToImage, pixelToGraphic } = getSceneImages(this.mainState, sceneName)
 
     const pixels = getAreaPixels(image.area)
+
     for (const pixel of pixels) {
       pixelToImage.set(pixel, image)
-      pixelToGraphic.set(pixel, container)
     }
+
+    // draw image on scene
+    const container = scene.addImage(image.imageUrl, image.area, pixelToGraphic.get(pixels[0]))
+    pixelToGraphic.set(pixels[0], container)
+  }
+
+  removePixelImage(sceneName: string, image: PixelImage) {
+    const scene = this.view.getScene(sceneName)
+    if (!scene) return
+
+    const { pixelToImage, pixelToGraphic } = getSceneImages(this.mainState, sceneName)
+
+    const pixels = getAreaPixels(image.area)
+    // delete image
+    for (const pixel of pixels) {
+      pixelToImage.delete(pixel)
+    }
+
+    // delete graphic
+    const container = pixelToGraphic.get(pixels[0])
+    if (container) {
+      container.destroy()
+      pixelToGraphic.delete(pixels[0])
+    }
+
+    this.view.markDirty()
   }
 
   getImageFromPoint(scene: string, x: number, y: number): PixelImage | undefined {
