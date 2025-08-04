@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Assets, PointData } from 'pixi.js'
+import { FaArrowLeft } from 'react-icons/fa'
 
 import { mockImages } from './mock/images'
-import { createViewportMap } from './helpers/createViewportMap'
-import { addOwnedPixels, getAreaOperatable, getImageFromPoint, setPixelToImage } from './helpers/pixelStates'
 import { PixelImage, PixelArea } from './types'
-import { ViewportMap } from './ViewportMap'
 import { PixelMap } from './pixelmap/PixelMap'
 
 const PixelInfo: React.FC<{x: number, y: number}> = ({x, y}) => {
@@ -46,10 +44,26 @@ const SelectPixels: React.FC<SelectPixelsProps> = ({ area, actionText, takeActio
       {actionText && 
       <button
         onClick={takeAction}
-        className="mt-2 py-1 px-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        className="mt-2 py-1 px-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
         {actionText}
       </button>}
     </div>
+  )
+}
+
+const BackButton: React.FC<{ mapRef: React.RefObject<PixelMap | undefined> }> = ({ mapRef }) => {
+  const goBack = useCallback(() => {
+    mapRef.current?.getView().activate('main')
+  }, [])
+
+  return (
+    <button
+      onClick={goBack}
+      className="text-lg absolute top-16 left-1/2 -translate-x-1/2 text-gray-800 hover:text-blue-800 px-3 py-1"
+    >
+      <FaArrowLeft />
+    </button>
   )
 }
 
@@ -57,7 +71,7 @@ interface Props {}
 
 const PixelMapComponent: React.FC<Props> = (props) => {
   // use ref to hold viewport map instance
-  const vpmapRef = useRef<ViewportMap | undefined>()
+  const mapRef = useRef<PixelMap | undefined>()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -68,22 +82,27 @@ const PixelMapComponent: React.FC<Props> = (props) => {
 
   const [selectArea, setSelectArea] = useState<PixelArea | undefined>()
 
+  const [curScene, setCurScene] = useState<string>('')
+
   // action after select
-  const action = useMemo(() => getAreaOperatable(selectArea), [selectArea])
+  const action = useMemo(() => mapRef.current?.getAreaOperatable(selectArea), [selectArea])
   const actionText = useMemo(() => {
+    if (!action) return ''
     if (action.mintable) return 'mint'
-    if (action.uploadable) return 'upload'
-    if (action.deletable) return 'delete'
+    if (action.uploadable) return 'image'
+    if (action.deletable) return 'remove'
     return ''
   }, [action])
 
   useEffect(() => {
-    if (canvas && vpmapRef.current === undefined) {
+    if (canvas && mapRef.current === undefined) {
       console.log('Create game')
       // const { vpmap } = createViewportMap(canvas, mockImages)
       const pixelMap = new PixelMap(canvas)
       pixelMap.addMainImages(mockImages)
-      const vpmap = vpmapRef.current = pixelMap.getView() 
+      mapRef.current = pixelMap
+
+      const vpmap = pixelMap.getView()
 
       // Setup images
       // setPixelToImage(mockImages)
@@ -120,20 +139,28 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       vpmap.subscribe('pixelselectend', () => {
         shouldUpdatePointer = false
       })
+
+      // current scene
+      vpmap.subscribe('sceneactivated', (event: CustomEvent) => {
+        console.log('Scene activated:', event.detail)
+        setCurScene(event.detail)
+      })
     }
   }, [canvas])
 
   // when user click button
   const doAction = useCallback(() => {
-    if (action.mintable && selectArea) {
-      addOwnedPixels(selectArea)
+    if (!action || !selectArea) return
+    if (action.mintable) {
       // draw on the map
-      const scene = vpmapRef.current?.getActiveScene()
-      if (scene) {
-        const g = scene.drawColorArea(selectArea, 0x00ff00, 0.25)
-        vpmapRef.current?.clearSelect()
+      const map = mapRef.current
+      const view = map?.getView()
+      if (map && view) {
+        // const g = scene.drawColorArea(selectArea, 0x00ff00, 0.25)
+        map.addOwnedPixels(selectArea)
+        view.clearSelect()
       }
-    } else if (action.uploadable && selectArea) {
+    } else if (action.uploadable) {
       fileInputRef.current?.click()
     }
   }, [selectArea, action])
@@ -144,21 +171,23 @@ const PixelMapComponent: React.FC<Props> = (props) => {
     if (!file) return
     const reader = new FileReader()
     reader.onload = async function(ev) {
-      const imgSrc = ev.target?.result as string
-      const scene = vpmapRef.current?.getActiveScene()
-      if (!scene || !selectArea) return
+      const map = mapRef.current
+      const view = map?.getView()
+      if (!map || !view || !selectArea) return
 
-      await Assets.load(imgSrc)
-      const container = scene.addImage(imgSrc, selectArea)
-      container.alpha = 0.8
-      vpmapRef.current?.markDirty()
+      map.addPixelImage(view.activeScene, {
+        imageUrl: ev.target?.result as string,
+        area: selectArea,
+        title: 'Test Image',
+        subtitle: 'Uploaded from local file',
+        link: 'www.abc.com',
+      })
+      // const imgSrc = ev.target?.result as string
+      // await Assets.load(imgSrc)
+      // const container = scene.addImage(imgSrc, selectArea)
+      // container.alpha = 0.8
 
-      // const PIXI = await import('pixi.js')
-      // const texture = PIXI.Texture.from(imgSrc)
-      // const sprite = new PIXI.Sprite(texture)
-      // sprite.x = 0
-      // sprite.y = 0
-      // vpmapRef.current?.getActiveScene()?.container.addChild(sprite)
+      // view.markDirty()
     }
     reader.readAsDataURL(file)
   }, [selectArea])
@@ -173,14 +202,15 @@ const PixelMapComponent: React.FC<Props> = (props) => {
         onChange={handleFileChange}
       />
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
-        <div className='absolute' style={{top: pointerPos.y, left: pointerPos.x}}>
-          { selectArea ?
-            <SelectPixels area={selectArea} actionText={actionText} takeAction={doAction} /> :
-            image ?
-            <ImageInfo image={image} p={pointerPixel}/> :
-            <PixelInfo x={pointerPixel.x} y={pointerPixel.y} />
-          }
-        </div>
+      <div className='absolute' style={{top: pointerPos.y, left: pointerPos.x}}>
+        { selectArea ?
+          <SelectPixels area={selectArea} actionText={actionText} takeAction={doAction} /> :
+          image ?
+          <ImageInfo image={image} p={pointerPixel}/> :
+          <PixelInfo x={pointerPixel.x} y={pointerPixel.y} />
+        }
+      </div>
+      {curScene && curScene !== 'main' && <BackButton mapRef={mapRef} />}
     </>
   )
 }

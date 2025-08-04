@@ -14,6 +14,8 @@ export class ViewportScene {
   private selectPixelsGraphic = new Graphics()
   private drawColorGraphic = new Graphics()
 
+  private selectedArea: PixelArea | undefined
+
   constructor(public map: ViewportMap, public pixelWidth: number, public pixelHeight: number, bgUrl = '') {
     this.drawGrid()
     // for (const [x, y] of [[160,160], [600, 600], [160, 600], [600, 160]]) {
@@ -49,11 +51,13 @@ export class ViewportScene {
       // this.selectPixelsGraphic.fill({ color: '#0011ff' })
 
       // this.map.markDirty()
+      this.selectedArea = area
       this.drawColorArea(area, 0x0011ff, undefined, this.selectPixelsGraphic)
     }
   }
 
   clearSelect() {
+    this.selectedArea = undefined
     this.selectPixelsGraphic.clear()
     this.map.markDirty()
   }
@@ -160,8 +164,9 @@ export class ViewportScene {
 
   drawColorArea(area: PixelArea, color: number, alpha = 1, _g?: Graphics) {
     const g = _g || new Graphics()
-    this.container.addChild(g)
     g.clear()
+    // const p = g.parent || this.container
+    // p.addChild(g)  // move to the top
 
     g.rect(
       area.x * PIXEL_SIZE,

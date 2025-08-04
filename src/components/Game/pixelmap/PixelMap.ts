@@ -1,28 +1,12 @@
-import { Container } from 'pixi.js'
+import { Container, Graphics } from 'pixi.js'
 
-import { PixelImage } from '../types'
+import { PixelArea, PixelImage } from '../types'
 import { ViewportMap } from '../ViewportMap'
 import { getAreaPixels, xyToPosition } from '../utils'
 
 import { PixelMainMap, PixelMapImages } from './types'
 import { createViewportMap } from './createViewportMap'
-
-function getSceneImages(sceneName: string, mainState: PixelMainMap): PixelMapImages {
-  let sceneImages = mainState.sceneToImages.get(sceneName)
-  if (!sceneImages) {
-    sceneImages = {
-      pixelToImage: new Map<number, PixelImage>(),
-      pixelToGraphic: new Map<number, Container>(),
-    }
-    mainState.sceneToImages.set(sceneName, sceneImages)
-  }
-  return sceneImages
-}
-
-function getSubSceneName(image: PixelImage): string {
-  const pixel = xyToPosition(image.area.x, image.area.y)
-  return `${pixel}`
-}
+import { getAreaOperatable, getSceneImages, getSubSceneName } from './funcs'
 
 export class PixelMap {
   // pixelToImage = new Map<number, PixelImage>()
@@ -40,6 +24,14 @@ export class PixelMap {
     return this.view
   }
 
+  getMainState() {
+    return this.mainState
+  }
+
+  getAreaOperatable(area: PixelArea | undefined) {
+    return getAreaOperatable(this.mainState, this.view.activeScene, area)
+  }
+
   constructor(c: HTMLCanvasElement) {
     this.mainState = {
       // images: {
@@ -49,6 +41,7 @@ export class PixelMap {
       mintedPixelSet: new Set(),
       ownedPixelSet: new Set(),
       sceneToImages: new Map<string, PixelMapImages>(),
+      mintedPixelToGraphic: new Map<number, Graphics>(),
     }
 
     const { vpmap, disconnect } = createViewportMap(c)
@@ -75,7 +68,7 @@ export class PixelMap {
   }
 
   private handlePixelClick(sceneName: string, pixel: number) {
-    const { pixelToImage } = getSceneImages(sceneName, this.mainState)
+    const { pixelToImage } = getSceneImages(this.mainState, sceneName)
     const image = pixelToImage.get(pixel)
     if (!image) return
 
@@ -83,7 +76,7 @@ export class PixelMap {
       this.openPixelImage(image)
     } else {
       // open subpixel url
-      console.log('Open subpixel image:', image.imageUrl)
+      console.log('Open subpixel image:', image.link)
     }
   }
 
@@ -112,7 +105,7 @@ export class PixelMap {
     const container = scene.addImage(image.imageUrl, image.area)
 
     // get scene's images and update
-    const { pixelToImage, pixelToGraphic } = getSceneImages(sceneName, this.mainState)
+    const { pixelToImage, pixelToGraphic } = getSceneImages(this.mainState, sceneName)
 
     const pixels = getAreaPixels(image.area)
     for (const pixel of pixels) {
@@ -122,13 +115,26 @@ export class PixelMap {
   }
 
   getImageFromPoint(scene: string, x: number, y: number): PixelImage | undefined {
-    const { pixelToImage } = getSceneImages(scene, this.mainState)
+    const { pixelToImage } = getSceneImages(this.mainState, scene)
     const pixel = xyToPosition(x, y)
     
     return pixelToImage.get(pixel)
   }
 
-  // addSubMap(pixel: number, subMap: PixelMap) {
-  //   this.pixelToSubMap?.set(pixel, subMap)
-  // }
+  addOwnedPixels(area: PixelArea) {
+    const mainScene = this.view.getScene('main')
+    if (!mainScene) return
+
+    // update data
+    const pixels = getAreaPixels(area)
+    for (const pixel of pixels) {
+      this.mainState.ownedPixelSet.add(pixel)
+    }
+
+    // draw on scene
+    // update graphics if exists
+    let g = this.mainState.mintedPixelToGraphic.get(pixels[0])
+    g = mainScene.drawColorArea(area, 0x00ff00, 0.25, g)
+    this.mainState.mintedPixelToGraphic.set(pixels[0], g)
+  }
 }

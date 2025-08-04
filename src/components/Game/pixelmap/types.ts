@@ -1,4 +1,4 @@
-import { Container } from 'pixi.js'
+import { Container, Graphics } from 'pixi.js'
 
 import { PixelImage } from '../types'
 
@@ -12,4 +12,7 @@ export interface PixelMainMap {
   mintedPixelSet: Set<number>
   ownedPixelSet: Set<number>
   sceneToImages: Map<string, PixelMapImages>
+
+  // top left pixel of minted area => Graphics on main scene
+  mintedPixelToGraphic: Map<number, Graphics>
 }
