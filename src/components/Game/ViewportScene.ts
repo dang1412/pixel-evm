@@ -180,4 +180,8 @@ export class ViewportScene {
 
     return g
   }
+
+  destroy() {
+    this.container.destroy()
+  }
 }

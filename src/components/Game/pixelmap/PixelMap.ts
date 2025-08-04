@@ -110,6 +110,8 @@ export class PixelMap {
       pixelToImage.set(pixel, image)
     }
 
+    // TODO if this is sub-image, need to add it to parent image data ? (or no need)
+
     // draw image on scene
     const container = scene.addImage(image.imageUrl, image.area, pixelToGraphic.get(pixels[0]))
     pixelToGraphic.set(pixels[0], container)
@@ -134,7 +136,24 @@ export class PixelMap {
       pixelToGraphic.delete(pixels[0])
     }
 
+    if (sceneName === 'main') {
+      // remove subscene
+      const subSceneName = getSubSceneName(image)
+      this.removeSubscene(subSceneName)
+    }
+
     this.view.markDirty()
+  }
+
+  private removeSubscene(name: string) {
+    // remove all subimages
+    const { pixelToImage } = getSceneImages(this.mainState, name)
+    const subImages = pixelToImage.values()
+    for (const subImage of subImages) {
+      this.removePixelImage(name, subImage)
+    }
+
+    this.view.removeScene(name)
   }
 
   getImageFromPoint(scene: string, x: number, y: number): PixelImage | undefined {

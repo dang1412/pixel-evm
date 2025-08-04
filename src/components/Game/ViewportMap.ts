@@ -61,6 +61,15 @@ export class ViewportMap {
     return scene
   }
 
+  removeScene(name: string) {
+    const scene = this.scenes[name]
+    if (scene) {
+      scene.destroy()
+      delete this.scenes[name]
+      this.eventTarget.dispatchEvent(new CustomEvent('sceneremoved', { detail: name }))
+    }
+  }
+
   getActiveScene(): ViewportScene | undefined {
     return this.getScene(this.activeScene)
   }
