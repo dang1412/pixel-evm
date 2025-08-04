@@ -219,16 +219,7 @@ export class PixelArenaMap {
   }
 
   async updateFires(fires: CountDownItemOnMap[]) {
-    const firePixels = new Set<number>(fires.map(f => xyToPosition(f.pos.x, f.pos.y)))
-    // Remove stopped fires
-    Object.keys(this.fires)
-      .map(p => Number(p))
-      .filter(p => !firePixels.has(p) || this.fires[p].isStopped())
-      .forEach(p => {
-        const f = this.fires[p]
-        f.stop()
-        delete this.fires[p]
-      })
+    console.log('Update fires:', fires)
 
     // Wait after actions done
     await this.actionsExecutedPromise
@@ -244,12 +235,26 @@ export class PixelArenaMap {
       sound.play('fire-sound', { loop: true, volume: 0.3 })
     }
 
+    const firePixels = new Set<number>(fires.map(f => xyToPosition(f.pos.x, f.pos.y)))
+    // Remove stopped fires, or not from server
+    Object.keys(this.fires)
+      .map(p => Number(p))
+      .filter(p => !firePixels.has(p) || this.fires[p].isStopped())
+      .forEach(p => {
+        const f = this.fires[p]
+        f.stop()
+        delete this.fires[p]
+      })
+
     if (Object.keys(this.fires).length === 0) {
       sound.stop('fire-sound')
     }
+
+    this.map.markDirty()
   }
 
   async updateBombs(bombs: CountDownItemOnMap[]) {
+    console.log('Update bombs:', bombs)
     await this.actionsExecutedPromise
     for (const bomb of bombs) {
       const pixel = xyToPosition(bomb.pos.x, bomb.pos.y)
@@ -266,6 +271,8 @@ export class PixelArenaMap {
         delete this.bombs[p]
       }
     })
+
+    this.map.markDirty()
   }
 
   private informUI() {
