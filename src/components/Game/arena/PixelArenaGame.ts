@@ -69,7 +69,7 @@ export class PixelArenaGame {
     console.log('Game started')
 
     this.addTeam0()
-    this.addTeam1()
+    // this.addTeam1()
 
     // this.addItem({ x: getRandom(1, 29), y: getRandom(10, 20) }, MapItemType.Rocket)
     const itemsArray: [number, MapItemType][] = []
@@ -289,35 +289,19 @@ export class PixelArenaGame {
       this.executedOrder.splice(index, 1)
     }
 
-    // Execute final blow
-    if (action.actionType === ActionType.FinalBlow) {
-      this.executeFinalBlow(action)
-    // Put to wait list
-    } else {
-      // Add to the last
-      this.executedOrder.push(action.id)
-      // Update action
-      this.stepActions[action.id] = action
+    this.executedOrder.push(action.id)
+    // Update action
+    this.stepActions[action.id] = action
 
-      // update owner last move (for EachPlayerMove mode)
-      const monster = this.state.monsters[action.id]
-      if (monster) {
-        this.stepOwnerLastMove[monster.ownerId] = action.id
-      }
+    // update owner last move (for EachPlayerMove mode)
+    const monster = this.state.monsters[action.id]
+    if (monster) {
+      this.stepOwnerLastMove[monster.ownerId] = action.id
     }
 
     console.log(
       `received order: ${this.executedOrder}, aliveNumber: ${this.aliveNumber}`
     )
-
-    // if all done
-    // if (this.isRoundActionsDone()) {
-    //   this.proceedStep()
-    // } else {
-    //   console.log(
-    //     `Action received: ${action.actionType} by monster ${action.id}`
-    //   )
-    // }
   }
 
   private proceedStep() {
@@ -357,7 +341,22 @@ export class PixelArenaGame {
 
     const executeOrder = this.getExecuteOrder()
 
-    // Process move actions first
+    // Process final blow actions first
+    for (const id of executeOrder) {
+      const action = this.stepActions[id]
+      if (action.actionType === ActionType.FinalBlow) {
+        const executed = this.executeFinalBlow(action, updatedMonsterIds)
+        if (executed) {
+          appliedActions.push(executed)
+        } else {
+          console.warn(
+            `Final blow action for monster ${action.id} was not executed`
+          )
+        }
+      }
+    }
+
+    // Process move actions
     for (const id of executeOrder) {
       const action = this.stepActions[id]
       if (action.actionType === ActionType.Move) {
@@ -569,32 +568,22 @@ export class PixelArenaGame {
     return action
   }
 
-  private executeFinalBlow(action: ArenaAction) {
+  private executeFinalBlow(action: ArenaAction, updatedMonsterIds: Set<number>): ArenaAction | undefined {
     const monster = this.state.monsters[action.id]
     if (!monster || monster.hp !== 1) return
-
-    // monster.pos = action.target
-    const updatedMonsterIds = new Set([monster.id])
 
     // Final blow equal to a rocket
     this.applyShootDamage({ ...action, actionType: ActionType.ShootRocket }, updatedMonsterIds)
     // Self hit and die
     this.monsterGotHit(action.id, 1)
+    updatedMonsterIds.add(action.id)
 
-    const changedStates = Array.from(updatedMonsterIds).map((id) => ({
-      ...this.state.monsters[id],
-    }))
-
-    // Remove monster
-    delete this.state.monsters[action.id]
-
-    // Inform clients
-    this.opts.onActionsDone([action], changedStates)
     // Add fire
     if (monster.weapons[MapItemType.Fire] > 0) {
       this.addFire(action.id, action.target)
-      this.sendAllFires()
     }
+
+    return action
   }
 
   private applyShootDamage(
@@ -627,7 +616,7 @@ export class PixelArenaGame {
 
   private addFire(monsterId: number, p: PointData) {
     const monster = this.state.monsters[monsterId]
-    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime : 4 // Instant move fire time
+    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime/2 : 4 // Instant move fire time
     const newFire: CountDownItemOnMap = { pos: p, ownerId: monster?.ownerId || 0, living }
 
     const pixel = xyToPosition(p.x, p.y)
@@ -651,7 +640,7 @@ export class PixelArenaGame {
       }
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
-      fire.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime : 1 // Instant move fire damage
+      fire.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move fire damage
     }
   }
 
@@ -666,7 +655,7 @@ export class PixelArenaGame {
     }
 
     const monster = this.state.monsters[id]
-    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime : 4 // Instant move bomb time
+    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime/2 : 4 // Instant move bomb time
     const newBomb: CountDownItemOnMap = { pos: target, ownerId: monster?.ownerId || 0, living }
     
     // new
@@ -680,7 +669,7 @@ export class PixelArenaGame {
     for (const bomb of this.state.bombs) {
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
-      bomb.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime : 1 // Instant move bomb damage
+      bomb.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move bomb damage
       if (bomb.living <= 0) {
         // bomb explode
         this.applyShootDamage(

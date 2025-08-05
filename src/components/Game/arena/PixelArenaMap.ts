@@ -157,35 +157,34 @@ export class PixelArenaMap {
   async onExecutedActions(actions: ArenaAction[]) {
     console.log('Next round actions:', actions)
     // wait for previous actions
-    // await this.actionsExecutedPromise
+    // apply finalblows, then moves and shoots
+    this.actionsExecutedPromise = this.actionsExecutedPromise
+      .then(() => this.processFinalBlow(actions))
+      .then(() => Promise.all([
+        this.processMoveActions(actions),
+        this.processShootActions(actions)
+      ]))
 
-    // apply finalblow
-    if (actions.length === 1 && actions[0].actionType === ActionType.FinalBlow) {
-      const final = actions[0]
-      // scream
-      sound.play('scream')
-      // move
-      const monster = this.monsters[final.id]
-      // execute after current actions done
-      this.actionsExecutedPromise = this.actionsExecutedPromise
-        // .then(() => monster.applyAction({...final, actionType: ActionType.Move}))
-        .then(() => monster.moveTo(final.target.x, final.target.y))
-      this.actionsExecutedPromise.then(() => this.animateExplode(final.target.x, final.target.y))
-    } else {
-      // apply moves and shoots
-      // execute after current actions done
-      this.actionsExecutedPromise = this.actionsExecutedPromise
-        .then(() => Promise.all([
-          this.processMoveActions(actions),
-          this.processShootActions(actions)
-        ]))
-      await this.actionsExecutedPromise
+    // clear current actions
+    for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
+      monster.updateActionAndDraw()
+    }
+  }
 
-      // clear current actions
-      for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
-        monster.updateActionAndDraw()
+  private processFinalBlow(actions: ArenaAction[]) {
+    // Process final blow action
+    const allMoves: Promise<void>[] = []
+    for (const action of actions) if (action.actionType === ActionType.FinalBlow) {
+      // const final = actions[0]
+      const monster = this.monsters[action.id]
+      if (monster) {
+        // move monster to target position
+        const move = monster.moveTo(action.target.x, action.target.y)
+        move.then(() => this.animateExplode(action.target.x, action.target.y))
+        allMoves.push(move)
       }
     }
+    return Promise.all(allMoves)
   }
 
   async updateMonsterStates(monsters: MonsterState[]) {
@@ -232,7 +231,7 @@ export class PixelArenaMap {
 
       this.fires[pixel] = arenaFire
 
-      sound.play('fire-sound', { loop: true, volume: 0.3 })
+      sound.play('fire-sound', { loop: true, volume: 0.1 })
     }
 
     const firePixels = new Set<number>(fires.map(f => xyToPosition(f.pos.x, f.pos.y)))
@@ -343,7 +342,7 @@ export class PixelArenaMap {
     // Process shoot actions for monsters
     const shootPromises: Promise<void>[] = []
     for (const action of actions) {
-      if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
+      if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire, ActionType.ShootBomb].includes(action.actionType)) {
         const monster = this.monsters[action.id]
         if (monster) {
           const shoot = monster.applyAction(action)

@@ -250,7 +250,7 @@ export class PixelArenaMonster {
     if (action.actionType === ActionType.Move) {
       await this.moveTo(x, y)
       this.state.pos = { x, y } // Update monster position
-    } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire].includes(action.actionType)) {
+    } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire, ActionType.ShootBomb].includes(action.actionType)) {
       await this.drawShoot(x, y, action.actionType)
       if (action.actionType === ActionType.ShootRocket) {
         this.arenaMap.animateExplode(x, y)

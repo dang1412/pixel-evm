@@ -54,6 +54,14 @@ export class ArenaFire {
     text.y = 110
     this.container.addChild(text)
     this.text = text
+
+    if (this.fire.living === 2) {
+      this.container.alpha = 0.8
+    } else if (this.fire.living === 1) {
+      this.container.alpha = 0.6
+    } else {
+      this.container.alpha = 1
+    }
   }
 
   // next() {
