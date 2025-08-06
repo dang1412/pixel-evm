@@ -176,11 +176,11 @@ export class PixelArenaGame {
   }
 
   private sendAllFires() {
-    // only send fires which living is integer
-    const fires = this.state.fires.filter(f => Number.isInteger(f.living))
+    // send fires, ceil living to upper integer
+    const fires = this.state.fires.map(f => ({...f, living: Math.ceil(f.living)}))
     if (fires.length) {
-      const copy = JSON.parse(JSON.stringify(fires)) as CountDownItemOnMap[]
-      this.opts.onFiresUpdate(copy)
+      // const copy = JSON.parse(JSON.stringify(fires)) as CountDownItemOnMap[]
+      this.opts.onFiresUpdate(fires)
     }
   }
 
@@ -356,6 +356,18 @@ export class PixelArenaGame {
       }
     }
 
+    // Process shoot bomb actions
+    for (const id of executeOrder) {
+      const action = this.stepActions[id]
+      if (action.actionType === ActionType.ShootBomb) {
+        console.log('execute shoot bomb', action)
+        const executed = this.processShootBomb(action, updatedMonsterIds)
+        if (executed) {
+          appliedActions.push(executed)
+        }
+      }
+    }
+
     // Process move actions
     for (const id of executeOrder) {
       const action = this.stepActions[id]
@@ -374,7 +386,6 @@ export class PixelArenaGame {
     // Process shoot actions
     for (const id of executeOrder) {
       const action = this.stepActions[id]
-      console.log('execute action', action)
       if (
         action.actionType === ActionType.Shoot ||
         action.actionType === ActionType.ShootRocket ||
@@ -407,6 +418,12 @@ export class PixelArenaGame {
     const monster = this.state.monsters[monsterId]
 
     return monster && monster.hp > 0
+  }
+
+  private hasBomb(x: number, y: number): boolean {
+    const pixel = xyToPosition(x, y)
+    const bomb = this.posBombMap[pixel]
+    return bomb && bomb.living > 0
   }
 
   private getNextMovePosition(from: PointData, to: PointData): PointData {
@@ -520,20 +537,47 @@ export class PixelArenaGame {
     return { x: points[j][0], y: points[j][1] }
   }
 
-  private processShootAction(
-    action: ArenaAction,
-    updatedMonsterIds: Set<number>
-  ): ArenaAction | undefined {
-    const monster = this.state.monsters[action.id]
-    console.log('processShootAction', monster, action)
-    if (!monster || monster.hp <= 0) {
-      console.warn(`Monster ${action.id} not found or dead for shoot action`)
-      return
+  private getShootBombPosition(from: PointData, to: PointData): PointData {
+    // Get the next move position based on the current position and target
+    const points = getPixelsFromLine(from.x, from.y, to.x, to.y)
+    // start at last pos
+    let j = points.length - 1
+    // for (let i = 1; i < points.length; i++) {
+    //   const [x, y] = points[i]
+    //   const pixel = xyToPosition(x, y)
+    //   if (this.posBombMap[pixel]) {
+    //     // has bomb
+    //     break
+    //   }
+
+    //   // move next
+    //   j = i
+    // }
+
+    // move back until found empty position, or at start
+    for (j = points.length - 1; j > 0; j--) {
+      const [x, y] = points[j]
+      if (!this.hasMonster(x, y) && !this.hasBomb(x, y)) {
+        break
+      }
     }
 
+    return { x: points[j][0], y: points[j][1] }
+  }
+
+  private processShootBomb(action: ArenaAction, updatedMonsterIds: Set<number>): ArenaAction | undefined {
+    const monster = this.state.monsters[action.id]
+    if (!monster || monster.hp <= 0) {
+      console.warn(`Monster ${action.id} not found or dead for shoot bomb action`)
+      return
+    }
     // bomb
     if (action.actionType === ActionType.ShootBomb) {
       if (monster.weapons[MapItemType.Bomb] <= 0) return
+
+      // calculate shoot block
+      action.target = this.getShootBombPosition(monster.pos, action.target)
+
       const executed = this.addBomb(action)
       if (executed) {
         monster.weapons[MapItemType.Bomb]--
@@ -542,6 +586,18 @@ export class PixelArenaGame {
 
       return executed
     }
+  }
+
+  private processShootAction(
+    action: ArenaAction,
+    updatedMonsterIds: Set<number>
+  ): ArenaAction | undefined {
+    const monster = this.state.monsters[action.id]
+    if (!monster || monster.hp <= 0) {
+      console.warn(`Monster ${action.id} not found or dead for shoot action`)
+      return
+    }
+    console.log('processShootAction', monster, action)
 
     // calculate shoot block
     action.target = this.getShootPosition(monster.pos, action.target)
@@ -641,6 +697,7 @@ export class PixelArenaGame {
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
       fire.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move fire damage
+      if (this.gameMode !== GameMode.InstantMove) fire.living = Math.ceil(fire.living)
     }
   }
 
@@ -650,7 +707,8 @@ export class PixelArenaGame {
     // check if already has bomb at this position
     const pixel = xyToPosition(target.x, target.y)
     const bomb = this.posBombMap[pixel]
-    if (bomb) {
+    const monsterAtTarget = this.positionMonsterMap[pixel]
+    if (bomb || monsterAtTarget) {
       return undefined
     }
 
@@ -670,6 +728,7 @@ export class PixelArenaGame {
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
       bomb.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move bomb damage
+      if (this.gameMode !== GameMode.InstantMove) bomb.living = Math.ceil(bomb.living)
       if (bomb.living <= 0) {
         // bomb explode
         this.applyShootDamage(
