@@ -7,6 +7,7 @@ import { Address } from '@/lib/RTCConnectClients'
 // import { createViewportMap } from '../helpers/createViewportMap'
 import { MenuModal } from '../MenuModal'
 import { PixelMap } from '../pixelmap/PixelMap'
+import { BackButton } from '../pixelmap/BackButton'
 import { mockImages } from '../mock/images'
 
 import { PixelArenaMap } from './PixelArenaMap'
@@ -23,12 +24,14 @@ interface Props {}
 const PixelArenaComponent: React.FC<Props> = () => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement>()
   const networkRef = useRef<ArenaNetwork>()
+  const mapRef = useRef<PixelMap | undefined>()
 
   const [monsters, setMonsters] = useState<MonsterState[]>([])
   const [selectedId, setSelectedId] = useState(0)
   const [actionCtrlPos, setActionCtrlPos] = useState<PointData>()
 
   const [arenaSceneOpening, setArenaSceneOpening] = useState(false)
+  const [curScene, setCurScene] = useState<string>('')
 
   const onMonstersUpdate = useCallback((monsters: MonsterState[]) => {
     setMonsters(monsters)
@@ -60,6 +63,8 @@ const PixelArenaComponent: React.FC<Props> = () => {
     if (canvas && !networkRef.current) {
       console.log('Create game')
       const map = new PixelMap(canvas)
+      mapRef.current = map
+
       map.addMainImages(mockImages)
       const view = map.getView()
 
@@ -75,8 +80,9 @@ const PixelArenaComponent: React.FC<Props> = () => {
 
       view.subscribe('sceneactivated', (event: CustomEvent) => {
         console.log('Scene activated:', event.detail)
-        const addedScene = event.detail
-        if (addedScene === sceneName) {
+        const openedScene = event.detail
+        setCurScene(openedScene)
+        if (openedScene === sceneName) {
           if (!networkRef.current?.gameStarted) setIsMenuModalOpen(true)
           setArenaSceneOpening(true)
         } else {
@@ -163,6 +169,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       </div>}
       {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
+      {curScene && curScene !== 'main' && <BackButton mapRef={mapRef} />}
     </>
   )
 }
