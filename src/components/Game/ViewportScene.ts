@@ -107,6 +107,7 @@ export class ViewportScene {
       (async () => {
         await Assets.load(url).catch((e) => console.warn('Can not load image url', url))
         image.texture = Texture.from(url)
+        this.map.eventTarget.dispatchEvent(new Event('updated'))
         this.map.markDirty()
       })()
     }

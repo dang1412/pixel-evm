@@ -95,20 +95,22 @@ export class ViewportMap {
       this.viewport.addChild(scene.container)
       scene.opened()
 
-      this.updateMinimap()
-      this.markDirty()
+      // this.updateMinimap()
 
       this.eventTarget.dispatchEvent(new CustomEvent('sceneactivated', { detail: name }))
+      this.eventTarget.dispatchEvent(new Event('updated'))
+
+      this.markDirty()
     }
   }
 
-  updateMinimap() {
-    const scene = this.getActiveScene()
-    if (!this.viewport || !this.minimap || !scene) return
+  // updateMinimap() {
+  //   const scene = this.getActiveScene()
+  //   if (!this.viewport || !this.minimap || !scene) return
 
-    const { top, left, worldScreenWidth, worldScreenHeight, worldWidth, worldHeight } = this.viewport
-    this.minimap.update(worldWidth, worldHeight, top, left, worldScreenWidth, worldScreenHeight, scene.container)
-  }
+  //   const { top, left, worldScreenWidth, worldScreenHeight, worldWidth, worldHeight } = this.viewport
+  //   this.minimap.update(worldWidth, worldHeight, top, left, worldScreenWidth, worldScreenHeight, scene.container)
+  // }
 
   resize(w: number, h: number) {
     if (!this.viewport) return
@@ -116,7 +118,7 @@ export class ViewportMap {
 
     this.renderer.resize(w, h)
     this.viewport.resize(w, h)
-    this.updateMinimap()
+    // this.updateMinimap()
   }
 
   async init(w: number, h: number) {
@@ -133,7 +135,7 @@ export class ViewportMap {
       events: this.renderer.events,
     })
 
-    this.minimap = new Minimap(this.renderer)
+    this.minimap = new Minimap(this.renderer, this)
     this.minimap.container.position.set(10, 10)
 
     this.wrapper.addChild(viewport)
@@ -157,9 +159,9 @@ export class ViewportMap {
       // console.log('clicked', e.screen, e.world)
     })
 
-    viewport.on('zoomed', () => this.updateMinimap())
+    // viewport.on('zoomed', () => this.updateMinimap())
     viewport.on('moved', () => {
-      this.updateMinimap()
+      // this.updateMinimap()
       downPx = -1, downPy = -1  // prevent click after move
       this.eventTarget.dispatchEvent(new Event('viewportmoved'))
     })
@@ -273,7 +275,7 @@ export class ViewportMap {
 
   moveCenter() {
     this.viewport?.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
-    this.updateMinimap()
+    // this.updateMinimap()
   }
 
   markDirty() {
@@ -359,6 +361,7 @@ export class ViewportMap {
         if (x === tarX && y === tarY) {
           unsub()
           res()
+          this.eventTarget.dispatchEvent(new Event('updated'))
         }
       })
     })
