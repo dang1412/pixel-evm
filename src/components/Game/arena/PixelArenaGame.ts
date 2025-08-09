@@ -368,12 +368,14 @@ export class PixelArenaGame {
       }
     }
 
-    // Process shoot bomb actions
+    // Process move, shoot bomb actions
     for (const id of executeOrder) {
       const action = this.stepActions[id]
-      if (action.actionType === ActionType.ShootBomb) {
-        console.log('execute shoot bomb', action)
-        const executed = this.processShootBomb(action, updatedMonsterIds)
+      if (action.actionType === ActionType.Move || action.actionType === ActionType.ShootBomb) {
+        console.log('execute', action)
+        const executed = action.actionType === ActionType.Move 
+          ? this.processMoveAction(action, updatedMonsterIds)
+          : this.processShootBomb(action, updatedMonsterIds)
         if (executed) {
           appliedActions.push(executed)
         }
@@ -381,19 +383,19 @@ export class PixelArenaGame {
     }
 
     // Process move actions
-    for (const id of executeOrder) {
-      const action = this.stepActions[id]
-      if (action.actionType === ActionType.Move) {
-        const executed = this.processMoveAction(action, updatedMonsterIds)
-        if (executed) {
-          appliedActions.push(executed)
-        } else {
-          console.warn(
-            `Move action for monster ${action.id} was not executed due to invalid position`
-          )
-        }
-      }
-    }
+    // for (const id of executeOrder) {
+    //   const action = this.stepActions[id]
+    //   if (action.actionType === ActionType.Move) {
+    //     const executed = this.processMoveAction(action, updatedMonsterIds)
+    //     if (executed) {
+    //       appliedActions.push(executed)
+    //     } else {
+    //       console.warn(
+    //         `Move action for monster ${action.id} was not executed due to invalid position`
+    //       )
+    //     }
+    //   }
+    // }
 
     // Process shoot actions
     for (const id of executeOrder) {
@@ -444,8 +446,8 @@ export class PixelArenaGame {
     for (let i = 1; i < points.length; i++) {
       const [x, y] = points[i]
       const pixel = xyToPosition(x, y)
-      if (this.posBombMap[pixel]) {
-        // has bomb
+      if (this.posBombMap[pixel] || this.hasMonster(x, y)) {
+        // hit bomb or monster
         break
       }
 
@@ -454,9 +456,9 @@ export class PixelArenaGame {
     }
 
     // move back until found empty position
-    while (j > 0 && this.hasMonster(points[j][0], points[j][1])) {
-      j--
-    }
+    // while (j > 0 && this.hasMonster(points[j][0], points[j][1])) {
+    //   j--
+    // }
 
     return { x: points[j][0], y: points[j][1] }
   }
@@ -587,7 +589,7 @@ export class PixelArenaGame {
       if (monster.weapons[MapItemType.Bomb] <= 0) return
 
       // calculate shoot block
-      action.target = this.getShootBombPosition(monster.pos, action.target)
+      action.target = this.getNextMovePosition(monster.pos, action.target)
 
       const executed = this.addBomb(action)
       if (executed) {
