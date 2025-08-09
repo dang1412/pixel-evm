@@ -1,7 +1,7 @@
 import { AttackType } from './gamelogic/types'
 import { MonsterInfo, MonsterType } from './types'
 
-export const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
+const monsterInfos: {[k in MonsterType]: Partial<MonsterInfo>} = {
   [MonsterType.MEGAMAN]: {
     spritesheet: '/animations/megaman/mm-01.json',
     image: 'mm-move-0.png',

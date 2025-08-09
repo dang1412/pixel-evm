@@ -11,6 +11,7 @@ const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
 
 export interface ViewportMapOptions {
+  selectable?: boolean
   onDrop?: (data: DataTransfer, px: number, py: number) => void
 }
 
@@ -40,7 +41,8 @@ export class ViewportMap {
   constructor(public canvas: HTMLCanvasElement, public options: ViewportMapOptions = {}) {
     this.renderer = new WebGLRenderer()
     this.wrapper = new Container()
-    this.setupSelect()
+    const { selectable = true } = options
+    if (selectable) this.setupSelect()
 
     // Create the promise and store the resolver
     this.initialize = new Promise<void>((resolve) => {

@@ -103,10 +103,13 @@ export class ViewportScene {
     // add image
     const image = new Sprite()
     // load
-    if (url) Assets.load(url).then(() => {
-      image.texture = Texture.from(url)
-      this.map.markDirty()
-    })
+    if (url) {
+      (async () => {
+        await Assets.load(url).catch((e) => console.warn('Can not load image url', url))
+        image.texture = Texture.from(url)
+        this.map.markDirty()
+      })()
+    }
 
     if (area.w && area.h) {
       image.width = area.w * PIXEL_SIZE

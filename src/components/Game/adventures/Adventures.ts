@@ -294,7 +294,8 @@ export class Adventures {
   private curMapIdx = 0
 
   private async addMainScene(images: PixelImage[]) {
-    const scene = this.map.addScene('main', 100, 100)
+    const scene = this.map.getScene('main')
+    if (!scene) return
     await scene.loadImages(images)
 
     // update states
