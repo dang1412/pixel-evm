@@ -12,6 +12,7 @@ import { getImageFromPixel, setPixelToImage } from './pixelStates'
  * 
  * @param c HTMLCanvasElement
  * @returns vpmap: ViewportMap
+ * TODO remove this, use PixelMap
  */
 export function createViewportMap(c: HTMLCanvasElement, images = mockImages) {
   const vpmap = new ViewportMap(c)

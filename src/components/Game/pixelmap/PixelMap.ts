@@ -34,18 +34,19 @@ export class PixelMap {
       mintedPixelToGraphic: new Map<number, Graphics>(),
     }
 
-    const { vpmap, disconnect } = createViewportMap(c)
-    this.view = vpmap
+    const { view, disconnect } = createViewportMap(c)
+    this.view = view
 
     this.destroy = () => {
       disconnect()
+      view.viewport?.destroy()
       // more cleanup
     }
 
     // pixel click
-    vpmap.subscribe('pixelclick', (e) => {
+    view.subscribe('pixelclick', (e) => {
       const [x, y] = e.detail
-      this.handlePixelClick(vpmap.activeScene, xyToPosition(x, y))
+      this.handlePixelClick(view.activeScene, xyToPosition(x, y))
     })
   }
 

@@ -10,7 +10,7 @@ export class ArenaBomb {
 
   constructor(private arenaMap: PixelArenaMap, private bomb: CountDownItemOnMap) {
     // TODO get the right game scene
-    const scene = this.arenaMap.map.getActiveScene()!
+    const scene = this.arenaMap.getScene()!
 
     this.container = scene.addImage('/images/bomb.png', {x: bomb.pos.x - 0.4, y: bomb.pos.y - 0.4, w: 1.6, h: 1.6})
     this.drawLiving()

@@ -389,8 +389,7 @@ export class PixelArenaGame {
       if (
         action.actionType === ActionType.Shoot ||
         action.actionType === ActionType.ShootRocket ||
-        action.actionType === ActionType.ShootFire ||
-        action.actionType === ActionType.ShootBomb
+        action.actionType === ActionType.ShootFire
       ) {
         const executed = this.processShootAction(action, updatedMonsterIds)
         if (executed) {

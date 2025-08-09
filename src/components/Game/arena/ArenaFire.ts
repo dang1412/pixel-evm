@@ -16,8 +16,8 @@ export class ArenaFire {
 
   constructor(private arenaMap: PixelArenaMap, private fire: CountDownItemOnMap) {
     // animation
-    this.animation = createAnimation(arenaMap.map)
-    const scene = this.arenaMap.map.getActiveScene()!
+    this.animation = createAnimation(arenaMap.getView())
+    const scene = this.arenaMap.getScene()!
     const { x, y } = this.fire.pos
     this.container = scene.addImage('', {x: x - 2.2, y: y - 3.2, w: 5, h: 5})
     this.init()

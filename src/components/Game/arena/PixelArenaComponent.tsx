@@ -4,13 +4,17 @@ import { FaRotate } from 'react-icons/fa6'
 
 import { Address } from '@/lib/RTCConnectClients'
 
-import { createViewportMap } from '../helpers/createViewportMap'
+// import { createViewportMap } from '../helpers/createViewportMap'
+import { MenuModal } from '../MenuModal'
+import { PixelMap } from '../pixelmap/PixelMap'
+import { mockImages } from '../mock/images'
+
 import { PixelArenaMap } from './PixelArenaMap'
 import { ActionType, MonsterState } from './types'
 import MonsterCard from './MonsterCard'
 import MonsterControlSelect from './MonsterControlSelect'
 import { ArenaNetwork } from './ArenaNetwork'
-import { MenuModal } from '../MenuModal'
+
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { getAccountConnectService, useWebRTCConnect } from '@/lib/webRTC/hooks/useWebRTCConnect'
 
@@ -55,10 +59,12 @@ const PixelArenaComponent: React.FC<Props> = () => {
   useEffect(() => {
     if (canvas && !networkRef.current) {
       console.log('Create game')
-      const { vpmap, disconnect } = createViewportMap(canvas)
+      const map = new PixelMap(canvas)
+      map.addMainImages(mockImages)
+      const view = map.getView()
 
       const sceneName = '4848'
-      const pixelArena = new PixelArenaMap(vpmap, {
+      const pixelArena = new PixelArenaMap(map, {
         sceneName,
         onMonstersUpdate,
         onMonsterSelect,
@@ -67,7 +73,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
         },
       })
 
-      pixelArena.map.subscribe('sceneactivated', (event: CustomEvent) => {
+      view.subscribe('sceneactivated', (event: CustomEvent) => {
         console.log('Scene activated:', event.detail)
         const addedScene = event.detail
         if (addedScene === sceneName) {
@@ -82,7 +88,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       const network = new ArenaNetwork(pixelArena)
       networkRef.current = network
 
-      return disconnect
+      return () => map.destroy()
     }
   }, [canvas])
 

@@ -42,7 +42,7 @@ export class PixelArenaMonster {
   // private animation: PixiAnimation
 
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
-    const scene = arenaMap.map.getActiveScene()!
+    const scene = arenaMap.getScene()!
     const { image, w, h, dx, dy } = monsterInfos[state.type]
     this.monsterContainer = scene.addImage(image, { x: state.pos.x, y: state.pos.y, w, h })
 
@@ -101,23 +101,25 @@ export class PixelArenaMonster {
     }
   }
 
-  private getWeapons() {
-    const weapons = [MapItemType.Bomb, MapItemType.Fire, MapItemType.Rocket]
-    return weapons.filter(w => (this.state.weapons as any)[w] > 0)
-  }
+  // private getWeapons() {
+  //   const weapons = [MapItemType.Bomb, MapItemType.Fire, MapItemType.Rocket]
+  //   return weapons.filter(w => (this.state.weapons as any)[w] > 0)
+  // }
 
   drawAction(action = this.action) {
     // clear action
     this.actionLineGraphics?.clear()
     this.shadowContainer?.removeChildren()
 
-    this.arenaMap.map.markDirty()
+    this.arenaMap.getView().markDirty()
 
     if (!action) {
       return
     }
 
-    const scene = this.arenaMap.map.getActiveScene()!
+    const scene = this.arenaMap.getScene()
+    if (!scene) return
+
     this.actionLineGraphics = scene.drawLine(
       { x: this.state.pos.x + 0.5, y: this.state.pos.y + 0.5 },
       { x: action.target.x + 0.5, y: action.target.y + 0.5 },
@@ -160,7 +162,7 @@ export class PixelArenaMonster {
     this.state = state
 
     if (prevx !== state.pos.x || prevy !== state.pos.y) {
-      await this.arenaMap.map.moveObject(this.monsterContainer, state.pos.x, state.pos.y)
+      await this.arenaMap.getView().moveObject(this.monsterContainer, state.pos.x, state.pos.y)
     }
     // TODO update other properties like hp, etc.
     this.draw()
@@ -175,16 +177,16 @@ export class PixelArenaMonster {
     this.drawAction()
   }
 
-  private drawActionType() {
-    if (!this.action) return
+  // private drawActionType() {
+  //   if (!this.action) return
 
-    const actionImage = actionImages[this.action.actionType]
-    this.actionTypeSprite.texture = Assets.get(actionImage) // Default texture
-    this.actionTypeSprite.width = 12
-    this.actionTypeSprite.height = 12
+  //   const actionImage = actionImages[this.action.actionType]
+  //   this.actionTypeSprite.texture = Assets.get(actionImage) // Default texture
+  //   this.actionTypeSprite.width = 12
+  //   this.actionTypeSprite.height = 12
 
-    this.arenaMap.map.markDirty()
-  }
+  //   this.arenaMap.map.markDirty()
+  // }
 
   controlAction() {
     // initiate an action
@@ -208,7 +210,7 @@ export class PixelArenaMonster {
 
     const image = '/svgs/crosshairs.svg'
 
-    this.arenaMap.map.startDrag(image, {
+    this.arenaMap.getView().startDrag(image, {
       onDrop: (x, y, rx, ry) => {
         action.target = { x, y }
         this.drawAction(action)
@@ -261,21 +263,21 @@ export class PixelArenaMonster {
   async moveTo(x: number, y: number) {
     const { x: curx, y: cury } = this.state.pos
     sound.play('move', {volume: 0.2})
-    await this.arenaMap.map.moveObject(this.monsterContainer, curx, cury, x, y)
+    await this.arenaMap.getView().moveObject(this.monsterContainer, curx, cury, x, y)
     console.log(`Monster ${this.state.id} moved to (${x}, ${y})`)
   }
 
   private async drawShoot(x: number, y: number, type: ActionType) {
-    const scene = this.arenaMap.map.getActiveScene()
+    const scene = this.arenaMap.getScene()
     if (!scene) return
 
     const curX = this.state.pos.x
     const curY = this.state.pos.y
     const energy = scene.addImage('/images/energy2.png', { x: curX, y: curY, w: 1, h: 1 })
     sound.play(type === ActionType.ShootFire ? 'beam-fire' : 'shoot', {volume: 0.3})
-    await this.arenaMap.map.moveObject(energy, curX, curY, x, y)
+    await this.arenaMap.getView().moveObject(energy, curX, curY, x, y)
     
-    energy.parent.removeChild(energy)
+    energy.destroy()
   }
 
   remove(): number {

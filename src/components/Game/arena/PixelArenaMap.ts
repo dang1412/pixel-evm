@@ -1,7 +1,7 @@
 import { Assets, Container, PointData, Sprite, Spritesheet } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
-import { ViewportMap } from '../ViewportMap'
+// import { ViewportMap } from '../ViewportMap'
 import { positionToXY, xyToPosition } from '../utils'
 
 import { ActionType, ArenaAction, CountDownItemOnMap, MapItemType, MonsterState } from './types'
@@ -10,6 +10,7 @@ import { itemImages } from './constants'
 import { ArenaFire } from './ArenaFire'
 import { createAnimation } from '../helpers/createAnimation'
 import { ArenaBomb } from './ArenaBomb'
+import { PixelMap } from '../pixelmap/PixelMap'
 
 Assets.load([
   '/images/select_aura.png',
@@ -69,9 +70,10 @@ export class PixelArenaMap {
 
   private actionsExecutedPromise = Promise.resolve({} as any)
 
-  constructor(public map: ViewportMap, private opts: PixelArenaMapOpts) {
+  constructor(public map: PixelMap, private opts: PixelArenaMapOpts) {
+    const view = map.getView()
     // Init map when entered the scene
-    const unsubscene = map.subscribe('sceneactivated', (event: CustomEvent) => {
+    const unsubscene = view.subscribe('sceneactivated', (event: CustomEvent) => {
       console.log('Scene activated:', event.detail)
       const addedScene = event.detail
       if (addedScene === opts.sceneName) {
@@ -81,8 +83,8 @@ export class PixelArenaMap {
     })
 
     // Control on the scene
-    map.subscribe('pixeldown', (event: CustomEvent) => {
-      if (map.activeScene !== opts.sceneName) {
+    view.subscribe('pixeldown', (event: CustomEvent) => {
+      if (view.activeScene !== opts.sceneName) {
         return
       }
 
@@ -90,7 +92,7 @@ export class PixelArenaMap {
       opts.onActionPosition()
       // redraw selecting monster action
       this.selectedMonster?.drawAction()
-      this.map.markDirty()
+      view.markDirty()
 
       const [x, y] = event.detail
       const posVal = xyToPosition(x, y)
@@ -117,10 +119,9 @@ export class PixelArenaMap {
     if (this.selectedMonster && this.tempAction) {
       const action = {...this.tempAction, actionType}
       this.selectedMonster.updateActionAndDraw(action)
-      this.map.markDirty()
+      this.map.getView().markDirty()
       this.tempAction = undefined
 
-      // this.game.receiveAction(action)
       return action
     }
   }
@@ -134,7 +135,7 @@ export class PixelArenaMap {
     if (this.auraContainer) {
       const dx = 0.45
       const dy = 0.5
-      this.map.moveObject(this.auraContainer, x - dx, y - dy, tx - dx, ty - dy)
+      this.map.getView().moveObject(this.auraContainer, x - dx, y - dy, tx - dx, ty - dy)
     }
   }
 
@@ -214,7 +215,7 @@ export class PixelArenaMap {
 
     this.informUI()
 
-    this.map.markDirty()
+    this.map.getView().markDirty()
   }
 
   async updateFires(fires: CountDownItemOnMap[]) {
@@ -249,7 +250,7 @@ export class PixelArenaMap {
       sound.stop('fire-sound')
     }
 
-    this.map.markDirty()
+    this.map.getView().markDirty()
   }
 
   async updateBombs(bombs: CountDownItemOnMap[]) {
@@ -271,7 +272,7 @@ export class PixelArenaMap {
       }
     })
 
-    this.map.markDirty()
+    this.map.getView().markDirty()
   }
 
   private informUI() {
@@ -357,7 +358,8 @@ export class PixelArenaMap {
   }
 
   private initGame() {
-    const scene = this.map.getActiveScene()!
+    const scene = this.getScene()
+    if (!scene) return
 
     // Decor
     scene.addImage('/images/palmtree1.png', { x: 3, y: 3, w: 4, h: 4 })
@@ -375,7 +377,9 @@ export class PixelArenaMap {
 
   // Update items's draw on the map
   async updateMapItems(items: [number, MapItemType][]) {
-    const scene = this.map.getActiveScene()!
+    const scene = this.getScene()
+    if (!scene) return
+
     // wait after actions done
     await this.actionsExecutedPromise
     // const positionItemMap = this.game.state.positionItemMap
@@ -394,7 +398,7 @@ export class PixelArenaMap {
       }
     }
 
-    this.map.markDirty()
+    this.getView().markDirty()
   }
 
   /**
@@ -414,7 +418,7 @@ export class PixelArenaMap {
   }
 
   async animateExplode(x: number, y: number) {
-    const scene = this.map.getActiveScene()
+    const scene = this.getScene()
     if (!scene) return
 
     sound.play('explode1', {volume: 0.1})
@@ -423,9 +427,17 @@ export class PixelArenaMap {
     const container = scene.addImage('', {x: x - 2, y: y - 3.1, w: 5, h: 5})
     const sprite = container.getChildAt(0) as Sprite
 
-    const animation = createAnimation(this.map)
+    const animation = createAnimation(this.map.getView())
     return animation.animateOnce(sprite, frames, 3).then(() => {
       container.destroy()
     })
+  }
+
+  getView() {
+    return this.map.getView()
+  }
+
+  getScene() {
+    return this.getView().getScene(this.opts.sceneName)
   }
 }

@@ -7,13 +7,13 @@ import { ViewportMap } from '../ViewportMap'
  * @returns vpmap: ViewportMap
  */
 export function createViewportMap(c: HTMLCanvasElement) {
-  const vpmap = new ViewportMap(c)
+  const view = new ViewportMap(c)
   // Create an instance of ResizeObserver
   const resizeObserver = new ResizeObserver(entries => {
     for (let entry of entries) {
       // adjust the canvas size since we only watch canvas
       const {width, height} = entry.contentRect
-      vpmap.resize(width - 2, height - 2)
+      view.resize(width - 2, height - 2)
     }
   })
 
@@ -22,12 +22,12 @@ export function createViewportMap(c: HTMLCanvasElement) {
   // init map with main scene, move to center
   ;(async () => {
     const { width, height } = (c.parentNode as HTMLDivElement).getBoundingClientRect()
-    await vpmap.init(width - 2, height - 2)
+    await view.init(width - 2, height - 2)
   })()
 
   const disconnect = () => resizeObserver.disconnect()
 
-  return { vpmap, disconnect }
+  return { view, disconnect }
 }
 
 // export async function initMainMapWithImages(map: ViewportMap, images: PixelImage[]) {
