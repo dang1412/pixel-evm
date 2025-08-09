@@ -320,8 +320,20 @@ export class PixelArenaGame {
     // }, 50) // Delay for processing actions
   }
 
+  private calMonsterActionDistance(id: number) {
+    const monster = this.state.monsters[id]
+    const action = this.stepActions[id]
+    if (!monster || !action) return Infinity
+    const from = monster.pos
+    const to = action.target
+
+    return Math.hypot(from.x - to.x, from.y - to.y)
+  }
+
   private getExecuteOrder(): number[] {
     if (this.gameMode !== GameMode.EachPlayerMove) {
+      // short distance first
+      this.executedOrder.sort((i, j) => this.calMonsterActionDistance(i) - this.calMonsterActionDistance(j))
       return this.executedOrder
     }
 
