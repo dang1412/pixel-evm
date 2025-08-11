@@ -70,7 +70,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
       {isVisible && (
         <div className='bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col items-center w-52'>
           <FaTimes
-            className="absolute top-1 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-600 z-10 cursor-pointer"
+            className="absolute top-0 right-1 bg-gray-700 text-white rounded-full p-1 hover:bg-gray-600 z-10 cursor-pointer"
             onClick={toggleVisibility}
             aria-label="Close"
             size={20}

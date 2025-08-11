@@ -1,6 +1,7 @@
 import { PointData } from 'pixi.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaRotate } from 'react-icons/fa6'
+import { FaUndo } from 'react-icons/fa'
 
 import { Address } from '@/lib/RTCConnectClients'
 
@@ -159,12 +160,19 @@ const PixelArenaComponent: React.FC<Props> = () => {
   return (
     <>
       <canvas ref={(c) => setCanvas(c || undefined)} className='' style={{border: '1px solid #ccc'}} />
-      {arenaSceneOpening && <div className="fixed bottom-2 left-2 z-10">
-        <FaRotate
-          className="text-gray-700 cursor-pointer mb-1 text-2xl flex items-center justify-center"
-          onClick={() => networkRef.current?.restart()}
-          aria-label="Close"
-        />
+      {arenaSceneOpening && networkRef.current?.isServer && <div className="fixed bottom-2 left-2 z-10">
+        <div className="flex items-center mb-1">
+          <FaRotate
+            className="text-gray-700 cursor-pointer text-xl mr-2"
+            onClick={() => networkRef.current?.restart()}
+            aria-label="Restart"
+          />
+          <FaUndo
+            className="text-gray-700 cursor-pointer text-xl"
+            onClick={() => networkRef.current?.undo()}
+            aria-label="Undo"
+          />
+        </div>
         <MonsterCard monsters={monsters} selectedMonsterId={selectedId} onSelectMonster={selectMonster} />
       </div>}
       {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}

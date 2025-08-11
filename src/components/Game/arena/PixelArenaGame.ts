@@ -14,6 +14,7 @@ import {
   shootWeapons,
 } from './types'
 import { damgeAreas } from './constants'
+import { cloneMonster } from './utils'
 
 let curId = 0
 
@@ -134,36 +135,7 @@ export class PixelArenaGame {
     console.log('Game stopped')
   }
 
-  private stepDone(actions: ArenaAction[], monsters: MonsterState[] = []) {
-    // Logic to advance to the next round
-    this.currentStep += 1
-    console.log(`Advancing to round ${this.currentStep}`)
-    this.stepActions = {} // Reset actions for the new round
-    this.executedOrder = [] // Reset done actions count
-    this.stepOwnerLastMove = {}
 
-    // send actions and monsters to client
-    if (actions.length || monsters.length) {
-      this.opts.onActionsDone(actions, monsters) // Process actions and notify the next round
-    }
-    // send all fires
-    this.sendAllFires()
-    // send all bombs
-    this.sendAllBombs()
-    // send updated items
-    this.sendUpdatedItems()
-
-    // Remove dead monsters
-    Object.values(this.state.monsters)
-      .filter((m) => m.hp <= 0)
-      .forEach((m) => delete this.state.monsters[m.id])
-
-    // Remove empty fires
-    this.removeEmptyFires()
-
-    // Remove exploded bombs
-    this.removeExplodedBombs()
-  }
 
   private sendUpdatedItems() {
     const items: [number, MapItemType][] = Array.from(this.updatedItemPixelSet).map((p) => [
@@ -308,16 +280,50 @@ export class PixelArenaGame {
     // actions not done or no actions
     if (!this.isStepActionsDone()) return
 
-    console.log('All actions have been made for the round, execute')
+    // get current states before execute actions
+    const prevStates = this.getCurStates()
     const { appliedActions, changedStates } = this.processActions() // Process all actions
-    // setTimeout(() => {
-    console.log(
-      'Processing actions for the round:',
-      appliedActions,
-      changedStates
-    )
+
+    // save to prev states
+    if (appliedActions.length || changedStates.length) {
+      console.log(
+        'Processing actions for the round:',
+        appliedActions,
+        changedStates
+      )
+      this.prevStates = prevStates
+    }
     this.stepDone(appliedActions, changedStates) // Proceed to the next round
-    // }, 50) // Delay for processing actions
+  }
+
+  private stepDone(actions: ArenaAction[], monsters: MonsterState[] = []) {
+    // send actions and monsters to client
+    if (actions.length || monsters.length) {
+      // Logic to advance to the next step
+      this.currentStep += 1
+      console.log(`Advancing to step ${this.currentStep}`)
+      this.stepActions = {} // Reset actions for the new round
+      this.executedOrder = [] // Reset done actions count
+      this.stepOwnerLastMove = {}
+      this.opts.onActionsDone(actions, monsters) // Process actions and notify the next round
+    }
+    // send all fires
+    this.sendAllFires()
+    // send all bombs
+    this.sendAllBombs()
+    // send updated items
+    this.sendUpdatedItems()
+
+    // Remove dead monsters
+    Object.values(this.state.monsters)
+      .filter((m) => m.hp <= 0)
+      .forEach((m) => delete this.state.monsters[m.id])
+
+    // Remove empty fires
+    this.removeEmptyFires()
+
+    // Remove exploded bombs
+    this.removeExplodedBombs()
   }
 
   private calMonsterActionDistance(id: number) {
@@ -796,7 +802,8 @@ export class PixelArenaGame {
   }
 
   restartGame() {
-    const monsters = JSON.parse(JSON.stringify(initialMonsters)) as MonsterState[]
+    // const monsters = JSON.parse(JSON.stringify(initialMonsters)) as MonsterState[]
+    const monsters = Object.values(initialMonsters).map(m => cloneMonster(m))
     this.resetGameState(monsters, initialItems)
   }
 
@@ -835,13 +842,28 @@ export class PixelArenaGame {
     this.opts.onFiresUpdate([])
     this.opts.onBombsUpdate([])
   }
+
+  private prevStates: {
+    monsters: MonsterState[],
+    items: [number, MapItemType][],
+  } = {
+    monsters: [],
+    items: []
+  }
+
+  private getCurStates() {
+    const monsters = Object.values(this.state.monsters).map(m => cloneMonster(m))
+    const items = Object.keys(this.state.positionItemMap)
+      .map(p => Number(p))
+      .map(p => [p, this.state.positionItemMap[p]])
+
+    return { monsters, items } as {
+      monsters: MonsterState[],
+      items: [number, MapItemType][],
+    }
+  }
+
+  undo() {
+    this.resetGameState(this.prevStates.monsters, this.prevStates.items)
+  }
 }
-
-//   private positionMonsterMap: { [pos: number]: number } = {} // pixel to monster id
-//   private roundActions: { [id: number]: ArenaAction } = {}
-//   private currentRound: number = 0
-//   private aliveNumber: number = 0
-//   private executedOrder: number[] = []
-
-//   private posFireMap: { [pos: number]: CountDownItemOnMap } = {}
-//   private posBombMap: { [pos: number]: CountDownItemOnMap } = {}

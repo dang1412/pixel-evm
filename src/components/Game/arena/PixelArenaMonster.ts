@@ -162,7 +162,7 @@ export class PixelArenaMonster {
     this.state = state
 
     if (prevx !== state.pos.x || prevy !== state.pos.y) {
-      await this.arenaMap.getView().moveObject(this.monsterContainer, state.pos.x, state.pos.y)
+      await this.arenaMap.getView().moveObject(this.monsterContainer, prevx, prevy, state.pos.x, state.pos.y)
     }
     // TODO update other properties like hp, etc.
     this.draw()

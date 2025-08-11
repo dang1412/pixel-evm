@@ -97,6 +97,12 @@ export class ArenaNetwork {
     }
   }
 
+  undo() {
+    if (this.game) {
+      this.game.undo()
+    }
+  }
+
   // sendAllStates(monsters: MonsterState[], items: [number, MapItemType][], fires: FireOnMap[]) {
   //   // Update client on server
   //   this.map.updateMonsterStates(monsters)

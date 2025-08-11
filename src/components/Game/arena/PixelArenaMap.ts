@@ -185,6 +185,9 @@ export class PixelArenaMap {
         allMoves.push(move)
       }
     }
+
+    if (allMoves.length) sound.play('scream', { volume: 0.4 })
+
     return Promise.all(allMoves)
   }
 
