@@ -1,6 +1,6 @@
 import { PointData } from 'pixi.js'
 
-import { getAreaPixels, getPixelsFromLine, xyToPosition } from '../utils'
+import { getAreaPixels, getNextPixel, getPixelsFromLine, xyToPosition } from '../utils'
 import {
   ActionType,
   ArenaAction,
@@ -14,7 +14,7 @@ import {
   shootWeapons,
 } from './types'
 import { damgeAreas } from './constants'
-import { cloneMonster } from './utils'
+import { cloneMonster, isSamePos } from './utils'
 
 let curId = 0
 
@@ -51,6 +51,9 @@ export class PixelArenaGame {
 
   private posFireMap: { [pos: number]: CountDownItemOnMap } = {}
   private posBombMap: { [pos: number]: CountDownItemOnMap } = {}
+
+  //
+  private monsterTargetMap: { [id: number]: PointData } = {}
 
   constructor(public state: ArenaGameState, private opts: PixelArenaGameOpts) {
     // The game object can be used to access game state, methods, etc.
@@ -135,8 +138,6 @@ export class PixelArenaGame {
     console.log('Game stopped')
   }
 
-
-
   private sendUpdatedItems() {
     const items: [number, MapItemType][] = Array.from(this.updatedItemPixelSet).map((p) => [
       p,
@@ -166,8 +167,6 @@ export class PixelArenaGame {
   }
 
   private isStepActionsDone() {
-    // if (this.executedOrder.length === 0) return false
-
     switch (this.gameMode) {
       case GameMode.InstantMove:
         return this.isInstantMoveDone()
@@ -175,6 +174,8 @@ export class PixelArenaGame {
         return this.isEachPlayerMoveDone()
       case GameMode.AllMove:
         return this.isAllMoveDone()
+      case GameMode.RealTimeMove:
+        return true
     }
   }
 
@@ -302,10 +303,21 @@ export class PixelArenaGame {
       // Logic to advance to the next step
       this.currentStep += 1
       console.log(`Advancing to step ${this.currentStep}`)
-      this.stepActions = {} // Reset actions for the new round
-      this.executedOrder = [] // Reset done actions count
+      if (this.gameMode === GameMode.RealTimeMove) {
+        // remove but keep move actions which are not done
+        this.executedOrder = this.executedOrder.filter(id => 
+          this.stepActions[id] &&
+          this.stepActions[id].actionType === ActionType.Move && 
+          this.state.monsters[id] &&
+          !isSamePos(this.state.monsters[id].pos, this.stepActions[id].target)
+        )
+      } else {
+        // reset
+        this.stepActions = {} // Reset actions for the new step
+        this.executedOrder = [] // Reset done actions count
+      }
       this.stepOwnerLastMove = {}
-      this.opts.onActionsDone(actions, monsters) // Process actions and notify the next round
+      this.opts.onActionsDone(actions, monsters) // Process actions and notify the next step
     }
     // send all fires
     this.sendAllFires()
@@ -376,17 +388,41 @@ export class PixelArenaGame {
 
     // Process move, shoot bomb actions
     for (const id of executeOrder) {
-      const action = this.stepActions[id]
+      const action = {...this.stepActions[id]}
       if (action.actionType === ActionType.Move || action.actionType === ActionType.ShootBomb) {
-        console.log('execute', action)
+        console.log('execute move or bomb', action)
         const executed = action.actionType === ActionType.Move 
           ? this.processMoveAction(action, updatedMonsterIds)
           : this.processShootBomb(action, updatedMonsterIds)
+
+        // let executed = undefined
+        // if (action.actionType === ActionType.Move) {
+        //   if (this.gameMode === GameMode.InstantMove) {
+        //     // update target
+        //     // this.monsterTargetMap[action.id] = action.target
+        //     action.target = getNextPixel()
+        //   } else {
+        //     // execute move
+        //     executed = this.processMoveAction(action, updatedMonsterIds)
+        //   }
+        // } else {
+        //   executed = this.processShootBomb(action, updatedMonsterIds)
+        // }
         if (executed) {
           appliedActions.push(executed)
         }
       }
     }
+
+    // const monsters = Object.values(this.state.monsters)
+    // for (const monster of monsters) {
+    //   const current = monster.pos
+    //   const target = this.monsterTargetMap[monster.id]
+    //   if (current.x !== target.x || current.y !== target.y) {
+    //     // try move
+
+    //   }
+    // }
 
     // Process move actions
     // for (const id of executeOrder) {
@@ -481,14 +517,24 @@ export class PixelArenaGame {
     }
 
     // Check path
-    const target = this.getNextMovePosition(monster.pos, action.target)
-    action.target = target // Update action target to the next valid position
+    if (this.gameMode === GameMode.RealTimeMove) {
+      // get the next pixel
+      const [x, y] = getNextPixel(monster.pos.x, monster.pos.y, action.target.x, action.target.y)
+      action.target = { x, y }
+    } else {
+      // calculate blocked
+      const target = this.getNextMovePosition(monster.pos, action.target)
+      action.target = target // Update action target to the next valid position
+    }
 
     // Check if target position is empty
     const targetPos = xyToPosition(action.target.x, action.target.y)
     if (this.positionMonsterMap[targetPos] !== undefined) {
       return
     }
+
+    // update target
+    this.monsterTargetMap[action.id] = action.target
 
     // Move the monster to the new position
     const prevPos = xyToPosition(monster.pos.x, monster.pos.y)
@@ -689,9 +735,13 @@ export class PixelArenaGame {
     }
   }
 
+  private isInstantOrRealTimeMode() {
+    return this.gameMode === GameMode.InstantMove || this.gameMode === GameMode.RealTimeMove
+  }
+
   private addFire(monsterId: number, p: PointData) {
     const monster = this.state.monsters[monsterId]
-    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime/2 : 4 // Instant move fire time
+    const living = this.isInstantOrRealTimeMode() ? 4 + GameLoopTime/2 : 4 // Instant move fire time
     const newFire: CountDownItemOnMap = { pos: p, ownerId: monster?.ownerId || 0, living }
 
     const pixel = xyToPosition(p.x, p.y)
@@ -715,8 +765,8 @@ export class PixelArenaGame {
       }
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
-      fire.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move fire damage
-      if (this.gameMode !== GameMode.InstantMove) fire.living = Math.ceil(fire.living)
+      fire.living -= this.isInstantOrRealTimeMode() ? GameLoopTime/2 : 1 // Instant move fire damage
+      if (!this.isInstantOrRealTimeMode()) fire.living = Math.ceil(fire.living)
     }
   }
 
@@ -732,7 +782,7 @@ export class PixelArenaGame {
     }
 
     const monster = this.state.monsters[id]
-    const living = this.gameMode === GameMode.InstantMove ? 4 + GameLoopTime/2 : 4 // Instant move bomb time
+    const living = this.isInstantOrRealTimeMode() ? 4 + GameLoopTime/2 : 4 // Instant move bomb time
     const newBomb: CountDownItemOnMap = { pos: target, ownerId: monster?.ownerId || 0, living }
     
     // new
@@ -746,8 +796,8 @@ export class PixelArenaGame {
     for (const bomb of this.state.bombs) {
       // in InstantMove, each step is GameLoopTime seconds
       // otherwise each step counted as 1 second
-      bomb.living -= this.gameMode === GameMode.InstantMove ? GameLoopTime/2 : 1 // Instant move bomb damage
-      if (this.gameMode !== GameMode.InstantMove) bomb.living = Math.ceil(bomb.living)
+      bomb.living -= this.isInstantOrRealTimeMode() ? GameLoopTime/2 : 1 // Instant move bomb damage
+      if (!this.isInstantOrRealTimeMode()) bomb.living = Math.ceil(bomb.living)
       if (bomb.living <= 0) {
         // bomb explode
         this.applyShootDamage(

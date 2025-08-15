@@ -332,7 +332,7 @@ export class ViewportMap {
     })
   }
 
-  moveObject(object: Container, px: number, py: number, tx = px, ty = py): Promise<void> {
+  moveObject(object: Container, px: number, py: number, tx = px, ty = py, numberOfTick = 15): Promise<void> {
     let x = px * PIXEL_SIZE
     let y = py * PIXEL_SIZE
 
@@ -347,8 +347,8 @@ export class ViewportMap {
     return new Promise((res) => {
       const unsub = this.subscribe('tick', () => {
         // moving in 15 ticks
-        x += deltaX / 15
-        y += deltaY / 15
+        x += deltaX / numberOfTick
+        y += deltaY / numberOfTick
         
         if (deltaX >= 0 === x >= tarX) x = tarX
         if (deltaY >= 0 === y >= tarY) y = tarY

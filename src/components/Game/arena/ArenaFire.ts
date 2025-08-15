@@ -60,7 +60,7 @@ export class ArenaFire {
     } else if (this.fire.living === 1) {
       this.container.alpha = 0.6
     } else {
-      this.container.alpha = 1
+      this.container.alpha = 0.9
     }
   }
 

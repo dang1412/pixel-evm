@@ -155,7 +155,10 @@ export function gridLine(x0: number, y0: number, x1: number, y1: number): [numbe
 }
 
 // Self implemented Bresenham's line algorithm to get pixels from a line
-export function getPixelsFromLine(x0: number, y0: number, x1: number, y1: number): [number, number][] {
+export function getPixelsFromLine(
+  x0: number, y0: number, x1: number, y1: number,
+  cb?: (x: number, y: number) => boolean
+): [number, number][] {
   const dx = x1 - x0;
   const dy = y1 - y0;
   const rateYX = Math.abs(dy / dx);
@@ -166,33 +169,35 @@ export function getPixelsFromLine(x0: number, y0: number, x1: number, y1: number
   let ix = x0;
   let iy = y0;
 
-  const movex = () => {
-    nextX += 1;
-    ix += stepX;
-  }
-
-  const movey = () => {
-    nextY += 1;
-    iy += stepY;
-  }
-
   let nextX = 0.5;
   let nextY = 0.5;
 
   const rs = [[ix, iy]] as [number, number][];
 
   while (ix !== x1 || iy !== y1) {
-    const nextXY = nextX * rateYX;
-    if (nextXY < nextY) {
-      movex();
-    } else if (nextXY > nextY) {
-      movey();
-    } else {
-      movex();
-      movey();
+    const compare = Math.sign(nextY - nextX * rateYX)
+
+    if (compare >= 0) {
+      // move x
+      nextX += 1;
+      ix += stepX;
     }
+
+    if (compare <= 0) {
+      // move y
+      nextY += 1;
+      iy += stepY;
+    }
+
     rs.push([ix, iy]);
+
+    if (cb && !cb(ix, iy)) return rs
   }
 
   return rs
+}
+
+export function getNextPixel(x0: number, y0: number, x1: number, y1: number): [number, number] {
+  const rs = getPixelsFromLine(x0, y0, x1, y1, () => false)
+  return rs[1] || rs[0]
 }

@@ -68,7 +68,9 @@ export interface CountDownItemOnMap {
 }
 
 export interface ArenaGameState {
+  // TODO change to array
   monsters: { [id: number]: MonsterState }
+  // TODO change to array
   positionItemMap: { [pos: number]: MapItemType } // pixel to item type
   fires: CountDownItemOnMap[]
   bombs: CountDownItemOnMap[]
@@ -114,4 +116,5 @@ export enum GameMode {
   InstantMove,
   EachPlayerMove,
   AllMove,
+  RealTimeMove,
 }

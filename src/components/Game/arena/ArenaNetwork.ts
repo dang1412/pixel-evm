@@ -87,6 +87,8 @@ export class ArenaNetwork {
         this.game?.setMode(GameMode.EachPlayerMove)
       } else if (e.key === '3') {
         this.game?.setMode(GameMode.AllMove)
+      } else if (e.key === '4') {
+        this.game?.setMode(GameMode.RealTimeMove)
       }
     })
   }

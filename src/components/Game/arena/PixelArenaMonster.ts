@@ -250,6 +250,7 @@ export class PixelArenaMonster {
     const { x, y } = action.target
 
     if (action.actionType === ActionType.Move) {
+      sound.play('move', {volume: 0.2})
       await this.moveTo(x, y)
       this.state.pos = { x, y } // Update monster position
     } else if ([ActionType.Shoot, ActionType.ShootRocket, ActionType.ShootFire, ActionType.ShootBomb].includes(action.actionType)) {
@@ -262,8 +263,7 @@ export class PixelArenaMonster {
 
   async moveTo(x: number, y: number) {
     const { x: curx, y: cury } = this.state.pos
-    sound.play('move', {volume: 0.2})
-    await this.arenaMap.getView().moveObject(this.monsterContainer, curx, cury, x, y)
+    await this.arenaMap.getView().moveObject(this.monsterContainer, curx, cury, x, y, 15)
     console.log(`Monster ${this.state.id} moved to (${x}, ${y})`)
   }
 

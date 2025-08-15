@@ -1,4 +1,4 @@
-import { getPixelsFromLine } from './utils';
+import { getPixelsFromLine, getNextPixel } from './utils';
 
 describe('getPixelsFromLine', () => {
   it('should return a single point when start and end are the same', () => {
@@ -35,5 +35,18 @@ describe('getPixelsFromLine', () => {
 
   it('should return a line from bottom to top', () => {
     expect(getPixelsFromLine(3, 4, 3, 1)).toEqual([[3, 4], [3, 3], [3, 2], [3, 1]]);
+  });
+
+  it('should return only 2 values: current and next', () => {
+    expect(getPixelsFromLine(2, 2, 6, 3, () => false)).toEqual([[2, 2], [3, 2]]);
+  });
+});
+
+describe('getNextPixel', () => {
+  it('should return the same point when start and end are the same', () => {
+    expect(getNextPixel(2, 3, 2, 3)).toEqual([2, 3]);
+  });
+  it('should return a next point', () => {
+    expect(getNextPixel(2, 2, 6, 3)).toEqual([3, 2]);
   });
 });

@@ -1,7 +1,6 @@
 import { PointData } from 'pixi.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FaRotate } from 'react-icons/fa6'
-import { FaUndo } from 'react-icons/fa'
+import { FaRotate, FaArrowLeft } from 'react-icons/fa6'
 
 import { Address } from '@/lib/RTCConnectClients'
 
@@ -167,7 +166,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
             onClick={() => networkRef.current?.restart()}
             aria-label="Restart"
           />
-          <FaUndo
+          <FaArrowLeft
             className="text-gray-700 cursor-pointer text-xl"
             onClick={() => networkRef.current?.undo()}
             aria-label="Undo"
