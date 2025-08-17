@@ -186,7 +186,7 @@ export class PixelArenaMonster {
     const prevx = this.state.pos.x
     const prevy = this.state.pos.y
     if (prevHp > state.hp && state.hp > 0) {
-      sound.play('hurt')
+      this.hurt()
     }
     this.state = state
 
@@ -195,6 +195,17 @@ export class PixelArenaMonster {
     }
     // TODO update other properties like hp, etc.
     this.draw()
+  }
+
+  private hurt() {
+    sound.play('hurt')
+    const monsterSprite = this.monsterContainer.getChildAt(0)
+    monsterSprite.tint = '#ee4646'
+    this.arenaMap.getView().markDirty()
+    setTimeout(() => {
+      monsterSprite.tint = '#fff'
+      this.arenaMap.getView().markDirty()
+    }, 100)
   }
 
   updateActionAndDraw(action?: ArenaAction) {
