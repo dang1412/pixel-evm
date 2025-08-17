@@ -481,8 +481,9 @@ export class PixelArenaGame {
     return bomb && bomb.living > 0
   }
 
-  private getNextMovePosition(from: PointData, to: PointData): PointData {
+  private getMovePath(from: PointData, to: PointData): PointData[] {
     // Get the next move position based on the current position and target
+    const path = [from]
     const points = getPixelsFromLine(from.x, from.y, to.x, to.y)
     let j = 0
     for (let i = 1; i < points.length; i++) {
@@ -495,6 +496,7 @@ export class PixelArenaGame {
 
       // move next
       j = i
+      path.push({ x, y })
     }
 
     // move back until found empty position
@@ -502,7 +504,33 @@ export class PixelArenaGame {
     //   j--
     // }
 
-    return { x: points[j][0], y: points[j][1] }
+    return path
+  }
+
+  private getNextMovePosition(from: PointData, to: PointData): PointData {
+    // Get the next move position based on the current position and target
+    // const points = getPixelsFromLine(from.x, from.y, to.x, to.y)
+    // let j = 0
+    // for (let i = 1; i < points.length; i++) {
+    //   const [x, y] = points[i]
+    //   const pixel = xyToPosition(x, y)
+    //   if (this.posBombMap[pixel] || this.hasMonster(x, y)) {
+    //     // hit bomb or monster
+    //     break
+    //   }
+
+    //   // move next
+    //   j = i
+    // }
+
+    // // move back until found empty position
+    // // while (j > 0 && this.hasMonster(points[j][0], points[j][1])) {
+    // //   j--
+    // // }
+
+    // return { x: points[j][0], y: points[j][1] }
+    const path = this.getMovePath(from, to)
+    return path[path.length - 1]
   }
 
   private processMoveAction(
@@ -516,15 +544,17 @@ export class PixelArenaGame {
       return
     }
 
+    let path: PointData[] = []
     // Check path
     if (this.gameMode === GameMode.RealTimeMove) {
       // get the next pixel
       const [x, y] = getNextPixel(monster.pos.x, monster.pos.y, action.target.x, action.target.y)
       action.target = { x, y }
+      path.push({ x, y })
     } else {
       // calculate blocked
-      const target = this.getNextMovePosition(monster.pos, action.target)
-      action.target = target // Update action target to the next valid position
+      path = this.getMovePath(monster.pos, action.target)
+      action.target = path[path.length - 1] // Update action target to the next valid position
     }
 
     // Check if target position is empty
@@ -548,18 +578,21 @@ export class PixelArenaGame {
     )
 
     // check if received items
-    if (this.state.positionItemMap[targetPos]) {
-      const itemType = this.state.positionItemMap[targetPos]
-      // Handle item pickup logic here if needed
-      if (this.tryPickupItem(monster, itemType)) {
-        // Process item pickup
-        console.log(
-          `Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`
-        )
-        delete this.state.positionItemMap[targetPos] // Remove item from map after pickup
-        updatedMonsterIds.add(monster.id)
-        // item updated at this position
-        this.updatedItemPixelSet.add(targetPos)
+    for (const p of path) {
+      const pixel = xyToPosition(p.x, p.y)
+      if (this.state.positionItemMap[pixel]) {
+        const itemType = this.state.positionItemMap[pixel]
+        // Handle item pickup logic here if needed
+        if (this.tryPickupItem(monster, itemType)) {
+          // Process item pickup
+          console.log(
+            `Monster ${action.id} received item ${itemType} at position (${action.target.x}, ${action.target.y})`
+          )
+          delete this.state.positionItemMap[pixel] // Remove item from map after pickup
+          updatedMonsterIds.add(monster.id)
+          // item updated at this position
+          this.updatedItemPixelSet.add(pixel)
+        }
       }
     }
 
