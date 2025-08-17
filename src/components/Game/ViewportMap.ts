@@ -19,6 +19,8 @@ export interface DragOptions {
   onDrop: (x: number, y: number, rx: number, ry: number) => void
   onMove?: (x: number, y: number, rx: number, ry: number) => void
   isInRange?: (x: number, y: number) => boolean
+  x?: number
+  y?: number
   w?: number
   h?: number
 }
@@ -294,14 +296,14 @@ export class ViewportMap {
     return PIXEL_SIZE
   }
 
-  startDrag(image: string, {onDrop, onMove = (x, y) => {}, isInRange, w = 0, h = 0}: DragOptions) {
+  startDrag(image: string, {onDrop, onMove = (x, y) => {}, isInRange, x = 0, y = 0, w = 0, h = 0}: DragOptions) {
     const scene = this.getActiveScene()
     if (!scene) return
 
     // emit event 'viewportmoved' to prevent select
     this.eventTarget.dispatchEvent(new Event('viewportmoved'))
 
-    const shadow = scene.addImage(image, {x: -1, y: 0, w, h})
+    const shadow = scene.addImage(image, {x, y, w, h})
     shadow.alpha = 0.4
 
     const transform = ([x, y, rx, ry]: number[]) => [x, y, rx, ry]

@@ -142,14 +142,16 @@ export class ArenaNetwork {
   }
 
   sendAction(type: ActionType) {
-    const action = this.map.updateSelectingMonsterAction(type)
-    console.log('sendAction', action, this.opponentAddr)
-    if (action) {
+    const actions = this.map.updateSelectingMonsterAction(type)
+    console.log('sendAction', actions, this.opponentAddr)
+    if (actions.length) {
       if (this.isServer) {
-        this.game?.receiveAction(action)
+        for (const action of actions) {
+          this.game?.receiveAction(action)
+        }
       } else if (this.opponentAddr) {
         // send to server
-        const data = encodeActionWithType(action)
+        const data = encodeActionsWithType(actions)
         this.opts?.sendTo(this.opponentAddr, data)
       }
     }
@@ -160,10 +162,19 @@ export class ArenaNetwork {
     if (this.isServer) {
       // Receive action from client
       // TODO check if valid
-      if (type === RTCMessageType.Action) {
-        const action = decodeAction(data)
+      const actions = type === RTCMessageType.Action ? [decodeAction(data)] :
+        type === RTCMessageType.Actions ? decodeActions(data) : []
+
+      for (const action of actions) {
         this.game?.receiveAction(action)
       }
+      // if (type === RTCMessageType.Action) {
+      //   const action = decodeAction(data)
+      //   this.game?.receiveAction(action)
+      // } else if (type === RTCMessageType.Actions) {
+      //   const actions = decodeActions(data)
+      //   this.game?.receiveAction(action)
+      // }
     } else {
       // Receive updates from server
       // Actions

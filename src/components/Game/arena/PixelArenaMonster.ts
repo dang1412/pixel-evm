@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, Sprite, Spritesheet } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Spritesheet, Texture } from 'pixi.js'
 import { sound } from '@pixi/sound'
 
 import { PixelArenaMap } from './PixelArenaMap'
@@ -39,6 +39,10 @@ export class PixelArenaMonster {
   // draw vehicle
   private vehicleSprite = new Sprite()
 
+  // draw select aura
+  private selectAura = new Sprite()
+  private isSelecting = false
+
   // private animation: PixiAnimation
 
   constructor(public arenaMap: PixelArenaMap, public state: MonsterState) {
@@ -57,6 +61,15 @@ export class PixelArenaMonster {
 
     this.monsterContainer.addChild(this.weaponContainer)
 
+    // select aura
+    this.selectAura.texture = Texture.from('/images/select_aura.png')
+    this.selectAura.visible = false
+    this.selectAura.width = PIXEL_SIZE * 2
+    this.selectAura.height = PIXEL_SIZE * 2
+    this.selectAura.x = -PIXEL_SIZE  / 2
+    this.selectAura.y = -PIXEL_SIZE / 2
+    this.monsterContainer.addChild(this.selectAura)
+
     this.draw()
 
     // animation
@@ -68,6 +81,20 @@ export class PixelArenaMonster {
 
     //   return unsub
     // })
+  }
+
+  select(isSelect: boolean) {
+    this.isSelecting = isSelect
+    this.selectAura.visible = isSelect ? true : false
+  }
+
+  isBeingSelected() {
+    return this.isSelecting
+  }
+
+  toggleSelect() {
+    this.select(!this.isSelecting)
+    return this.isSelecting
   }
 
   private draw() {
@@ -106,7 +133,7 @@ export class PixelArenaMonster {
   //   return weapons.filter(w => (this.state.weapons as any)[w] > 0)
   // }
 
-  drawAction(action = this.action) {
+  drawAction(action = this.action, drawTarget = true) {
     // clear action
     this.actionLineGraphics?.clear()
     this.shadowContainer?.removeChildren()
@@ -126,23 +153,25 @@ export class PixelArenaMonster {
       this.actionLineGraphics
     )
 
-    const info = monsterInfos[this.state.type]
-
-    const image = action.actionType === ActionType.Move
+    if (drawTarget) {
+      const info = monsterInfos[this.state.type]
+      
+      const image = action.actionType === ActionType.Move
       ? info.image
       : actionImages[action.actionType]
-
-    const w = action.actionType === ActionType.Move ? info.w : 1
-    const h = action.actionType === ActionType.Move ? info.h : 1
-    const dx = action.actionType === ActionType.Move ? info.dx || 0 : 0
-    const dy = action.actionType === ActionType.Move ? info.dy || 0 : 0
-    this.shadowContainer = scene.addImage(image, {
-      x: action.target.x + dx,
-      y: action.target.y + dy,
-      w,
-      h,
-    }, this.shadowContainer)
-    this.shadowContainer.alpha = 0.6
+      
+      const w = action.actionType === ActionType.Move ? info.w : 1
+      const h = action.actionType === ActionType.Move ? info.h : 1
+      const dx = action.actionType === ActionType.Move ? info.dx || 0 : 0
+      const dy = action.actionType === ActionType.Move ? info.dy || 0 : 0
+      this.shadowContainer = scene.addImage(image, {
+        x: action.target.x + dx,
+        y: action.target.y + dy,
+        w,
+        h,
+      }, this.shadowContainer)
+      this.shadowContainer.alpha = 0.6
+    }
   }
 
   // private sendAction(action: ArenaAction) {
@@ -188,55 +217,55 @@ export class PixelArenaMonster {
   //   this.arenaMap.map.markDirty()
   // }
 
-  controlAction() {
-    // initiate an action
-    // const actionType = this.actionType
-    const action: ArenaAction = {
-      id: this.state.id,
-      actionType: ActionType.None,
-      target: { x: 0, y: 0 }
-    }
+  // controlAction() {
+  //   // initiate an action
+  //   // const actionType = this.actionType
+  //   const action: ArenaAction = {
+  //     id: this.state.id,
+  //     actionType: ActionType.None,
+  //     target: { x: 0, y: 0 }
+  //   }
 
-    const info = monsterInfos[this.state.type]
+  //   const info = monsterInfos[this.state.type]
 
-    // const image = actionType === ActionType.Move
-    //   ? info.image
-    //   : '/images/energy2.png'
+  //   // const image = actionType === ActionType.Move
+  //   //   ? info.image
+  //   //   : '/images/energy2.png'
 
-    // const w = actionType === ActionType.Move ? info.w : 1
+  //   // const w = actionType === ActionType.Move ? info.w : 1
 
-    // let g: Graphics
-    // const scene = this.arenaMap.map.getActiveScene()!
+  //   // let g: Graphics
+  //   // const scene = this.arenaMap.map.getActiveScene()!
 
-    const image = '/svgs/crosshairs.svg'
+  //   const image = '/svgs/crosshairs.svg'
 
-    this.arenaMap.getView().startDrag(image, {
-      onDrop: (x, y, rx, ry) => {
-        action.target = { x, y }
-        this.drawAction(action)
-        // inform map
-        this.arenaMap.onActionPosition(action, { x: rx, y: ry })
-      },
-      isInRange: (x, y) => {
-        const dx = Math.abs(x - this.state.pos.x)
-        const dy = Math.abs(y - this.state.pos.y)
-        const change = dx + dy
-        return change > 0 && dx <= 8 && dy <= 8
-      },
-      onMove: (x, y) => {
-        // Draw a line from the monster's current position to (x, y)
-        // action.target = { x, y }
-        // this.drawAction(action)
-        // g = scene.drawLine(
-        //   { x: this.state.pos.x + 0.5, y: this.state.pos.y + 0.5 },
-        //   { x: x + 0.5, y: y + 0.5 },
-        //   g
-        // )
-      },
-      w: 1,
-      h: 1
-    })
-  }
+  //   this.arenaMap.getView().startDrag(image, {
+  //     onDrop: (x, y, rx, ry) => {
+  //       action.target = { x, y }
+  //       this.drawAction(action)
+  //       // inform map
+  //       this.arenaMap.onActionPosition(action, { x: rx, y: ry })
+  //     },
+  //     isInRange: (x, y) => {
+  //       const dx = Math.abs(x - this.state.pos.x)
+  //       const dy = Math.abs(y - this.state.pos.y)
+  //       const change = dx + dy
+  //       return change > 0 && dx <= 8 && dy <= 8
+  //     },
+  //     onMove: (x, y) => {
+  //       // Draw a line from the monster's current position to (x, y)
+  //       // action.target = { x, y }
+  //       // this.drawAction(action)
+  //       // g = scene.drawLine(
+  //       //   { x: this.state.pos.x + 0.5, y: this.state.pos.y + 0.5 },
+  //       //   { x: x + 0.5, y: y + 0.5 },
+  //       //   g
+  //       // )
+  //     },
+  //     w: 1,
+  //     h: 1
+  //   })
+  // }
 
   async applyAction(action: ArenaAction) {
     // TODO draw action on the monster

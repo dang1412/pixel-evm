@@ -42,7 +42,7 @@ export interface PixelArenaMapOpts {
   sceneName: string
   onMonstersUpdate: (monsters: MonsterState[]) => void
   onMonsterSelect: (id: number) => void
-  onActionPosition: (action?: ArenaAction, p?: PointData) => void
+  onActionPosition: (target?: PointData, pos?: PointData) => void
 }
 
 export class PixelArenaMap {
@@ -53,7 +53,7 @@ export class PixelArenaMap {
 
   private selectedMonster?: PixelArenaMonster
 
-  private auraContainer?: Container
+  // private auraContainer?: Container
 
   // Items on map
   private itemContainers: {[pos: number]: Container} = {}
@@ -61,7 +61,8 @@ export class PixelArenaMap {
   ownerId = 1
 
   // temp action for controlling selected monster
-  private tempAction?: ArenaAction
+  // private tempAction?: ArenaAction
+  private controlTarget?: PointData
 
   // fires
   private fires: {[pos: number]: ArenaFire} = {}
@@ -69,6 +70,8 @@ export class PixelArenaMap {
   private bombs: {[pos: number]: ArenaBomb} = {}
 
   private actionsExecutedPromise = Promise.resolve({} as any)
+
+  private selectingIds = new Set<number>()
 
   constructor(public map: PixelMap, private opts: PixelArenaMapOpts) {
     const view = map.getView()
@@ -91,7 +94,8 @@ export class PixelArenaMap {
       // hide monster control
       opts.onActionPosition()
       // redraw selecting monster action
-      this.selectedMonster?.drawAction()
+      this.applyToSelectedMonsters((m) => m.drawAction())
+      // this.selectedMonster?.drawAction()
       view.markDirty()
 
       const [x, y] = event.detail
@@ -100,30 +104,150 @@ export class PixelArenaMap {
       // Check if there is a monster at the clicked position
       const monster = this.pixelToMonsterMap[posVal]
       if (monster) {
-        this.selectMonster(monster)
+        // this.selectMonster(monster)
         // if (monster.state.ownerId === this.ownerId) {
-          monster.controlAction()
+          // monster.controlAction()
         // }
+        this.startControl(monster, x, y)
+      }
+    })
+
+    view.subscribe('pixelclick', (event: CustomEvent) => {
+      if (view.activeScene !== opts.sceneName) {
+        return
+      }
+
+      const [x, y] = event.detail
+      const posVal = xyToPosition(x, y)
+
+      // Check if there is a monster at the clicked position
+      const monster = this.pixelToMonsterMap[posVal]
+      if (monster) {
+        const isSelect = monster.toggleSelect()
+        this.selectMonster(monster, isSelect)
+        this.informUI()
+        // if (isSelect) {
+        //   this.selectingIds.add(monster.state.id)
+        //   this.opts.onMonsterSelect(monster.state.id)
+        //   this.opts.onMonstersUpdate([monster.state])
+        // } else {
+        //   this.selectingIds.delete(monster.state.id)
+        // }
+      } else {
+        // unselect all
+        // for (const id of this.selectingIds) {
+        //   const monster = this.monsters[id]
+        //   if (monster) monster.select(false)
+        // }
+        // this.applyToSelectedMonsters((m) => m.select(false))
+        // this.selectingIds.clear()
       }
     })
   }
 
-  // receive action target from monster
-  onActionPosition(action: ArenaAction, p: PointData) {
-    this.tempAction = action
-    this.opts.onActionPosition(action, p)
+  private selectMonster(m: PixelArenaMonster, isSelect = true) {
+    m.select(isSelect)
+    if (isSelect) {
+      this.selectingIds.add(m.state.id)
+      this.opts.onMonsterSelect(m.state.id)
+      // this.opts.onMonstersUpdate([m.state])
+    } else {
+      this.selectingIds.delete(m.state.id)
+    }
   }
 
-  // receive action type from UI
-  updateSelectingMonsterAction(actionType: ActionType): ArenaAction | undefined {
-    if (this.selectedMonster && this.tempAction) {
-      const action = {...this.tempAction, actionType}
-      this.selectedMonster.updateActionAndDraw(action)
-      this.map.getView().markDirty()
-      this.tempAction = undefined
+  private unSelectAll() {
+    this.applyToSelectedMonsters((m) => m.select(false))
+    this.selectingIds.clear()
+  }
 
-      return action
+  private selectExclusive(m: PixelArenaMonster) {
+    this.unSelectAll()
+    this.selectMonster(m)
+    this.informUI()
+  }
+
+  private applyToSelectedMonsters(f: (m: PixelArenaMonster) => void) {
+    for (const id of [...this.selectingIds]) {
+      const monster = this.monsters[id]
+      if (monster) f(monster)
     }
+  }
+
+  private startControl(monster: PixelArenaMonster, startx: number, starty: number) {
+    const image = '/svgs/crosshairs.svg'
+
+    this.getView().startDrag(image, {
+      onDrop: (x, y, rx, ry) => {
+        if (x === startx && y === starty) return
+        const target = this.controlTarget = { x, y }
+        // action.target = { x, y }
+        // this.drawAction(action)
+        // // inform map
+        // this.arenaMap.onActionPosition(action, { x: rx, y: ry })
+        this.opts.onActionPosition({ x, y }, { x: rx, y: ry })
+        // draw temp action
+        this.applyToSelectedMonsters((m) => m.drawAction(
+          { id: m.state.id, target, actionType: ActionType.None },
+          m.state.id === monster.state.id,
+        ))
+      },
+      // isInRange: (x, y) => {
+      //   const dx = Math.abs(x - this.state.pos.x)
+      //   const dy = Math.abs(y - this.state.pos.y)
+      //   const change = dx + dy
+      //   return change > 0 && dx <= 8 && dy <= 8
+      // },
+      onMove: (x, y) => {
+        if (!monster.isBeingSelected()) {
+          this.selectExclusive(monster)
+        } else {
+          this.opts.onMonsterSelect(monster.state.id)
+        }
+        // Draw a line from the monster's current position to (x, y)
+        // action.target = { x, y }
+        // this.drawAction(action)
+        // g = scene.drawLine(
+        //   { x: this.state.pos.x + 0.5, y: this.state.pos.y + 0.5 },
+        //   { x: x + 0.5, y: y + 0.5 },
+        //   g
+        // )
+      },
+      x: startx,
+      y: starty,
+      w: 1,
+      h: 1
+    })
+  }
+
+  // receive action target from monster
+  // onActionPosition(action: ArenaAction, p: PointData) {
+  //   this.tempAction = action
+  //   this.opts.onActionPosition(action, p)
+  // }
+
+  // receive action type from UI
+  updateSelectingMonsterAction(actionType: ActionType): ArenaAction[] {
+    // if (this.selectedMonster && this.tempAction) {
+    //   const action = {...this.tempAction, actionType}
+    //   this.selectedMonster.updateActionAndDraw(action)
+    //   this.map.getView().markDirty()
+    //   this.tempAction = undefined
+
+    //   return action
+    // }
+    const target = this.controlTarget
+    if (!target) return []
+
+    const actions: ArenaAction[] = []
+
+    this.applyToSelectedMonsters((m) => {
+      const action = { id: m.state.id, target, actionType }
+      m.updateActionAndDraw(action)
+      actions.push(action)
+    })
+
+    return actions
   }
 
   selectMonsterById(id: number) {
@@ -131,29 +255,30 @@ export class PixelArenaMap {
     if (monster) this.selectMonster(monster)
   }
 
-  private moveAura(x: number, y: number, tx = x, ty = y) {
-    if (this.auraContainer) {
-      const dx = 0.45
-      const dy = 0.5
-      this.map.getView().moveObject(this.auraContainer, x - dx, y - dy, tx - dx, ty - dy)
-    }
-  }
+  // private moveAura(x: number, y: number, tx = x, ty = y) {
+  //   if (this.auraContainer) {
+  //     const dx = 0.45
+  //     const dy = 0.5
+  //     this.map.getView().moveObject(this.auraContainer, x - dx, y - dy, tx - dx, ty - dy)
+  //   }
+  // }
 
-  private selectMonster(monster: PixelArenaMonster) {
-    if (this.selectedMonster?.state.id === monster.state.id) {
-      // unselect the monster
-    } else {
-      // const tx = monster.state.pos.x - 0.4
-      // const ty = monster.state.pos.y - 0.5
-      // const sx = this.selectedMonster ? this.selectedMonster.state.pos.x - 0.4 : tx
-      // const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
-      // this.map.moveObject(this.auraContainer!, tx, ty)
-      this.moveAura(monster.state.pos.x, monster.state.pos.y)
-      this.selectedMonster = monster
-      this.opts.onMonsterSelect(monster.state.id)
-      this.informUI()
-    }
-  }
+  // private selectMonster(monster: PixelArenaMonster) {
+  //   // if (this.selectedMonster?.state.id === monster.state.id) {
+  //   //   // unselect the monster
+  //   // } else {
+  //     // const tx = monster.state.pos.x - 0.4
+  //     // const ty = monster.state.pos.y - 0.5
+  //     // const sx = this.selectedMonster ? this.selectedMonster.state.pos.x - 0.4 : tx
+  //     // const sy = this.selectedMonster ? this.selectedMonster.state.pos.y - 0.5 : ty
+  //     // this.map.moveObject(this.auraContainer!, tx, ty)
+  //     // this.moveAura(monster.state.pos.x, monster.state.pos.y)
+  //     // this.selectedMonster = monster
+  //     monster.select(true)
+  //     this.opts.onMonsterSelect(monster.state.id)
+  //     this.informUI()
+  //   // }
+  // }
 
   async onExecutedActions(actions: ArenaAction[]) {
     console.log('Next round actions:', actions)
@@ -208,6 +333,7 @@ export class PixelArenaMap {
             const pos = monster.remove() // Remove monster if hp is 0
             delete this.pixelToMonsterMap[pos] // Remove from pixelToMonsterMap
             delete this.monsters[state.id]  // Delete
+            this.selectingIds.delete(state.id)
           }
         })
       } else {
@@ -279,15 +405,19 @@ export class PixelArenaMap {
   }
 
   private informUI() {
-    const selectingOwnerId = this.selectedMonster?.state.ownerId
-    if (selectingOwnerId === undefined) return
+    // const selectingOwnerId = this.selectedMonster?.state.ownerId
+    // if (selectingOwnerId === undefined) return
 
-    // inform UI current owner's alive monsters
-    const allMonsters = Object.values(this.monsters)
-    const currentOwnerMonsters = allMonsters
-      .filter(m => m.state.ownerId === selectingOwnerId && m.state.hp > 0)
-      .map(m => m.state)
-    this.opts.onMonstersUpdate(currentOwnerMonsters)
+    // // inform UI current owner's alive monsters
+    // const allMonsters = Object.values(this.monsters)
+    // const currentOwnerMonsters = allMonsters
+    //   .filter(m => m.state.ownerId === selectingOwnerId && m.state.hp > 0)
+    //   .map(m => m.state)
+
+    const selectingMonsters = [...this.selectingIds]
+      .map(id => this.monsters[id].state)
+      .filter(m => m.hp > 0)
+    this.opts.onMonstersUpdate(selectingMonsters)
   }
   
   private updateMonsterPos(monster: PixelArenaMonster, target: PointData) {
@@ -328,7 +458,7 @@ export class PixelArenaMap {
             // const tx = action.target.x - 0.4
             // const ty = action.target.y - 0.5
             // this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
-            this.moveAura(prevx, prevy, action.target.x, action.target.y)
+            // this.moveAura(prevx, prevy, action.target.x, action.target.y)
 
             // Inform new postion after move
             // move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
@@ -375,7 +505,7 @@ export class PixelArenaMap {
     scene.addImage('/images/red-diamond-2.png', { x: 14, y: 15, w: 2, h: 1.25 })
 
     // aura
-    this.auraContainer = scene.addImage('/images/select_aura.png', { x: 0, y: 0, w: 2, h: 2 })
+    // this.auraContainer = scene.addImage('/images/select_aura.png', { x: 0, y: 0, w: 2, h: 2 })
   }
 
   // Update items's draw on the map
