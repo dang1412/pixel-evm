@@ -153,6 +153,11 @@ export class PixelArenaMap {
       // this.opts.onMonstersUpdate([m.state])
     } else {
       this.selectingIds.delete(m.state.id)
+      const ids = [...this.selectingIds]
+      const id = ids[ids.length - 1]
+      if (id >= 0) {
+        this.opts.onMonsterSelect(id)
+      }
     }
   }
 
@@ -199,6 +204,7 @@ export class PixelArenaMap {
       //   return change > 0 && dx <= 8 && dy <= 8
       // },
       onMove: (x, y) => {
+        if (x === startx && y === starty) return
         if (!monster.isBeingSelected()) {
           this.selectExclusive(monster)
         } else {

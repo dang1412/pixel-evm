@@ -40,7 +40,7 @@ export class PixelArenaGame {
   private updatedItemPixelSet = new Set<number>()
   // private updateFirePixels: number[] = []
 
-  private gameMode = GameMode.EachPlayerMove
+  private gameMode = GameMode.InstantMove
   private stepOwnerLastMove: { [ownerId: number]: number } = {} // ownerId -> monsterId
 
   private positionMonsterMap: { [pos: number]: number } = {} // pixel to monster id

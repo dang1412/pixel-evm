@@ -52,7 +52,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
   useEffect(() => {
     const idx = monsters.findIndex(m => m.id === selectedMonsterId)
     if (idx !== -1 && imageRefs.current[idx]) {
-      imageRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+      setTimeout(() => imageRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 100)
     }
   }, [selectedMonsterId, monsters])
 
