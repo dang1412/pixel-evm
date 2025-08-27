@@ -11,6 +11,7 @@ import { ArenaFire } from './ArenaFire'
 import { createAnimation } from '../helpers/createAnimation'
 import { ArenaBomb } from './ArenaBomb'
 import { PixelMap } from '../pixelmap/PixelMap'
+import { splitActionChunks } from './utils'
 
 Assets.load([
   '/images/select_aura.png',
@@ -286,24 +287,53 @@ export class PixelArenaMap {
   //   // }
   // }
 
+  // private splitActionChunks(actions: ArenaAction[]): ArenaAction[][] {
+  //   const chunks: ArenaAction[][] = []
+  //   let chunk: ArenaAction[] = []
+  //   let prevIsShoot = false
+  //   for (const action of actions) {
+  //     if (prevIsShoot && action.actionType === ActionType.Move) {
+  //       // switch from shoot to move
+  //       chunks.push(chunk)
+  //       chunk = []
+  //     }
+
+  //     prevIsShoot = action.actionType !== ActionType.Move
+  //     chunk.push(action)
+  //   }
+
+  //   return chunks
+  // }
+
   async onExecutedActions(actions: ArenaAction[]) {
     console.log('Next round actions:', actions)
     // wait for previous actions
     // apply finalblows, then moves and shoots
     this.actionsExecutedPromise = this.actionsExecutedPromise
       .then(() => this.processFinalBlow(actions))
-      .then(() => Promise.all([
-        this.processMoveActions(actions),
-        this.processShootActions(actions)
-      ]))
+      // .then(async () => await this.processActionChunk(actions))
+      .then(async () => {
+        const chunks = splitActionChunks(actions)
+        console.log('Chunks----', chunks)
+        for (const chunk of chunks) {
+          await this.processActionChunk(chunk)
+        }
+      })
 
     // clear current actions
-    for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
-      monster.updateActionAndDraw()
-    }
+    // for (const monster of Object.values(this.monsters)) if (monster.state.hp > 0) {
+    //   monster.updateActionAndDraw()
+    // }
   }
 
-  private processFinalBlow(actions: ArenaAction[]) {
+  private async processActionChunk(actions: ArenaAction[]) {
+    return Promise.all([
+      this.processMoveActions(actions),
+      this.processShootActions(actions)
+    ])
+  }
+
+  private async processFinalBlow(actions: ArenaAction[]) {
     // Process final blow action
     const allMoves: Promise<void>[] = []
     for (const action of actions) if (action.actionType === ActionType.FinalBlow) {
@@ -445,30 +475,12 @@ export class PixelArenaMap {
       if (action.actionType === ActionType.Move) {
         const monster = this.monsters[action.id]
         if (monster) {
-          const prevx = monster.state.pos.x
-          const prevy = monster.state.pos.y
-          // const oldPosVal = xyToPosition(prevx, prevy)
-          // const newPosVal = xyToPosition(action.target.x, action.target.y)
-          // // remove old position from pixelToMonsterMap
-          // delete this.pixelToMonsterMap[oldPosVal]
-          // // add new position to pixelToMonsterMap
-          // this.pixelToMonsterMap[newPosVal] = monster
+          // update position
           this.updateMonsterPos(monster, action.target)
           const move = monster.applyAction(action)
           movePrommises.push(move)
-
-          // move aura if selected
-          if (this.selectedMonster && this.selectedMonster.state.id === action.id) {
-            // const sx = prevx - 0.4
-            // const sy = prevy - 0.5
-            // const tx = action.target.x - 0.4
-            // const ty = action.target.y - 0.5
-            // this.map.moveObject(this.auraContainer!, sx, sy, tx, ty)
-            // this.moveAura(prevx, prevy, action.target.x, action.target.y)
-
-            // Inform new postion after move
-            // move.then(() => this.onSelectMonster? this.onSelectMonster(monster.state, monster.actionType) : undefined)
-          }
+          // clear temp action after move
+          move.then(() => { if (monster.state.hp > 0) monster.updateActionAndDraw() })
         } else {
           console.warn(`Monster with id ${action.id} not found for move action`)
         }
@@ -487,6 +499,8 @@ export class PixelArenaMap {
         if (monster) {
           const shoot = monster.applyAction(action)
           shootPromises.push(shoot)
+          // clear temp action after shoot
+          shoot.then(() => { if (monster.state.hp > 0) monster.updateActionAndDraw() })
         } else {
           console.warn(`Monster with id ${action.id} not found for shoot action`)
         }

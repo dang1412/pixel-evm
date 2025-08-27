@@ -200,7 +200,7 @@ export class PixelArenaMonster {
   private hurt() {
     sound.play('hurt')
     const monsterSprite = this.monsterContainer.getChildAt(0)
-    monsterSprite.tint = '#ee4646'
+    monsterSprite.tint = '#ee6f6fff'
     this.arenaMap.getView().markDirty()
     setTimeout(() => {
       monsterSprite.tint = '#fff'

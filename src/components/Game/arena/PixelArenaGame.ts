@@ -389,29 +389,32 @@ export class PixelArenaGame {
     // Process move, shoot bomb actions
     for (const id of executeOrder) {
       const action = {...this.stepActions[id]}
-      if (action.actionType === ActionType.Move || action.actionType === ActionType.ShootBomb) {
+      // if (action.actionType === ActionType.Move || action.actionType === ActionType.ShootBomb) {
         console.log('execute move or bomb', action)
-        const executed = action.actionType === ActionType.Move 
-          ? this.processMoveAction(action, updatedMonsterIds)
-          : this.processShootBomb(action, updatedMonsterIds)
+        // const executed = action.actionType === ActionType.Move 
+        //   ? this.processMoveAction(action, updatedMonsterIds)
+        //   : this.processShootBomb(action, updatedMonsterIds)
 
-        // let executed = undefined
-        // if (action.actionType === ActionType.Move) {
-        //   if (this.gameMode === GameMode.InstantMove) {
-        //     // update target
-        //     // this.monsterTargetMap[action.id] = action.target
-        //     action.target = getNextPixel()
-        //   } else {
-        //     // execute move
-        //     executed = this.processMoveAction(action, updatedMonsterIds)
-        //   }
-        // } else {
-        //   executed = this.processShootBomb(action, updatedMonsterIds)
-        // }
+        let executed: ArenaAction | undefined
+        if (action.actionType === ActionType.Move) {
+          // execute move
+          executed = this.processMoveAction(action, updatedMonsterIds)
+        } else if (action.actionType === ActionType.ShootBomb) {
+          // throw bomb
+          executed = this.processShootBomb(action, updatedMonsterIds)
+        } else if (
+          // shoot
+          action.actionType === ActionType.Shoot ||
+          action.actionType === ActionType.ShootRocket ||
+          action.actionType === ActionType.ShootFire
+        ) {
+          executed = this.processShootAction(action, updatedMonsterIds)
+        }
+
         if (executed) {
           appliedActions.push(executed)
         }
-      }
+      // }
     }
 
     // const monsters = Object.values(this.state.monsters)
@@ -440,19 +443,19 @@ export class PixelArenaGame {
     // }
 
     // Process shoot actions
-    for (const id of executeOrder) {
-      const action = this.stepActions[id]
-      if (
-        action.actionType === ActionType.Shoot ||
-        action.actionType === ActionType.ShootRocket ||
-        action.actionType === ActionType.ShootFire
-      ) {
-        const executed = this.processShootAction(action, updatedMonsterIds)
-        if (executed) {
-          appliedActions.push(executed)
-        }
-      }
-    }
+    // for (const id of executeOrder) {
+    //   const action = this.stepActions[id]
+    //   if (
+    //     action.actionType === ActionType.Shoot ||
+    //     action.actionType === ActionType.ShootRocket ||
+    //     action.actionType === ActionType.ShootFire
+    //   ) {
+    //     const executed = this.processShootAction(action, updatedMonsterIds)
+    //     if (executed) {
+    //       appliedActions.push(executed)
+    //     }
+    //   }
+    // }
 
     // Apply fires damage
     this.processFires(updatedMonsterIds)
