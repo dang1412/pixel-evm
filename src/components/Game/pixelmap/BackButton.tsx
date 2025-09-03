@@ -3,9 +3,9 @@ import { FaArrowLeft } from 'react-icons/fa'
 
 import { PixelMap } from './PixelMap'
 
-export const BackButton: React.FC<{ mapRef: React.RefObject<PixelMap | undefined> }> = ({ mapRef }) => {
+export const BackButton: React.FC<{ map: PixelMap | undefined }> = ({ map }) => {
   const goBack = useCallback(() => {
-    mapRef.current?.getView().activate('main')
+    map?.getView().activate('main')
   }, [])
 
   return (

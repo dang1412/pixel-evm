@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, PointData, Sprite, Texture } from 'pixi.js'
+import { Assets, Container, Graphics, PointData, Sprite, Texture, Text } from 'pixi.js'
 
 import { ViewportMap } from './ViewportMap'
 import { PIXEL_SIZE } from './utils'
@@ -123,6 +123,23 @@ export class ViewportScene {
     this.setPosition(container, area.x, area.y)
 
     return container
+  }
+
+  addText(text: string, x: number, y: number): Text {
+    const textObj = new Text({
+      text,
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xff1010,
+        align: 'center',
+      }
+    })
+
+    this.container.addChild(textObj)
+    this.setPosition(textObj, x, y)
+
+    return textObj
   }
 
   setPosition(container: Container, x: number, y: number) {

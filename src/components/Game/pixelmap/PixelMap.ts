@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js'
+import { Graphics } from 'pixi.js'
 
 import { PixelArea, PixelImage } from '../types'
 import { ViewportMap } from '../ViewportMap'
@@ -7,6 +7,10 @@ import { getAreaPixels, xyToPosition } from '../utils'
 import { PixelMainMap, PixelMapImages } from './types'
 import { createViewportMap } from './createViewportMap'
 import { getAreaOperatable, getSceneImages, getSubSceneName } from './funcs'
+
+export interface PixelMapOptions {
+  preOpenImageHook?: (curScene: string, pixel: number, image: PixelImage) => boolean
+}
 
 export class PixelMap {
   private mainState: PixelMainMap
@@ -26,7 +30,7 @@ export class PixelMap {
     return getAreaOperatable(this.mainState, this.view.activeScene, area)
   }
 
-  constructor(c: HTMLCanvasElement) {
+  constructor(c: HTMLCanvasElement, private options: PixelMapOptions = {}) {
     this.mainState = {
       mintedPixelSet: new Set(),
       ownedPixelSet: new Set(),
@@ -62,6 +66,12 @@ export class PixelMap {
     const { pixelToImage } = getSceneImages(this.mainState, sceneName)
     const image = pixelToImage.get(pixel)
     if (!image) return
+
+    // call pre open hook
+    if (this.options.preOpenImageHook) {
+      const proceed = this.options.preOpenImageHook(sceneName, pixel, image)
+      if (!proceed) return
+    }
 
     if (sceneName === 'main') {
       this.openPixelImage(image)

@@ -176,7 +176,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
       </div>}
       {(actionCtrlPos && selectedMonster) && <MonsterControlSelect p={actionCtrlPos} onSelect={onSelectAction} monster={selectedMonster} />}
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={startServer} />}
-      {curScene && curScene !== 'main' && <BackButton mapRef={mapRef} />}
+      {curScene && curScene !== 'main' && <BackButton map={mapRef.current} />}
     </>
   )
 }
