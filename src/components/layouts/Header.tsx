@@ -1,5 +1,8 @@
 import { ConnectKitButton } from 'connectkit'
 import { useEffect, useState } from 'react'
+import { useAccount } from 'wagmi'
+
+import { GiftUserMenu } from './GiftUserMenu'
 
 const base = 'block py-2 pr-4 pl-3 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:p-0'
 const normal = 'text-gray-700 dark:text-gray-400'
@@ -7,17 +10,17 @@ const hl = 'text-blue-700 dark:text-white'
 
 const links = [
   {
-    url: '/adventure',
-    txt: 'Adventure',
+    url: '/gift',
+    txt: 'Gift',
   },
   {
     url: '/arena',
     txt: 'Monster',
   },
-  {
-    url: '/#',
-    txt: 'Marketplace',
-  },
+  // {
+  //   url: '/#',
+  //   txt: 'Marketplace',
+  // },
 ]
 
 export const Header = () => {
@@ -29,6 +32,9 @@ export const Header = () => {
       setCurrentPath(window.location.pathname)
     }
   }, [])
+
+  const isGiftPage = currentPath.includes('/gift')
+  const { address } = useAccount()
   
   return (
     <header>
@@ -45,7 +51,11 @@ export const Header = () => {
             </span>
           </a>
           <div className="flex items-center lg:order-2">
-            <ConnectKitButton />
+            {/* <ConnectKitButton /> */}
+            {isGiftPage && address ?
+              <GiftUserMenu address={address} /> :
+              <ConnectKitButton />
+            }
           </div>
           <div
             className="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1"

@@ -1,14 +1,18 @@
 import { WagmiProvider, createConfig, http, webSocket } from 'wagmi'
 import { mainnet, baseSepolia, sepolia } from 'wagmi/chains'
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
+
+import { localChain } from './chains/local'
 
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [baseSepolia, mainnet],
+    chains: [localChain, baseSepolia, mainnet],
     transports: {
       // RPC URL for each chain
+      [localChain.id]: http('http://127.0.0.1:8545'),
       [mainnet.id]: http(),
       // [baseSepolia.id]: http('https://base-sepolia.blockpi.network/v1/rpc/public'),
       // [baseSepolia.id]: http('https://base-sepolia.gateway.tenderly.co'),
@@ -25,8 +29,8 @@ const config = createConfig(
 
     // Optional App Info
     appDescription: 'Pixel games',
-    appUrl: 'https://family.co', // your app's url
-    appIcon: 'https://family.co/logo.png', // your app's icon, no bigger than 1024x1024px (max. 1MB)
+    appUrl: 'https://pixelgames.com', // your app's url
+    appIcon: 'https://pixelgames.com/logo.png', // your app's icon, no bigger than 1024x1024px (max. 1MB)
   }),
 )
 
