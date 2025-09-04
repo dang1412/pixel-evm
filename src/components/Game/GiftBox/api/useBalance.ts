@@ -1,9 +1,11 @@
+import { useEffect, useMemo } from 'react'
+import { Address, formatUnits } from 'viem'
 import { useReadContract } from 'wagmi'
 
+import { globalEventBus } from '@/lib/EventEmitter'
+
 import { GiftContractAddress } from './constants'
-import { Address, formatUnits } from 'viem'
-import { watchBoxClaimed } from './watchBoxClaimed'
-import { useMemo } from 'react'
+import { BoxClaimedEventArgs } from './watchBoxClaimed'
 
 const abi = [
   // balanceOf
@@ -37,7 +39,6 @@ const abi = [
 ] as const
 
 export function useBalance(account: Address) {
-  console.log('useBalance for account:', account)
   const { data, refetch } = useReadContract({
     address: GiftContractAddress,
     abi,
@@ -45,14 +46,22 @@ export function useBalance(account: Address) {
     args: [account], // replace with actual user address
   })
 
-  watchBoxClaimed((user, position, token) => {
-    if (user.toLowerCase() === account.toLowerCase()) {
-      console.log('Balance affected by box claimed event:', user, position, token)
-      refetch()
+  useEffect(() => {
+    const handleBoxClaimed = ({ user, position, token }: BoxClaimedEventArgs) => {
+      if (user.toLowerCase() === account.toLowerCase()) {
+        console.log('Balance affected by box claimed event:', user, position, token)
+        refetch()
+      }
     }
-  })
 
-  console.log('Balance data:', data)
+    globalEventBus.on('boxClaimed', handleBoxClaimed)
+
+    return () => {
+      globalEventBus.off('boxClaimed', handleBoxClaimed)
+    }
+  }, [account, refetch])
+
+  console.log('Balance data:', account, data)
 
   return useMemo(() => formatUnits(data || 0n, 18), [data])
 }

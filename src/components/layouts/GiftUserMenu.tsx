@@ -3,7 +3,7 @@ import { FaUser } from 'react-icons/fa'
 import { ConnectKitButton } from 'connectkit'
 import { Address } from 'viem'
 
-import { useBalance } from '../Game/gift/api/useBalance'
+import { useBalance } from '../Game/GiftBox/api/useBalance'
 
 interface GiftUserMenuProps {
   address: Address

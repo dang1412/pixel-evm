@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAccount } from 'wagmi'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { BackButton } from '../pixelmap/BackButton'
@@ -8,7 +7,6 @@ import { mockImages } from '../mock/images'
 import { useActiveBoxes, useClaimBox } from './api'
 import { PixelGift } from './PixelGift'
 import { watchBoxClaimed } from './api/watchBoxClaimed'
-import { useBalance } from './api/useBalance'
 
 interface Props {}
 
@@ -20,13 +18,13 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const boxes = useActiveBoxes()
   const claimBox = useClaimBox()
 
-  const boxClaimed = useCallback((user: `0x${string}`, pos: number, token: number) => {
-    console.log('Box claimed by', user, 'at position', pos, 'with token', token)
-    const pixelGift = giftRef.current
-    pixelGift?.boxTaken(pos, token)
-  }, [])
+  // const boxClaimed = useCallback((user: `0x${string}`, pos: number, token: number) => {
+  //   console.log('Box claimed by', user, 'at position', pos, 'with token', token)
+  //   const pixelGift = giftRef.current
+  //   pixelGift?.boxTaken(pos, token)
+  // }, [])
 
-  watchBoxClaimed(boxClaimed)
+  watchBoxClaimed()
 
   // const { address } = useAccount()
   // const balance = useBalance(address || `0x`)

@@ -9,7 +9,7 @@ import { localChain } from './chains/local'
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [localChain, baseSepolia, mainnet],
+    chains: [baseSepolia, mainnet],
     transports: {
       // RPC URL for each chain
       [localChain.id]: http('http://127.0.0.1:8545'),

@@ -2,6 +2,8 @@ import { Container } from 'pixi.js'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { positionToXY, xyToPosition } from '../utils'
+import { BoxClaimedEventArgs } from './api/watchBoxClaimed'
+import { globalEventBus } from '@/lib/EventEmitter'
 
 export class PixelGift {
   private positionBoxMap: Map<number, Container> = new Map() // position -> box image
@@ -21,6 +23,12 @@ export class PixelGift {
         this.claimBox(pos)
       }
     })
+
+    globalEventBus.on('boxClaimed', this.handleBoxClaimed.bind(this))
+  }
+
+  private handleBoxClaimed = ({ user, position, token }: BoxClaimedEventArgs) => {
+    this.boxTaken(position, token)
   }
 
   hasBox(pos: number) {

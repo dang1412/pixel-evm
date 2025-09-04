@@ -1,6 +1,8 @@
 import { useReadContract, useWatchContractEvent } from 'wagmi'
 
 import { GiftContractAddress } from './constants'
+import { useCallback } from 'react'
+import { Log } from 'viem'
 
 const abi = [
   {
@@ -34,14 +36,16 @@ export function useActiveBoxes() {
     args: [],
   })
 
+  const onLogs = useCallback((logs: Log[]) => {
+    console.log('BoxAdded new logs!', logs)
+    refetch()
+  }, [refetch])
+
   useWatchContractEvent({
     address: GiftContractAddress,
     abi,
     eventName: 'BoxAdded',
-    onLogs(logs) {
-      console.log('New logs!', logs)
-      refetch()
-    },
+    onLogs,
   })
 
   return data
