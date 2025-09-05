@@ -1,5 +1,8 @@
-import { useWriteContract } from 'wagmi'
+import { useCallback } from 'react'
+import { parseEventLogs } from 'viem'
+import { usePublicClient, useWriteContract } from 'wagmi'
 
+import { globalEventBus } from '@/lib/EventEmitter'
 import { GiftContractAddress } from './constants'
 
 const abi = [
@@ -31,19 +34,64 @@ const abi = [
   },
 ] as const
 
+const boxClaimedEventAbi = [
+  {
+    type: "event",
+    name: "BoxClaimed",
+    inputs: [
+      {
+        name: "user",
+        type: "address",
+        indexed: false,
+        internalType: "address"
+      },
+      {
+        name: "position",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16"
+      },
+      {
+        name: "token",
+        type: "uint16",
+        indexed: false,
+        internalType: "uint16"
+      }
+    ],
+    anonymous: false
+  },
+] as const
+
 export function useClaimBox() {
 
-  const { data, error, writeContractAsync } = useWriteContract()
+  const { writeContractAsync } = useWriteContract()
+  const client = usePublicClient()
 
-  const claimBox = async (pos: number, deadline: number, sig: `0x${string}`) => {
-    // console.log('Transaction sent:', rs)
+  const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
+    if (!client) throw new Error('No client')
+
     const hash = await writeContractAsync({
       address: GiftContractAddress,
       abi,
       functionName: 'claimBox',
       args: [pos, BigInt(deadline), sig],
     })
-  }
+    console.log('Transaction hash claimBox:', hash)
+
+    const receipt = await client.waitForTransactionReceipt({ hash })
+
+    const logs = parseEventLogs({
+      abi: boxClaimedEventAbi,
+      eventName: 'BoxClaimed',
+      logs: receipt.logs,
+    })
+
+    console.log('Parsed BoxClaimed logs:', logs[0].args)
+
+    globalEventBus.emit('boxClaimed', logs[0].args)
+
+    return hash
+  }, [writeContractAsync, client])
 
   return claimBox
 }

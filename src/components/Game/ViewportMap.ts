@@ -191,13 +191,11 @@ export class ViewportMap {
       const data = this.getPixelXY(e)
       const [px, py] = data
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelup', {detail: data}))
-      console.log('Pixel up xy', px, py)
       const time = performance.now() - downtime
       if (downPx === px && downPy === py && time < 500) {
         // clicked
         this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixelclick', {detail: data}))
         downPx = downPy = -1
-        console.log('Pixel click xy', px, py)
       }
     }
 
@@ -421,9 +419,6 @@ export class ViewportMap {
   private setupSelect() {
     // detect long click to start select
     this.subscribe('pixeldown', (e: CustomEvent<[number, number, number, number]>) => {
-      console.log('Clear select on pixel down', e)
-      // this.getActiveScene()?.clearSelect()
-
       const [px, py] = e.detail
       if (px < 0 || py < 0) return
 

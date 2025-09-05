@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAccount } from 'wagmi'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { BackButton } from '../pixelmap/BackButton'
@@ -6,7 +7,9 @@ import { mockImages } from '../mock/images'
 
 import { useActiveBoxes, useClaimBox } from './api'
 import { PixelGift } from './PixelGift'
+import { CoolDownCount } from './CoolDown'
 import { watchBoxClaimed } from './api/watchBoxClaimed'
+import { useCoolDownTime } from './api/useCoolDownTime'
 
 interface Props {}
 
@@ -18,17 +21,20 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const boxes = useActiveBoxes()
   const claimBox = useClaimBox()
 
-  // const boxClaimed = useCallback((user: `0x${string}`, pos: number, token: number) => {
-  //   console.log('Box claimed by', user, 'at position', pos, 'with token', token)
-  //   const pixelGift = giftRef.current
-  //   pixelGift?.boxTaken(pos, token)
-  // }, [])
+  const claimBoxWithPermit = useCallback(async (pos: number) => {
+    const deadline = Math.floor(Date.now() / 1000) + 300
+    // TODO get signature from backend
+    await claimBox(pos, deadline, '0x1234567890abcdef')
+  }, [claimBox])
+
+  // attach claimBoxWithPermit to PixelGift instance
+  useEffect(() => {
+    if (giftRef.current) {
+      giftRef.current.claimBox = claimBoxWithPermit
+    }
+  }, [claimBoxWithPermit])
 
   watchBoxClaimed()
-
-  // const { address } = useAccount()
-  // const balance = useBalance(address || `0x`)
-  // console.log('User balance:', address, balance)
 
   useEffect(() => {
     if (canvas && giftRef.current === undefined) {
@@ -53,14 +59,8 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
         setCurScene(openedScene)
       })
 
-      // claim box
-      pixelGift.claimBox = async (pos: number) => {
-        // console.log('Claim box at position:', pos, positionToXY(pos))
-        const deadline = Math.floor(Date.now() / 1000) + 600
-        // // const deadline = Math.floor(Date.now() / 1000) - 600
-        await claimBox(pos, deadline, '0x1234567890abcdef')
-        // pixelGift.boxTaken(pos, 100)
-      }
+      // attach claimBoxWithPermit to PixelGift instance
+      pixelGift.claimBox = claimBoxWithPermit
     }
   }, [canvas])
 
@@ -76,10 +76,16 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
     }
   }, [boxes, curScene])
 
+  const { address } = useAccount()
+  const waitSec = useCoolDownTime(address)
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
       {curScene && curScene !== 'main' && <BackButton map={map} />}
+      <div className='absolute top-16 left-1/2 -translate-x-1/2'>
+        <CoolDownCount waitSec={waitSec} />
+      </div>
     </>
   )
 }

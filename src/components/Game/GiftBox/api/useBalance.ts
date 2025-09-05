@@ -46,9 +46,17 @@ export function useBalance(account: Address) {
     args: [account], // replace with actual user address
   })
 
+  useRefetchWhenBoxClaimed(account, refetch)
+
+  console.log('Balance data:', account, data)
+
+  return useMemo(() => formatUnits(data || 0n, 18), [data])
+}
+
+export function useRefetchWhenBoxClaimed(addr: Address, refetch: () => void) {
   useEffect(() => {
     const handleBoxClaimed = ({ user, position, token }: BoxClaimedEventArgs) => {
-      if (user.toLowerCase() === account.toLowerCase()) {
+      if (user.toLowerCase() === addr.toLowerCase()) {
         console.log('Balance affected by box claimed event:', user, position, token)
         refetch()
       }
@@ -59,9 +67,5 @@ export function useBalance(account: Address) {
     return () => {
       globalEventBus.off('boxClaimed', handleBoxClaimed)
     }
-  }, [account, refetch])
-
-  console.log('Balance data:', account, data)
-
-  return useMemo(() => formatUnits(data || 0n, 18), [data])
+  }, [addr, refetch])
 }

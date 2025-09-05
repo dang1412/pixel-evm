@@ -125,13 +125,13 @@ export class ViewportScene {
     return container
   }
 
-  addText(text: string, x: number, y: number): Text {
+  addText(text: string, x: number, y: number, color = 0xff1010): Text {
     const textObj = new Text({
       text,
       style: {
         fontFamily: 'Arial',
         fontSize: 24,
-        fill: 0xff1010,
+        fill: color,
         align: 'center',
       }
     })
