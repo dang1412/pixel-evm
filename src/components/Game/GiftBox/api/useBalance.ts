@@ -3,9 +3,9 @@ import { Address, formatUnits } from 'viem'
 import { useReadContract } from 'wagmi'
 
 import { globalEventBus } from '@/lib/EventEmitter'
+import { BoxClaimedEventArgs } from '@/lib/ws'
 
 import { GiftContractAddress } from './constants'
-import { BoxClaimedEventArgs } from './watchBoxClaimed'
 
 const abi = [
   // balanceOf
@@ -13,28 +13,15 @@ const abi = [
     type: 'function',
     name: 'balanceOf',
     stateMutability: 'view',
-    inputs: [
-      {
-        name: 'account',
-        type: 'address',
-      },
-    ],
-    outputs: [
-      {
-        type: 'uint256',
-      },
-    ],
+    inputs: [{ name: 'account', type: 'address',}],
+    outputs: [{ type: 'uint256' }],
   },
   {
     type: 'function',
     name: 'decimals',
     stateMutability: 'view',
     inputs: [],
-    outputs: [
-      {
-        type: 'uint8',
-      },
-    ],
+    outputs: [{ type: 'uint8' }],
   },
 ] as const
 
@@ -53,12 +40,12 @@ export function useBalance(account: Address) {
   return useMemo(() => formatUnits(data || 0n, 18), [data])
 }
 
-export function useRefetchWhenBoxClaimed(addr: Address, refetch: () => void) {
+export function useRefetchWhenBoxClaimed(addr: Address | undefined, refetch: () => void) {
   useEffect(() => {
     const handleBoxClaimed = ({ user, position, token }: BoxClaimedEventArgs) => {
-      if (user.toLowerCase() === addr.toLowerCase()) {
+      if (!addr || user.toLowerCase() === addr.toLowerCase()) {
         console.log('Balance affected by box claimed event:', user, position, token)
-        refetch()
+        setTimeout(refetch, 1000) // refetch after 1 second
       }
     }
 

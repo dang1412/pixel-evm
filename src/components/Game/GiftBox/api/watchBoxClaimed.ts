@@ -16,9 +16,10 @@ import { Log } from 'viem'
 // >
 
 // Now make a log type
-type BoxClaimedLog = Log<bigint, number, false, any, undefined>
+// type BoxClaimedLog = Log<bigint, number, false, any, undefined>
 
 import { globalEventBus } from '@/lib/EventEmitter'
+import { BoxClaimedEventArgs } from '@/lib/ws'
 import { GiftContractAddress } from './constants'
 
 const abi = [
@@ -49,11 +50,7 @@ const abi = [
   },
 ] as const
 
-export interface BoxClaimedEventArgs {
-  user: `0x${string}`
-  position: number
-  token: number
-}
+
 
 export function watchBoxClaimed() {
 

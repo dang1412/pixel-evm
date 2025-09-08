@@ -10,6 +10,7 @@ import { PixelGift } from './PixelGift'
 import { CoolDownCount } from './CoolDown'
 import { watchBoxClaimed } from './api/watchBoxClaimed'
 import { useCoolDownTime } from './api/useCoolDownTime'
+import { listenToBoxClaimed } from '@/lib/ws'
 
 interface Props {}
 
@@ -34,7 +35,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
     }
   }, [claimBoxWithPermit])
 
-  watchBoxClaimed()
+  // watchBoxClaimed()
 
   useEffect(() => {
     if (canvas && giftRef.current === undefined) {
@@ -63,6 +64,10 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       pixelGift.claimBox = claimBoxWithPermit
     }
   }, [canvas])
+
+  useEffect(() => {
+    listenToBoxClaimed()
+  }, [])
 
   // get the pixel map instance
   const map = giftRef.current?.map

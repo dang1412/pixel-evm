@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 
 import { localChain } from './chains/local'
+import { roundRobinHttp } from './roundRobinHttp'
 
 const config = createConfig(
   getDefaultConfig({
@@ -14,10 +15,22 @@ const config = createConfig(
       // RPC URL for each chain
       [localChain.id]: http('http://127.0.0.1:8545'),
       [mainnet.id]: http(),
-      // [baseSepolia.id]: http('https://base-sepolia.blockpi.network/v1/rpc/public'),
-      // [baseSepolia.id]: http('https://base-sepolia.gateway.tenderly.co'),
       // [baseSepolia.id]: http('https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
-      [baseSepolia.id]: webSocket('wss://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
+      // [baseSepolia.id]: webSocket('wss://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
+      [baseSepolia.id]: roundRobinHttp([
+        {url: 'https://sepolia.base.org'},
+        {url: 'https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'},
+        {
+          url: 'https://base-sepolia.gateway.tatum.io',
+          config: {
+            fetchOptions: {
+              headers: {
+                'x-api-key': 't-67919a2e57673415a4b4fd77-11e5658d5ecf4a19a3ed8c30',
+              },
+            },
+          }
+        },
+      ]),
       [sepolia.id]: http(),
     },
 

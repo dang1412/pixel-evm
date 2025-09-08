@@ -428,7 +428,6 @@ export class ViewportMap {
       }, 600)
 
       const unsubmoved = this.subscribeOnce('viewportmoved', () => {
-        console.log('viewportmoved')
         clearTimeout(timeout)
       })
 

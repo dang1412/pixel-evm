@@ -4,8 +4,10 @@ import { usePublicClient, useWriteContract } from 'wagmi'
 
 import { globalEventBus } from '@/lib/EventEmitter'
 import { GiftContractAddress } from './constants'
+import { enableRoundRobinHttp } from '@/providers/roundRobinHttp'
 
 const abi = [
+  // claimBox
   {
     type: 'function',
     name: 'claimBox',
@@ -14,49 +16,34 @@ const abi = [
       { name: 'deadline', type: 'uint256', internalType: 'uint256' },
       { name: 'signature', type: 'bytes', internalType: 'bytes' }
     ],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
     stateMutability: 'nonpayable'
   },
+  // errors
   { type: "error", name: "ClaimExpired", inputs: [] },
   { type: "error", name: "InvalidClaimSignature", inputs: [] },
   { type: "error", name: "ECDSAInvalidSignature", inputs: [] },
   {
     type: "error",
     name: "ECDSAInvalidSignatureLength",
-    inputs: [
-      { name: "length", type: "uint256", "internalType": "uint256" }
-    ]
+    inputs: [{ name: "length", type: "uint256", internalType: "uint256" }]
   },
   {
     type: "error",
     name: "ECDSAInvalidSignatureS",
-    inputs: [{ name: "s", type: "bytes32", "internalType": "bytes32" }]
+    inputs: [{ name: "s", type: "bytes32", internalType: "bytes32" }]
   },
 ] as const
 
+// event ABI for parsing logs
 const boxClaimedEventAbi = [
   {
     type: "event",
     name: "BoxClaimed",
     inputs: [
-      {
-        name: "user",
-        type: "address",
-        indexed: false,
-        internalType: "address"
-      },
-      {
-        name: "position",
-        type: "uint16",
-        indexed: false,
-        internalType: "uint16"
-      },
-      {
-        name: "token",
-        type: "uint16",
-        indexed: false,
-        internalType: "uint16"
-      }
+      { name: "user", type: "address", indexed: false, internalType: "address" },
+      { name: "position", type: "uint16", indexed: false, internalType: "uint16" },
+      { name: "token", type: "uint16", indexed: false, internalType: "uint16" }
     ],
     anonymous: false
   },
@@ -70,6 +57,8 @@ export function useClaimBox() {
   const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
     if (!client) throw new Error('No client')
 
+    enableRoundRobinHttp(false)
+
     const hash = await writeContractAsync({
       address: GiftContractAddress,
       abi,
@@ -79,6 +68,8 @@ export function useClaimBox() {
     console.log('Transaction hash claimBox:', hash)
 
     const receipt = await client.waitForTransactionReceipt({ hash })
+
+    enableRoundRobinHttp(true)
 
     const logs = parseEventLogs({
       abi: boxClaimedEventAbi,
