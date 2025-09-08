@@ -1,5 +1,4 @@
 // client.ts
-import WebSocket from "ws"
 import { globalEventBus } from "./EventEmitter"
 
 export interface BoxClaimedEventArgs {
@@ -27,34 +26,32 @@ function decodeBoxClaimedEvents(buffer: ArrayBuffer): BoxClaimedEventArgs[] {
 export function listenToBoxClaimed() {
   const url = "ws://localhost:8080" // your ws server url
   const ws = new WebSocket(url)
-  ws.on("open", () => {
-    console.log("✅ Connected to server");
+
+  ws.onopen = () => {
+    console.log("✅ Connected to server")
 
     // Send a message to the server
-    ws.send(JSON.stringify({ type: "hello", msg: "Hi from client 👋" }));
-  })
+    ws.send(JSON.stringify({ type: "hello", msg: "Hi from browser 👋" }))
+  }
 
-  ws.on("message", (data: ArrayBuffer) => {
+  ws.onmessage = async (event) => {
     try {
-      const logs = decodeBoxClaimedEvents(data)
-      console.log("📩 Received BoxClaimed events:", logs)
-      if (logs.length === 0) return
-
+      const buffer = await (event.data as Blob).arrayBuffer()
+      const logs = decodeBoxClaimedEvents(buffer)
+      console.log("📩 Received:", logs)
       for (const log of logs) {
-        console.log(`- User: ${log.user}, Position: ${log.position}, Token: ${log.token}`)
         globalEventBus.emit('boxClaimed', log)
       }
-    } catch (error) {
-      console.error("Failed to decode message:", error);
+    } catch (err) {
+      console.error("Failed to parse message", err)
     }
-    
-  })
+  }
 
-  ws.on("close", () => {
-    console.log("❌ Disconnected from server");
-  })
+  ws.onclose = () => {
+    console.log("❌ Disconnected from server")
+  }
 
-  ws.on("error", (error) => {
-    console.error("WebSocket error:", error);
-  })
+  ws.onerror = (err) => {
+    console.error("⚠️ WebSocket error:", err)
+  }
 }
