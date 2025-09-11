@@ -3,9 +3,11 @@
 import '../globals.css'
 
 import { Header } from '@/components/layouts/Header'
-import { Web3Provider } from '@/providers/Web3Provider'
 import TestConnect from '@/components/TestConnect/TestConnect'
 import { WebRTCProvider } from '@/lib/webRTC/WebRTCProvider'
+
+import { Web3Provider } from '@/providers/Web3Provider'
+import { NotificationProvider } from '@/providers/NotificationProvider'
 
 export default function RootLayout({
   children,
@@ -16,15 +18,17 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Web3Provider>
-          <div className='flex flex-col h-screen'>
-            <Header />
-            <div className='flex-1'>
-              <WebRTCProvider>
-                {children}
-              </WebRTCProvider>
-              {/* <TestConnect /> */}
+          <NotificationProvider>
+            <div className='flex flex-col h-screen'>
+              <Header />
+              <div className='flex-1'>
+                <WebRTCProvider>
+                  {children}
+                </WebRTCProvider>
+                {/* <TestConnect /> */}
+              </div>
             </div>
-          </div>
+          </NotificationProvider>
         </Web3Provider>
       </body>
     </html>

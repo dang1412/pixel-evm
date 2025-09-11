@@ -11,6 +11,8 @@ import { CoolDownCount } from './CoolDown'
 import { watchBoxClaimed } from './api/watchBoxClaimed'
 import { useCoolDownTime } from './api/useCoolDownTime'
 import { listenToBoxClaimed } from '@/lib/ws'
+import { useNotification } from '@/providers/NotificationProvider'
+import { FaSpinner } from 'react-icons/fa'
 
 interface Props {}
 
@@ -84,11 +86,15 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const { address } = useAccount()
   const waitSec = useCoolDownTime(address)
 
+  const { loading } = useNotification()
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
-      {curScene && curScene !== 'main' && <BackButton map={map} />}
-      <div className='absolute top-16 left-1/2 -translate-x-1/2'>
+
+      <div className='w-full absolute top-16 flex items-center justify-center'>
+        {curScene && curScene !== 'main' && <BackButton map={map} />}
+        { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
         <CoolDownCount waitSec={waitSec} />
       </div>
     </>

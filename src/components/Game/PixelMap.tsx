@@ -209,7 +209,9 @@ const PixelMapComponent: React.FC<Props> = (props) => {
           <PixelInfo x={pointerPixel.x} y={pointerPixel.y} />
         }
       </div>
-      {curScene && curScene !== 'main' && <BackButton map={mapRef.current} />}
+      <div className='absolute top-16 left-1/2 -translate-x-1/2'>
+        {curScene && curScene !== 'main' && <BackButton map={mapRef.current} />}
+      </div>
     </>
   )
 }

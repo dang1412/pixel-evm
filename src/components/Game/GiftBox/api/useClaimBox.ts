@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { parseEventLogs } from 'viem'
+import { ContractFunctionExecutionError, parseEventLogs } from 'viem'
 
 import { simulateContract } from '@wagmi/core'
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi'
@@ -7,6 +7,7 @@ import { useAccount, usePublicClient, useWriteContract } from 'wagmi'
 import { globalEventBus } from '@/lib/EventEmitter'
 import { GiftContractAddress } from './constants'
 import { enableRoundRobinHttp } from '@/providers/roundRobinHttp'
+import { useNotification } from '@/providers/NotificationProvider'
 
 const abi = [
   // claimBox
@@ -57,6 +58,8 @@ export function useClaimBox() {
   const { address: account } = useAccount()
   const client = usePublicClient()
 
+  const { notify, setLoading } = useNotification()
+
   const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
     if (!client) throw new Error('No client')
     if (!account) throw new Error('No account')
@@ -70,7 +73,7 @@ export function useClaimBox() {
     } as const
 
     try {
-
+      setLoading(true)
       const { request } = await client.simulateContract(params)
       enableRoundRobinHttp(false)
       const hash = await writeContractAsync(request)
@@ -84,15 +87,22 @@ export function useClaimBox() {
         logs: receipt.logs,
       })
 
-      console.log('Parsed BoxClaimed logs:', logs[0].args)
+      const args = logs[0].args
 
-      globalEventBus.emit('boxClaimed', logs[0].args)
+      console.log('Parsed BoxClaimed logs:', args)
+
+      globalEventBus.emit('boxClaimed', args)
+
+      notify(`Box claimed successfully (${args.token} token)`, 'success')
 
       return hash
     } catch (error) {
-      console.log('Claim box error:', error)
+      const err = error as ContractFunctionExecutionError
+      console.log('Claim box error:', err.cause.message, err.cause.shortMessage, err.cause.details)
+      notify(`${err.cause.shortMessage}`, 'error')
     } finally {
       enableRoundRobinHttp(true)
+      setLoading(false)
     }
   }, [writeContractAsync, client, account])
 

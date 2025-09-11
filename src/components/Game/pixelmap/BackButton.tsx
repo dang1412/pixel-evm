@@ -11,7 +11,7 @@ export const BackButton: React.FC<{ map: PixelMap | undefined }> = ({ map }) => 
   return (
     <button
       onClick={goBack}
-      className="text-lg absolute top-16 left-1/2 -translate-x-1/2 text-gray-800 hover:text-blue-800 px-3 py-1"
+      className="text-lg text-gray-800 hover:text-blue-800 px-3 py-1"
     >
       <FaArrowLeft />
     </button>

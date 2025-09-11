@@ -1,11 +1,12 @@
-import { ConnectKitButton } from 'connectkit'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { ConnectKitButton } from 'connectkit'
 
 import { globalState } from '../globalState'
 import { GiftUserMenu } from './GiftUserMenu'
 
-const base = 'block py-2 pr-4 pl-3 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:p-0'
+const base = 'block py-2 pr-4 pl-3 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:p-0'
 const normal = 'text-gray-700 dark:text-gray-400'
 const hl = 'text-blue-700 dark:text-white'
 
@@ -13,10 +14,12 @@ const links = [
   {
     url: '/gift',
     txt: 'Gift',
+    img: '/images/gift/gift-box.webp'
   },
   {
     url: '/arena',
     txt: 'Monster',
+    img: '/images/characters/monster.png'
   },
   // {
   //   url: '/#',
@@ -44,8 +47,8 @@ export const Header = () => {
 
   return (
     <header>
-      <nav className="bg-gray-50 border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
-        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+      <nav className="bg-gray-50 border-gray-200 px-4 lg:px-6 py-1 dark:bg-gray-800">
+        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl h-12">
           <a href="/" className="flex items-center">
             <img
               src="/images/pixel_logo.png"
@@ -64,17 +67,18 @@ export const Header = () => {
             }
           </div>
           <div
-            className="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1"
+            className="hidden justify-between items-center h-full w-full lg:flex lg:w-auto lg:order-1"
             id="mobile-menu-2"
           >
-            <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+            <ul className="flex flex-col mt-4 font-medium h-full lg:flex-row lg:space-x-8 lg:mt-0">
               {links.map((l, i) => (
-                <li key={i}>
+                <li key={i} className={ `flex items-center ${currentPath.includes(l.url) ? 'border-b-2 border-green-500' : ''}`}>
                   <a
                     href={l.url}
-                    className={`${base} ${ currentPath.includes(l.url) ? hl : normal }`}
+                    className={`flex justify-center ${base} ${ currentPath.includes(l.url) ? hl : normal }`}
                     aria-current="page"
                   >
+                    <Image src={l.img} alt='img' width={24} height={24} className='mr-1' />
                     {l.txt}
                   </a>
                 </li>
