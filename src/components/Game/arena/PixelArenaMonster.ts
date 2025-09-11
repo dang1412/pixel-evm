@@ -50,7 +50,7 @@ export class PixelArenaMonster {
     const { image, w, h, dx, dy } = monsterInfos[state.type]
     this.monsterContainer = scene.addImage(image, { x: state.pos.x, y: state.pos.y, w, h })
 
-    const monsterSprite = this.monsterContainer.getChildAt(0)
+    const monsterSprite = this.monsterContainer.getChildAt(0) as Container
     monsterSprite.x = (dx || 0) * PIXEL_SIZE
     monsterSprite.y = (dy || 0) * PIXEL_SIZE
 
@@ -199,7 +199,7 @@ export class PixelArenaMonster {
 
   private hurt() {
     sound.play('hurt')
-    const monsterSprite = this.monsterContainer.getChildAt(0)
+    const monsterSprite = this.monsterContainer.getChildAt(0) as Container
     monsterSprite.tint = '#ee6f6fff'
     this.arenaMap.getView().markDirty()
     setTimeout(() => {
