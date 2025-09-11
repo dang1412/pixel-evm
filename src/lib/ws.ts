@@ -38,10 +38,12 @@ export function listenToBoxClaimed() {
     try {
       const buffer = await (event.data as Blob).arrayBuffer()
       const logs = decodeBoxClaimedEvents(buffer)
-      console.log("📩 Received:", logs)
-      for (const log of logs) {
-        globalEventBus.emit('boxClaimed', log)
-      }
+      setTimeout(() => {
+        console.log("📩 Received:", logs)
+        for (const log of logs) {
+          globalEventBus.emit('boxClaimed', log)
+        }
+      }, 2000) // wait for 2s before emitting event
     } catch (err) {
       console.error("Failed to parse message", err)
     }

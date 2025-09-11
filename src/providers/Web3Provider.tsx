@@ -1,5 +1,5 @@
 import { WagmiProvider, createConfig, http, webSocket } from 'wagmi'
-import { mainnet, baseSepolia, sepolia } from 'wagmi/chains'
+import { base, baseSepolia, sepolia } from 'wagmi/chains'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
@@ -10,28 +10,23 @@ import { roundRobinHttp } from './roundRobinHttp'
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [baseSepolia, mainnet],
+    chains: [baseSepolia, base],
     transports: {
       // RPC URL for each chain
-      [localChain.id]: http('http://127.0.0.1:8545'),
-      [mainnet.id]: http(),
+      // [localChain.id]: http('http://127.0.0.1:8545'),
+      [base.id]: http(),
       // [baseSepolia.id]: http('https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
       // [baseSepolia.id]: webSocket('wss://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
+      // [baseSepolia.id]: webSocket('wss://go.getblock.io/d0aca3a299984a3ab6561fbb9cba99af'),
       [baseSepolia.id]: roundRobinHttp([
         {url: 'https://sepolia.base.org'},
+        {url: 'https://quaint-aged-isle.base-sepolia.quiknode.pro/778cd5f53cd714ba78fc39caefafc9784b2cbb3a/'},
         {url: 'https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'},
-        {
-          url: 'https://base-sepolia.gateway.tatum.io',
-          config: {
-            fetchOptions: {
-              headers: {
-                'x-api-key': 't-67919a2e57673415a4b4fd77-11e5658d5ecf4a19a3ed8c30',
-              },
-            },
-          }
-        },
+        {url: 'https://base-sepolia.core.chainstack.com/f261d7b1c99ec08c17270535b5ac79b9'}, // 25 rps
+        {url: 'https://base-sepolia.public.blastapi.io'}, // 10rps
+        {url: 'https://go.getblock.io/044d67eda14144b6b5429b4daab0dc03'}, // 5rps
       ]),
-      [sepolia.id]: http(),
+      // [sepolia.id]: http(),
     },
 
     // Required API Keys

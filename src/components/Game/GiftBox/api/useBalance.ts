@@ -5,7 +5,7 @@ import { useReadContract } from 'wagmi'
 import { globalEventBus } from '@/lib/EventEmitter'
 import { BoxClaimedEventArgs } from '@/lib/ws'
 
-import { GiftContractAddress } from './constants'
+import { PixelTokenAddress } from './constants'
 
 const abi = [
   // balanceOf
@@ -27,7 +27,7 @@ const abi = [
 
 export function useBalance(account: Address) {
   const { data, refetch } = useReadContract({
-    address: GiftContractAddress,
+    address: PixelTokenAddress,
     abi,
     functionName: 'balanceOf',
     args: [account], // replace with actual user address

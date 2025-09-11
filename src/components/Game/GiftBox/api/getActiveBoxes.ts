@@ -1,7 +1,7 @@
 import { useReadContract, useWatchContractEvent } from 'wagmi'
+import { useCallback } from 'react'
 
 import { GiftContractAddress } from './constants'
-import { useCallback } from 'react'
 import { Log } from 'viem'
 import { useRefetchWhenBoxClaimed } from './useBalance'
 

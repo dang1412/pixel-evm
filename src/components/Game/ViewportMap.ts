@@ -184,7 +184,6 @@ export class ViewportMap {
       downPy = py
       downtime = performance.now()
       this.eventTarget.dispatchEvent(new CustomEvent<[number, number, number, number]>('pixeldown', {detail: [px, py, rawx, rawy]}))
-      console.log('Pixel down xy', px, py)
     }
 
     const mouseup = (e: MouseEvent) => {

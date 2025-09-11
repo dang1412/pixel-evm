@@ -6,7 +6,9 @@ import { globalState } from '@/components/globalState'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { PIXEL_SIZE, positionToXY, xyToPosition } from '../utils'
-import { BoxClaimedEventArgs } from './api/watchBoxClaimed'
+import { BoxClaimedEventArgs } from '@/lib/ws'
+import { enableRoundRobinHttp } from '@/providers/roundRobinHttp'
+// import { BoxClaimedEventArgs } from './api/watchBoxClaimed'
 
 sound.add('coin', '/sounds/gift/coin.mp3')
 sound.add('appear', '/sounds/gift/appear.mp3')
@@ -23,7 +25,7 @@ export class PixelGift {
       const box = this.positionBoxMap.get(pixel)
       isPicking = !isPicking
       if (box) {
-        const glow = box.getChildAt(0)
+        const glow = box.getChildAt(0) as Container
         glow.visible = isPicking ? true : false
         box.alpha = isPicking ? 0.6 : 1
         this.map.getView().markDirty()
@@ -32,7 +34,7 @@ export class PixelGift {
       }
     }
 
-    view.subscribe('pixelclick', (event: CustomEvent<[number, number]>) => {
+    view.subscribe('pixelclick', async (event: CustomEvent<[number, number]>) => {
       if (view.activeScene !== 'main' || isPicking) {
         return
       }
@@ -43,16 +45,8 @@ export class PixelGift {
       const box = this.positionBoxMap.get(pos)
       if (box) {
         toggleBoxPicking(pos)
-
-        this.claimBox(pos)
-          .then(() => {
-            console.log('Claim done')
-            isPicking = false
-          })
-          .catch((err) => {
-            console.error('Claim box error:', err)
-            toggleBoxPicking(pos)
-          })
+        await this.claimBox(pos)
+        toggleBoxPicking(pos)
       }
     })
 

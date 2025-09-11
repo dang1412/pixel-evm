@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
 import { parseEventLogs } from 'viem'
-import { usePublicClient, useWriteContract } from 'wagmi'
+
+import { simulateContract } from '@wagmi/core'
+import { useAccount, usePublicClient, useWriteContract } from 'wagmi'
 
 import { globalEventBus } from '@/lib/EventEmitter'
 import { GiftContractAddress } from './constants'
@@ -52,37 +54,47 @@ const boxClaimedEventAbi = [
 export function useClaimBox() {
 
   const { writeContractAsync } = useWriteContract()
+  const { address: account } = useAccount()
   const client = usePublicClient()
 
   const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
     if (!client) throw new Error('No client')
+    if (!account) throw new Error('No account')
 
-    enableRoundRobinHttp(false)
-
-    const hash = await writeContractAsync({
+    const params = {
       address: GiftContractAddress,
       abi,
       functionName: 'claimBox',
       args: [pos, BigInt(deadline), sig],
-    })
-    console.log('Transaction hash claimBox:', hash)
+      account,
+    } as const
 
-    const receipt = await client.waitForTransactionReceipt({ hash })
+    try {
 
-    enableRoundRobinHttp(true)
+      const { request } = await client.simulateContract(params)
+      enableRoundRobinHttp(false)
+      const hash = await writeContractAsync(request)
+      console.log('Transaction hash claimBox:', hash)
 
-    const logs = parseEventLogs({
-      abi: boxClaimedEventAbi,
-      eventName: 'BoxClaimed',
-      logs: receipt.logs,
-    })
+      const receipt = await client.waitForTransactionReceipt({ hash })
 
-    console.log('Parsed BoxClaimed logs:', logs[0].args)
+      const logs = parseEventLogs({
+        abi: boxClaimedEventAbi,
+        eventName: 'BoxClaimed',
+        logs: receipt.logs,
+      })
 
-    globalEventBus.emit('boxClaimed', logs[0].args)
+      console.log('Parsed BoxClaimed logs:', logs[0].args)
 
-    return hash
-  }, [writeContractAsync, client])
+      globalEventBus.emit('boxClaimed', logs[0].args)
+
+      return hash
+    } catch (error) {
+      console.log('Claim box error:', error)
+    } finally {
+      enableRoundRobinHttp(true)
+    }
+  }, [writeContractAsync, client, account])
 
   return claimBox
 }
