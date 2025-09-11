@@ -1,17 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useReadContract } from 'wagmi'
 
+import { globalState } from '@/components/globalState'
 import { GiftContractAddress } from './constants'
-import { useRefetchWhenBoxClaimed } from './useBalance'
+import { useRefetchWhenBoxClaimed } from './useRefetchWhenBoxClaimed'
 
 const abi = [
-  // {
-  //   type: "function",
-  //   name: "lastBoxTaken",
-  //   inputs: [{ "name": "", "type": "address", "internalType": "address" }],
-  //   outputs: [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-  //   stateMutability: "view"
-  // },
   {
     type: "function",
     name: "calculateCooldownFinshed",
@@ -22,8 +16,6 @@ const abi = [
     stateMutability: "view"
   },
 ] as const
-
-// const CoolDownSec = 300
 
 export function useCoolDownTime(addr: `0x${string}` = `0x`) {
   const { data, refetch } = useReadContract({
@@ -36,7 +28,10 @@ export function useCoolDownTime(addr: `0x${string}` = `0x`) {
   // update when box claimed
   useRefetchWhenBoxClaimed(addr, refetch)
 
-  const waitSec = useMemo(() => data ? Number(data) - Math.floor(Date.now() / 1000) : 0, [data])
+  // get coolDownTime with useMemo
+  const coolDownTime = useMemo(() => Number(data || 0), [data])
+  // set to global state
+  globalState.giftBoxCooldownTime = coolDownTime
 
-  return waitSec
+  return coolDownTime
 }

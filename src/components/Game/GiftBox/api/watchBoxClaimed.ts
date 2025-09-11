@@ -50,8 +50,6 @@ const abi = [
   },
 ] as const
 
-
-
 export function watchBoxClaimed() {
 
   const onLogs = useCallback((logs: Log[]) => {

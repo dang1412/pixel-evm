@@ -3,7 +3,8 @@ import { useCallback } from 'react'
 
 import { GiftContractAddress } from './constants'
 import { Log } from 'viem'
-import { useRefetchWhenBoxClaimed } from './useBalance'
+import { useInterval } from '../hook/useInterval'
+// import { useRefetchWhenBoxClaimed } from './useBalance'
 
 const abi = [
   {
@@ -39,10 +40,12 @@ export function useActiveBoxes() {
 
   // useRefetchWhenBoxClaimed(undefined, refetch)
 
-  const onLogs = useCallback((logs: Log[]) => {
-    console.log('BoxAdded new logs!', logs)
-    refetch()
-  }, [refetch])
+  useInterval(refetch, 30000)
+
+  // const onLogs = useCallback((logs: Log[]) => {
+  //   console.log('BoxAdded new logs!', logs)
+  //   refetch()
+  // }, [refetch])
 
   // useWatchContractEvent({
   //   address: GiftContractAddress,

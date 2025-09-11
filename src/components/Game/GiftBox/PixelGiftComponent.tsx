@@ -84,7 +84,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   }, [boxes, curScene])
 
   const { address } = useAccount()
-  const waitSec = useCoolDownTime(address)
+  const coolDownTime = useCoolDownTime(address)
 
   const { loading } = useNotification()
 
@@ -95,7 +95,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       <div className='w-full absolute top-16 flex items-center justify-center'>
         {curScene && curScene !== 'main' && <BackButton map={map} />}
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-        <CoolDownCount waitSec={waitSec} />
+        <CoolDownCount coolDownTime={coolDownTime} />
       </div>
     </>
   )

@@ -8,6 +8,7 @@ import { globalEventBus } from '@/lib/EventEmitter'
 import { GiftContractAddress } from './constants'
 import { enableRoundRobinHttp } from '@/providers/roundRobinHttp'
 import { useNotification } from '@/providers/NotificationProvider'
+import { globalState } from '@/components/globalState'
 
 const abi = [
   // claimBox
@@ -63,6 +64,13 @@ export function useClaimBox() {
   const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
     if (!client) throw new Error('No client')
     if (!account) throw new Error('No account')
+
+    // check coolDownTime
+    const coolDownTime = globalState.giftBoxCooldownTime || 0
+    if (coolDownTime && coolDownTime > Math.floor(Date.now() / 1000)) {
+      notify(`Box cooldown not passed`, 'error')
+      return
+    }
 
     const params = {
       address: GiftContractAddress,
