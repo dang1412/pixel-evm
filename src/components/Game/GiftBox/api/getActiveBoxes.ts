@@ -1,10 +1,8 @@
-import { useReadContract, useWatchContractEvent } from 'wagmi'
-import { useCallback } from 'react'
+import { useReadContract } from 'wagmi'
+import { useEffect } from 'react'
 
 import { GiftContractAddress } from './constants'
-import { Log } from 'viem'
-import { useInterval } from '../hook/useInterval'
-// import { useRefetchWhenBoxClaimed } from './useBalance'
+import { globalEventBus } from '@/lib/EventEmitter'
 
 const abi = [
   {
@@ -38,21 +36,19 @@ export function useActiveBoxes() {
     args: [],
   })
 
-  // useRefetchWhenBoxClaimed(undefined, refetch)
+  // refetch when claim box error
+  useEffect(() => {
+    const refetchWhenBoxClaimError = (msg: string) => {
+      console.log('refetchWhenBoxClaimError', msg)
+      refetch()
+    }
 
-  useInterval(refetch, 30000)
+    globalEventBus.on('boxClaimError', refetchWhenBoxClaimError)
 
-  // const onLogs = useCallback((logs: Log[]) => {
-  //   console.log('BoxAdded new logs!', logs)
-  //   refetch()
-  // }, [refetch])
-
-  // useWatchContractEvent({
-  //   address: GiftContractAddress,
-  //   abi,
-  //   eventName: 'BoxAdded',
-  //   onLogs,
-  // })
+    return () => {
+      globalEventBus.off('boxClaimError', refetchWhenBoxClaimError)
+    }
+  }, [refetch])
 
   return data
 }

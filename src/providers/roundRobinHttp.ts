@@ -12,21 +12,14 @@ export function enableRoundRobinHttp(isEnable: boolean) {
 }
 
 export function roundRobinHttp(configs: HttpConfig[]): Transport {
-  let i = 0
-  // let lastUsedSend = 0
+  let i = Math.floor(Math.random() * configs.length)
   return (opts) => {
     // use viem's built-in http transport with that url
     return {
       // same shape viem expects
       ...http()(opts),
       request: async (args) => {
-        // if (args.method === 'eth_sendRawTransaction') {
-        //   lastUsedSend = i
-        // }
-        
         // pick next url
-        // should use the same url of sending when receiving tx result
-        // const config = configs[ args.method === 'eth_getTransactionReceipt' ? lastUsedSend : i ]
         const config = configs[i]
         console.log('----------- Request -------------', config.url, args.method)
         i = isRoundRobinEnabled ? (i + 1) % configs.length : i
@@ -34,16 +27,4 @@ export function roundRobinHttp(configs: HttpConfig[]): Transport {
       },
     }
   }
-
-  // return (opts) => {
-  //   return {
-  //     // same shape viem expects
-  //     ...http(urls[i % urls.length])(opts),
-  //     request: async (args) => {
-  //       const url = urls[i % urls.length]
-  //       i++
-  //       return http(url)(opts).request(args)
-  //     },
-  //   }
-  // }
 }

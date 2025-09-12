@@ -23,7 +23,7 @@ const abi = [
   },
 ] as const
 
-export function useBalance(account: Address) {
+export function useTokenBalance(account: Address) {
   const { data, refetch } = useReadContract({
     address: PixelTokenAddress,
     abi,

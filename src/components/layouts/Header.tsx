@@ -72,7 +72,7 @@ export const Header = () => {
           >
             <ul className="flex flex-col mt-4 font-medium h-full lg:flex-row lg:space-x-8 lg:mt-0">
               {links.map((l, i) => (
-                <li key={i} className={ `flex items-center ${currentPath.includes(l.url) ? 'border-b-2 border-green-500' : ''}`}>
+                <li key={i} className={ `flex items-center ${currentPath.includes(l.url) ? 'border-b-2 border-blue-500' : ''}`}>
                   <a
                     href={l.url}
                     className={`flex justify-center ${base} ${ currentPath.includes(l.url) ? hl : normal }`}

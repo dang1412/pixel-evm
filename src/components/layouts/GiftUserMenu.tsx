@@ -1,9 +1,11 @@
+import Image from 'next/image'
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { FaUser } from 'react-icons/fa'
+import { FaEthereum, FaUser } from 'react-icons/fa'
 import { ConnectKitButton } from 'connectkit'
-import { Address } from 'viem'
+import { Address, formatUnits } from 'viem'
 
-import { useBalance } from '../Game/GiftBox/api/useBalance'
+import { useTokenBalance } from '../Game/GiftBox/api/useBalance'
+import { useBalance } from 'wagmi'
 
 interface GiftUserMenuProps {
   address: Address
@@ -20,7 +22,9 @@ export const GiftUserMenu: React.FC<GiftUserMenuProps> = ({ address }) => {
 
   const short = useMemo(() => shortenAddress(address, 4), [address])
 
-  const balance = useBalance(address) || 0
+  const token = useTokenBalance(address) || 0
+  const { data } = useBalance({ address })
+  const eth = useMemo(() => data ? Number(formatUnits(data.value, data.decimals)).toFixed(3) : '0', [data])
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -48,10 +52,16 @@ export const GiftUserMenu: React.FC<GiftUserMenuProps> = ({ address }) => {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
-          <div className="px-4 py-3">
+          <div className="px-4 py-3 text-sm text-gray-500">
             {/* <div className="text-sm font-medium text-gray-900">{short}</div> */}
             <ConnectKitButton />
-            <div className="text-sm text-gray-500">Balance: <span className="font-semibold">{balance}</span></div>
+            <div className="flex items-center my-2">
+              <span className="font-semibold mr-1">&nbsp;{token}</span>
+              <Image src='/images/gift/gift-box.webp' width={18} height={18} alt='Gift box' />
+            </div>
+            <div className="flex items-center">
+              <span className="font-semibold mr-1">&nbsp;{eth}</span> <FaEthereum />
+            </div>
           </div>
           {/* Add more menu items here if needed */}
         </div>

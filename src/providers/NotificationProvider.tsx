@@ -16,7 +16,7 @@ type NotificationContextType = {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const [loading, setLoading] = useState(false)
 
@@ -35,7 +35,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       {/* Notification container */}
-      <div className="fixed top-16 right-4 space-y-2 z-50 w-full max-w-sm">
+      <div className="fixed top-16 right-4 space-y-2 z-50 max-w-sm">
         {notifications.map((n) => (
           <div
             key={n.id}

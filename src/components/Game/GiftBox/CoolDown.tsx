@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FaClock } from 'react-icons/fa'
+
 import { useInterval } from './hook/useInterval'
 
 interface Props {
@@ -25,18 +26,6 @@ export const CoolDownCount: React.FC<Props> = ({ coolDownTime }) => {
 
   // countdown 1sec
   useInterval(doLoop, 1000)
-
-  // useEffect(() => {
-  //   const waitSec = coolDownTime - Math.floor(Date.now() / 1000)
-  //   setCount(Math.max(waitSec, 0))
-  //   if (!isActive || waitSec <= 0) return
-  //   const intv = setInterval(() => setCount(c => {
-  //     if (c <= 1) clearInterval(intv)
-  //     return c - 1
-  //   }), 1000)
-
-  //   return () => clearInterval(intv)
-  // }, [coolDownTime, isActive])
 
   const hour = useMemo(() => Math.floor(count / 3600), [count])
   const min = useMemo(() => Math.floor((count % 3600) / 60), [count])

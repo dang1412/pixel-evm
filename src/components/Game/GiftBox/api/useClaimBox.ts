@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { ContractFunctionExecutionError, parseEventLogs } from 'viem'
-
-import { simulateContract } from '@wagmi/core'
+import { useModal } from 'connectkit'
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi'
 
 import { globalEventBus } from '@/lib/EventEmitter'
@@ -58,12 +57,17 @@ export function useClaimBox() {
   const { writeContractAsync } = useWriteContract()
   const { address: account } = useAccount()
   const client = usePublicClient()
+  const { setOpen } = useModal()
 
   const { notify, setLoading } = useNotification()
 
   const claimBox = useCallback(async (pos: number, deadline: number, sig: `0x${string}`) => {
     if (!client) throw new Error('No client')
-    if (!account) throw new Error('No account')
+    if (!account) {
+      notify(`Please connect your wallet`)
+      setOpen(true)
+      return
+    }
 
     // check coolDownTime
     const coolDownTime = globalState.giftBoxCooldownTime || 0
@@ -106,8 +110,9 @@ export function useClaimBox() {
       return hash
     } catch (error) {
       const err = error as ContractFunctionExecutionError
-      console.log('Claim box error:', err.cause.message, err.cause.shortMessage, err.cause.details)
-      notify(`${err.cause.shortMessage}`, 'error')
+      console.log('Claim box error:', err.cause?.message, err.cause?.shortMessage, err.cause?.details)
+      globalEventBus.emit('boxClaimError', err.cause?.shortMessage)
+      notify(`${err.cause?.shortMessage}`, 'error')
     } finally {
       enableRoundRobinHttp(true)
       setLoading(false)
