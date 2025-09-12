@@ -24,7 +24,8 @@ function decodeBoxClaimedEvents(buffer: ArrayBuffer): BoxClaimedEventArgs[] {
 }
 
 export function listenToBoxClaimed() {
-  const url = "ws://localhost:8080" // your ws server url
+  // const url = "ws://localhost:8080" // your ws server url
+  const url = "wss://ws.pixelonbase.com" // your ws server url
   const ws = new WebSocket(url)
 
   ws.onopen = () => {
