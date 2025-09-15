@@ -20,6 +20,7 @@ const config = createConfig(
       // [baseSepolia.id]: webSocket('wss://go.getblock.io/d0aca3a299984a3ab6561fbb9cba99af'),
       [baseSepolia.id]: roundRobinHttp([
         {url: 'https://sepolia.base.org'},
+        {url: 'https://chain-proxy.wallet.coinbase.com?targetName=base-sepolia'},
         {url: 'https://quaint-aged-isle.base-sepolia.quiknode.pro/778cd5f53cd714ba78fc39caefafc9784b2cbb3a/'},
         {url: 'https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'},
         {url: 'https://base-sepolia.core.chainstack.com/f261d7b1c99ec08c17270535b5ac79b9'}, // 25 rps
