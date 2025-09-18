@@ -1,11 +1,12 @@
 import { WagmiProvider, createConfig, http, webSocket } from 'wagmi'
-import { base, baseSepolia, sepolia } from 'wagmi/chains'
+import { base, baseSepolia } from 'wagmi/chains'
+import { ReactNode } from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 
-import { localChain } from './chains/local'
 import { roundRobinHttp } from './roundRobinHttp'
+import { OnchainKitProvider } from '@coinbase/onchainkit'
 
 const config = createConfig(
   getDefaultConfig({
@@ -14,7 +15,13 @@ const config = createConfig(
     transports: {
       // RPC URL for each chain
       // [localChain.id]: http('http://127.0.0.1:8545'),
-      [base.id]: http(),
+      // [base.id]: http(),
+      // [base.id]: roundRobinHttp([
+      //   {url: 'https://mainnet.base.org'},
+      //   {url: 'https://chain-proxy.wallet.coinbase.com?targetName=base'},
+      //   {url: 'https://base-mainnet.public.blastapi.io'},
+      //   {url: 'https://base-mainnet.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'},
+      // ]),
       // [baseSepolia.id]: http('https://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
       // [baseSepolia.id]: webSocket('wss://base-sepolia.g.alchemy.com/v2/SGhknXwY9r_VlRV44vghO0RfBXc1nhcB'),
       // [baseSepolia.id]: webSocket('wss://go.getblock.io/d0aca3a299984a3ab6561fbb9cba99af'),
@@ -45,11 +52,23 @@ const config = createConfig(
 
 const queryClient = new QueryClient()
 
-export const Web3Provider = ({ children }: { children: JSX.Element }) => {
+const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY
+
+export const Web3Provider = ({ children }: { children: ReactNode }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider>{children}</ConnectKitProvider>
+        {/* <OnchainKitProvider
+          apiKey={apiKey}
+          chain={base}
+          miniKit={{
+            enabled: true,
+            autoConnect: true,
+            notificationProxyUrl: undefined,
+          }}
+        > */}
+          <ConnectKitProvider>{children}</ConnectKitProvider>
+        {/* </OnchainKitProvider> */}
       </QueryClientProvider>
     </WagmiProvider>
   )

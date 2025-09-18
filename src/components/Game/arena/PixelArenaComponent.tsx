@@ -23,8 +23,8 @@ interface Props {}
 
 const PixelArenaComponent: React.FC<Props> = () => {
   const [canvas, setCanvas] = useState<HTMLCanvasElement>()
-  const networkRef = useRef<ArenaNetwork>()
-  const mapRef = useRef<PixelMap | undefined>()
+  const networkRef = useRef<ArenaNetwork>(undefined)
+  const mapRef = useRef<PixelMap>(undefined)
 
   const [monsters, setMonsters] = useState<MonsterState[]>([])
   const [selectedId, setSelectedId] = useState(0)

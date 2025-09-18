@@ -6,7 +6,8 @@
       "dom.iterable",
       "esnext"
     ],
-    "module": "CommonJS",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -22,7 +23,6 @@
         "name": "next"
       }
     ],
-    "moduleResolution": "node",
     "types": ["jest"],
     "paths": {
       "@/*": ["./src/*"] // enables us to use @components/MyComponent

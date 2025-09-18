@@ -1,9 +1,9 @@
 'use client'
 
 import '../globals.css'
+// import '@coinbase/onchainkit/styles.css'
 
 import { Header } from '@/components/layouts/Header'
-import TestConnect from '@/components/TestConnect/TestConnect'
 import { WebRTCProvider } from '@/lib/webRTC/WebRTCProvider'
 
 import { Web3Provider } from '@/providers/Web3Provider'

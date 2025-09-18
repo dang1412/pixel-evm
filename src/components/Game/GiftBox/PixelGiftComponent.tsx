@@ -13,11 +13,12 @@ import { useCoolDownTime } from './api/useCoolDownTime'
 import { listenToBoxClaimed } from '@/lib/ws'
 import { useNotification } from '@/providers/NotificationProvider'
 import { FaSpinner } from 'react-icons/fa'
+import { OnboardingModal } from './OnboardModal'
 
 interface Props {}
 
 const PixelGiftComponent: React.FC<Props> = (props) => {
-  const giftRef = useRef<PixelGift | undefined>()
+  const giftRef = useRef<PixelGift | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [curScene, setCurScene] = useState<string>('')
 
@@ -90,6 +91,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
 
   return (
     <>
+      <OnboardingModal />
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
 
       <div className='w-full absolute top-16 flex items-center justify-center'>

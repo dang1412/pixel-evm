@@ -57,7 +57,7 @@ interface Props {}
 
 const PixelMapComponent: React.FC<Props> = (props) => {
   // use ref to hold viewport map instance
-  const mapRef = useRef<PixelMap | undefined>()
+  const mapRef = useRef<PixelMap | undefined>(undefined)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)

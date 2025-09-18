@@ -1,7 +1,23 @@
+'use client'
+
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { ConnectKitButton } from 'connectkit'
+
+import {
+  Name,
+  Identity,
+  Address,
+  Avatar,
+  EthBalance,
+} from '@coinbase/onchainkit/identity'
+import {
+  ConnectWallet,
+  Wallet,
+  WalletDropdown,
+  WalletDropdownDisconnect,
+} from '@coinbase/onchainkit/wallet'
 
 import { globalState } from '../globalState'
 import { GiftUserMenu } from './GiftUserMenu'
@@ -64,7 +80,20 @@ export const Header = () => {
             {isGiftPage && address ?
               <GiftUserMenu address={address} /> :
               <ConnectKitButton />
+              // <></>
             }
+            {/* <Wallet /> */}
+              {/* <ConnectWallet />
+              <WalletDropdown>
+                <Identity hasCopyAddressOnClick>
+                  <Avatar />
+                  <Name />
+                  <Address />
+                  <EthBalance />
+                </Identity>
+                <WalletDropdownDisconnect />
+              </WalletDropdown> */}
+            {/* </Wallet> */}
           </div>
           <div
             className="hidden justify-between items-center h-full w-full lg:flex lg:w-auto lg:order-1"

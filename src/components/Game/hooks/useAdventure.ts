@@ -6,7 +6,7 @@ import { SendAllFunc, SendToFunc } from './useWebRTCConnects'
 
 export function useAdventure(c: HTMLCanvasElement | null, sendAll: SendAllFunc, sendTo: SendToFunc) {
   // const [adventures, setAdventures] = useState<Adventures | undefined>()
-  const adventuresRef = useRef<Adventures>()
+  const adventuresRef = useRef<Adventures>(undefined)
 
   useEffect(() => {
     if (c) {
