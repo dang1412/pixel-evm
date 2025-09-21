@@ -17,6 +17,7 @@ const abi = [
   },
 ] as const
 
+// deprecated, use useMultiInfo
 export function useCoolDownTime(addr: `0x${string}` = `0x`) {
   const { data, refetch } = useReadContract({
     address: GiftContractAddress,

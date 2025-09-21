@@ -1,8 +1,11 @@
 import { useReadContract } from 'wagmi'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import { GiftContractAddress } from './constants'
 import { globalEventBus } from '@/lib/EventEmitter'
+import { useRefetchWhenBoxClaimed, useRefetchWhenClaimError } from './useRefetchWhenBoxClaimed'
+import { Address } from 'viem'
+import { globalState } from '@/components/globalState'
 
 const abi = [
   {
@@ -27,28 +30,40 @@ const abi = [
   },
 ] as const
 
+// deprecated, use useMultiInfo
+
 export function useActiveBoxes() {
 
   const { data, refetch } = useReadContract({
     address: GiftContractAddress,
     abi,
     functionName: 'getActiveBoxPositions',
-    args: [],
   })
 
   // refetch when claim box error
-  useEffect(() => {
-    const refetchWhenBoxClaimError = (msg: string) => {
-      console.log('refetchWhenBoxClaimError', msg)
+  useRefetchWhenClaimError(refetch)
+
+  // refetch when anyone claimed and current number <= 10
+  const refetchWhenClaimed = useCallback(() => {
+    if (globalState.boxes && globalState.boxes.length <= 10) {
       refetch()
     }
-
-    globalEventBus.on('boxClaimError', refetchWhenBoxClaimError)
-
-    return () => {
-      globalEventBus.off('boxClaimError', refetchWhenBoxClaimError)
-    }
   }, [refetch])
+  useRefetchWhenBoxClaimed(undefined, refetchWhenClaimed)
+  // useEffect(() => {
+  //   const refetchWhenBoxClaimError = (msg: string) => {
+  //     console.log('refetchWhenBoxClaimError', msg)
+  //     refetch()
+  //   }
+
+  //   globalEventBus.on('boxClaimError', refetchWhenBoxClaimError)
+
+  //   return () => {
+  //     globalEventBus.off('boxClaimError', refetchWhenBoxClaimError)
+  //   }
+  // }, [refetch])
+
+  if (data) globalState.boxes = [...data]
 
   return data
 }

@@ -24,7 +24,7 @@ export const GiftUserMenu: React.FC<GiftUserMenuProps> = ({ address }) => {
 
   const token = useTokenBalance(address) || 0
   const { data } = useBalance({ address })
-  const eth = useMemo(() => data ? Number(formatUnits(data.value, data.decimals)).toFixed(3) : '0', [data])
+  const eth = useMemo(() => data ? Number(formatUnits(data.value, data.decimals)).toFixed(5) : '0', [data])
 
   // Close menu when clicking outside
   useEffect(() => {

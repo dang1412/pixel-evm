@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Address, formatUnits } from 'viem'
 import { useReadContract } from 'wagmi'
 
@@ -31,7 +31,12 @@ export function useTokenBalance(account: Address) {
     args: [account], // replace with actual user address
   })
 
-  useRefetchWhenBoxClaimed(account, refetch)
+  const fetchBalance = useCallback(() => {
+    console.log('fetchBalance', account)
+    refetch()
+  }, [refetch])
+
+  useRefetchWhenBoxClaimed(account, fetchBalance)
 
   console.log('Balance data:', account, data)
 
