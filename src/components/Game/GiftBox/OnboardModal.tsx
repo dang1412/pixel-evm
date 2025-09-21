@@ -37,8 +37,8 @@ export function OnboardingModal() {
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[95%] max-w-2xl p-6 relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={closeModal}>
+          <div className="bg-white rounded-2xl shadow-xl w-[95%] max-w-2xl p-6 relative" onClick={(e) => {e.stopPropagation()}}>
             {/* Close button */}
             <button
               onClick={closeModal}
@@ -47,7 +47,7 @@ export function OnboardingModal() {
               <FaTimes className="w-5 h-5" />
             </button>
 
-            <h2 className="text-2xl font-bold mb-3 text-center">
+            <h2 className="text-2xl font-bold mb-3 text-center border-b pb-2">
               🗺️ Welcome to PixelGame!
             </h2>
 
@@ -65,9 +65,9 @@ export function OnboardingModal() {
               <br />
               Each successful claim gives you a random reward of <b>20–100 tokens</b> 🎉
               <br />
-              After each claim, you will enter a cooldown ⏳ (1,2,4,8... minutes), reset after 0 UTC.
+              After each claim, you will enter a <b>cooldown</b> ⏳ (1,2,4,8... minutes), reset after <b>0 UTC</b>.
               <br />
-              Max <b>1000 boxes per day</b>.
+              Max <b>1000 boxes per day</b> in total, reset after <b>0 UTC</b>.
               <br />
               These tokens are the <b>official mainnet tokens</b> of the app 🚀 — early users
               are among the first to receive distribution!
@@ -94,13 +94,27 @@ export function OnboardingModal() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe> */}
             </div>
+            
+            <div className="text-gray-700 mt-4">
+              About usecases and roadmap of the&nbsp;
+              <a
+                href="https://codetube.vn/pixel"
+                target="_blank"
+                className="text-blue-600 font-semibold hover:underline"
+              >Pixel Game (PXG)</a> token.
+            </div>
 
-            {/* <button
-              onClick={closeModal}
-              className="w-full bg-blue-600 text-white rounded-xl py-2 hover:bg-blue-700 transition"
-            >
-              Got it!
-            </button> */}
+            <footer className="w-full border-t mt-4 pt-4 text-center text-sm text-gray-600">
+              Farcaster{" "}
+              <a
+                href="https://farcaster.xyz/dang1412"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 font-semibold hover:underline"
+              >
+                @dang1412
+              </a>
+            </footer>
           </div>
         </div>
       )}

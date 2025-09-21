@@ -117,7 +117,7 @@ export class PixelGift {
       glow.clear()
       glow.circle(p, p, PIXEL_SIZE).fill({ color: 0xa0f5a0, alpha: 0.6 })
       this.map.getView().markDirty()
-    }, 2000)
+    }, 3000)
   }
 
   boxTaken(pos: number, amount: number, isOwned = false) {

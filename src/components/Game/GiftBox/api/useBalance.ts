@@ -3,7 +3,7 @@ import { Address, formatUnits } from 'viem'
 import { useReadContract } from 'wagmi'
 
 import { PixelTokenAddress } from './constants'
-import { useRefetchWhenBoxClaimed } from './useRefetchWhenBoxClaimed'
+import { useRefetchWhenBoxClaimed, useRefetchWhenClaimError } from './useRefetchWhenBoxClaimed'
 
 const abi = [
   // balanceOf
@@ -32,11 +32,12 @@ export function useTokenBalance(account: Address) {
   })
 
   const fetchBalance = useCallback(() => {
-    console.log('fetchBalance', account)
+    console.log('fetchBalance------', account)
     refetch()
   }, [refetch])
 
   useRefetchWhenBoxClaimed(account, fetchBalance)
+  useRefetchWhenClaimError(fetchBalance)
 
   console.log('Balance data:', account, data)
 

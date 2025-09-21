@@ -3,7 +3,7 @@ import { useReadContract } from 'wagmi'
 
 import { globalState } from '@/components/globalState'
 import { GiftContractAddress } from './constants'
-import { useRefetchWhenBoxClaimed } from './useRefetchWhenBoxClaimed'
+import { useRefetchWhenBoxClaimed, useRefetchWhenClaimError } from './useRefetchWhenBoxClaimed'
 
 const abi = [
   {
@@ -17,7 +17,6 @@ const abi = [
   },
 ] as const
 
-// deprecated, use useMultiInfo
 export function useCoolDownTime(addr: `0x${string}` = `0x`) {
   const { data, refetch } = useReadContract({
     address: GiftContractAddress,
@@ -28,6 +27,7 @@ export function useCoolDownTime(addr: `0x${string}` = `0x`) {
 
   // update when box claimed
   useRefetchWhenBoxClaimed(addr, refetch)
+  useRefetchWhenClaimError(refetch)
 
   // get coolDownTime with useMemo
   const coolDownTime = useMemo(() => Number(data || 0), [data])

@@ -108,7 +108,7 @@ export function useWebRTCConnect(onMsg: (from: string, data: string | ArrayBuffe
     if (!account) return unsub;
 
     (async () => {
-      unsub = await listenToMessage(onEventMessage);
+      // unsub = await listenToMessage(onEventMessage);
     })()
 
     // Cleanup the subscription
