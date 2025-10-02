@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { FaSpinner } from 'react-icons/fa'
 
 import { useNotification } from '@/providers/NotificationProvider'
 import { listenToBoxClaimed } from '@/lib/ws'
+import { globalState } from '@/components/globalState'
+
+import Turnstile, { TurnstileRef } from '@/components/Turnstile'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { BackButton } from '../pixelmap/BackButton'
@@ -12,9 +16,7 @@ import { useActiveBoxes, useClaimBox } from './api'
 import { useCoolDownTime } from './api/useCoolDownTime'
 import { PixelGift } from './PixelGift'
 import { CoolDownCount } from './CoolDown'
-import { FaSpinner } from 'react-icons/fa'
 import { OnboardingModal } from './OnboardModal'
-// import { useMultiInfo } from './api/useMultiInfo'
 
 interface Props {}
 
@@ -22,17 +24,38 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const giftRef = useRef<PixelGift | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [curScene, setCurScene] = useState<string>('')
+  const turnstileRef = useRef<TurnstileRef>(null);
 
   const boxes = useActiveBoxes()
   const { address } = useAccount()
   const coolDownTime = useCoolDownTime(address)
-  // const { boxes, coolDownTime } = useMultiInfo(address)
   const claimBox = useClaimBox()
 
+  const { notify, loading } = useNotification()
+
   const claimBoxWithPermit = useCallback(async (pos: number) => {
-    const deadline = Math.floor(Date.now() / 1000) + 300
-    // TODO get signature from backend
-    await claimBox(pos, deadline, '0x1234567890abcdef')
+
+    // check cooldown
+    const coolDownTime = globalState.giftBoxCooldownTime || 0
+    if (coolDownTime && coolDownTime > Math.floor(Date.now() / 1000)) {
+      notify(`Box cooldown not passed`, 'error')
+      return
+    }
+
+    // check human
+    try {
+      const token = await turnstileRef.current?.execute()
+      if (token) {
+        console.log('Got turnstile token', token)
+        turnstileRef.current?.reset()
+        const deadline = Math.floor(Date.now() / 1000) + 300
+        // TODO get signature from backend
+        // claim
+        await claimBox(pos, deadline, '0x1234567890abcdef')
+      }
+    } catch (e) {
+      console.log('Turnstile execute error', e)
+    }
   }, [claimBox])
 
   // attach claimBoxWithPermit to PixelGift instance
@@ -41,8 +64,6 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       giftRef.current.claimBox = claimBoxWithPermit
     }
   }, [claimBoxWithPermit])
-
-  // watchBoxClaimed()
 
   useEffect(() => {
     if (canvas && giftRef.current === undefined) {
@@ -72,6 +93,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
     }
   }, [canvas])
 
+  // listen websocket event
   useEffect(() => {
     listenToBoxClaimed()
   }, [])
@@ -88,8 +110,6 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
     }
   }, [boxes, curScene])
 
-  const { loading } = useNotification()
-
   return (
     <>
       <OnboardingModal />
@@ -100,6 +120,8 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
         <CoolDownCount coolDownTime={coolDownTime || 0} />
       </div>
+
+      <Turnstile ref={turnstileRef} />
     </>
   )
 }
