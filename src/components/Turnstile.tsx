@@ -13,7 +13,7 @@ import {
 
 export interface TurnstileRef {
   execute: () => Promise<string>;
-  reset: () => void;
+  remove: () => void;
 }
 
 const siteKey = '0x4AAAAAAB4Sxx2XrMusRDf6'
@@ -69,14 +69,24 @@ const Turnstile = forwardRef<TurnstileRef, {}>(
         })
         
       },
-      reset: () => {
+      remove: () => {
         if (widgetIdRef.current && window.turnstile) {
           window.turnstile.remove(widgetIdRef.current);
         }
       },
     }));
 
-    return <div ref={containerRef} style={{ display: "", position: 'fixed', top: 100, left: 100 }}></div>;
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)'
+        }}
+      ></div>
+    );
   }
 );
 

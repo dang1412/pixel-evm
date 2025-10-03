@@ -47,7 +47,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       const token = await turnstileRef.current?.execute()
       if (token) {
         console.log('Got turnstile token', token)
-        turnstileRef.current?.reset()
+        turnstileRef.current?.remove()
         const deadline = Math.floor(Date.now() / 1000) + 300
         // TODO get signature from backend
         // claim
