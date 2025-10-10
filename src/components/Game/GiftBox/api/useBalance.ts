@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { Address, formatUnits } from 'viem'
+import { Address, formatUnits, parseAbi } from 'viem'
 import { useReadContract } from 'wagmi'
 
 import { PixelTokenAddress } from './constants'
@@ -22,6 +22,11 @@ const abi = [
     outputs: [{ type: 'uint8' }],
   },
 ] as const
+
+// const abi = parseAbi([
+//   'function balanceOf(address account) view returns (uint256)',
+//   'function decimals() view returns (uint8)',
+// ])
 
 export function useTokenBalance(account: Address) {
   const { data, refetch } = useReadContract({

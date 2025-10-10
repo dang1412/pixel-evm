@@ -5,18 +5,12 @@ import {
   useImperativeHandle,
 } from "react";
 
-// interface TurnstileProps {
-//   onVerify?: (token: string) => void;
-//   onError?: () => void;
-//   onExpire?: () => void;
-// }
-
 export interface TurnstileRef {
   execute: () => Promise<string>;
   remove: () => void;
 }
 
-const siteKey = '0x4AAAAAAB4Sxx2XrMusRDf6'
+const siteKey = "0x4AAAAAAB4Sxx2XrMusRDf6";
 
 const Turnstile = forwardRef<TurnstileRef, {}>(
   ({}, ref) => {
@@ -33,22 +27,6 @@ const Turnstile = forwardRef<TurnstileRef, {}>(
         script.id = "cf-turnstile";
         document.body.appendChild(script);
       }
-
-      // Wait until available
-      // const interval = setInterval(() => {
-      //   if (window.turnstile && containerRef.current && !widgetIdRef.current) {
-      //     widgetIdRef.current = window.turnstile.render(containerRef.current, {
-      //       sitekey: siteKey,
-      //       size: "normal",
-      //       callback: (token) => onVerify?.(token),
-      //       "error-callback": () => onError?.(),
-      //       "expired-callback": () => onExpire?.(),
-      //     });
-      //     clearInterval(interval);
-      //   }
-      // }, 100);
-
-      // return () => clearInterval(interval);
     }, []);
 
     // Expose methods to parent

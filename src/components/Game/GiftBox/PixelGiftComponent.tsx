@@ -17,6 +17,7 @@ import { useCoolDownTime } from './api/useCoolDownTime'
 import { PixelGift } from './PixelGift'
 import { CoolDownCount } from './CoolDown'
 import { OnboardingModal } from './OnboardModal'
+import { verifyHuman } from './api/verifyHuman'
 
 interface Props {}
 
@@ -34,6 +35,10 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const { notify, loading } = useNotification()
 
   const claimBoxWithPermit = useCallback(async (pos: number) => {
+    if (!address) {
+      notify('Please connect wallet', 'error')
+      return
+    }
 
     // check cooldown
     const coolDownTime = globalState.giftBoxCooldownTime || 0
@@ -47,16 +52,20 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       const token = await turnstileRef.current?.execute()
       if (token) {
         console.log('Got turnstile token', token)
-        turnstileRef.current?.remove()
-        const deadline = Math.floor(Date.now() / 1000) + 300
-        // TODO get signature from backend
-        // claim
-        await claimBox(pos, deadline, '0x1234567890abcdef')
+        const rs = await verifyHuman(address, token)
+        console.log('verifyHuman', rs)
+        if (rs.success && rs.signData) {
+          const { deadline, signature } = rs.signData
+          // claim
+          await claimBox(pos, deadline + 1, signature)
+        }
       }
     } catch (e) {
       console.log('Turnstile execute error', e)
+    } finally {
+      turnstileRef.current?.remove()
     }
-  }, [claimBox])
+  }, [address, claimBox])
 
   // attach claimBoxWithPermit to PixelGift instance
   useEffect(() => {
