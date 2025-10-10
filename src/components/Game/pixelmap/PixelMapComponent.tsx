@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Assets, PointData } from 'pixi.js'
+import { useAccount } from 'wagmi'
 
-import { mockImages } from './mock/images'
-import { PixelImage, PixelArea } from './types'
-import { PixelMap } from './pixelmap/PixelMap'
-import { EditImage } from './pixelmap/EditImage'
-import { BackButton } from './pixelmap/BackButton'
+import { mockImages } from '../mock/images'
+import { PixelImage, PixelArea } from '../types'
+
+import { PixelMap } from './PixelMap'
+import { EditImage } from './EditImage'
+import { BackButton } from './BackButton'
+import { useMintPixels } from './api/useMintPixels'
+import { getMintedPixels } from './api/getMintedPixels'
+import { getUserPixels } from './api/getUserPixels'
+import { xyToPosition } from '../utils'
 
 const PixelInfo: React.FC<{x: number, y: number}> = ({x, y}) => {
   return (
@@ -107,7 +113,9 @@ const PixelMapComponent: React.FC<Props> = (props) => {
         if (shouldUpdatePointer) {
           setPointerPixel({ x, y })
           const image = pixelMap.getImageFromPoint(vpmap.activeScene, x, y)
-          setImage(image)
+          // if (image) {
+            setImage(image)
+          // }
         }
       })
 
@@ -139,16 +147,54 @@ const PixelMapComponent: React.FC<Props> = (props) => {
     }
   }, [canvas])
 
+  const { mintPixels } = useMintPixels()
+
+  const { owners, areas } = getMintedPixels()
+
+  const { address } = useAccount()
+  const userAreas = getUserPixels(address)
+
+  useEffect(() => {
+    const map = mapRef.current
+    const view = map?.getView()
+    if (map && view) {
+      console.log('Load minted pixels:', areas, owners)
+
+      areas.forEach((area, i) => {
+        const owner = owners[i] || ''
+        map.addPixels(area, owner)
+      })
+    }
+  }, [areas, owners])
+
+  useEffect(() => {
+    const map = mapRef.current
+    const view = map?.getView()
+    if (map && view) {
+      map.clearOwnedPixels()
+      for (const area of userAreas) {
+        // get top-left pixel
+        const pixel = xyToPosition(area.x, area.y)
+        map.addOwnedPixel(pixel)
+      }
+    }
+  }, [userAreas])
+
   // when user click button
-  const doAction = useCallback(() => {
-    if (!action || !selectArea) return
+  const doAction = useCallback(async () => {
+    if (!action || !selectArea || !address) return
     if (action.mintable) {
       // draw on the map
       const map = mapRef.current
       const view = map?.getView()
       if (map && view) {
-        // const g = scene.drawColorArea(selectArea, 0x00ff00, 0.25)
-        map.addOwnedPixels(selectArea)
+        // mint
+        await mintPixels(selectArea.x, selectArea.y, selectArea.w, selectArea.h)
+        // update map
+        const pixel = xyToPosition(selectArea.x, selectArea.y)
+        map.addPixels(selectArea, address)
+        map.addOwnedPixel(pixel)
+        // clear select
         view.clearSelect()
       }
     } else if (action.uploadable) {
@@ -156,7 +202,7 @@ const PixelMapComponent: React.FC<Props> = (props) => {
     } else if (action.editable) {
       setEnableEdit(true)
     }
-  }, [selectArea, action])
+  }, [selectArea, action, address, mintPixels])
 
   // upload image
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

@@ -12,6 +12,8 @@ export interface PixelMapOptions {
   preOpenImageHook?: (curScene: string, pixel: number, image: PixelImage) => boolean
 }
 
+type PixelAreaWithOwner = PixelArea & { owner: string }
+
 export class PixelMap {
   private mainState: PixelMainMap
   private view: ViewportMap
@@ -164,20 +166,68 @@ export class PixelMap {
     return pixelToImage.get(pixel)
   }
 
-  addOwnedPixels(area: PixelArea) {
+  // store all pixels included in areas
+  // private mintedPixelSet: Set<number> = new Set()
+  // map pixels to area
+  private pixelBelongsToArea: Map<number, PixelAreaWithOwner> = new Map()
+  // store only top-left pixel of owned areas
+  private ownedPixelSet: Set<number> = new Set()
+
+  clearOwnedPixels() {
+    const ownedPixels = Array.from(this.ownedPixelSet)
+    this.ownedPixelSet.clear()
+
+    // redraw all owned pixels
+    for (const pixel of ownedPixels) {
+      const area = this.pixelBelongsToArea.get(pixel)
+      if (area) {
+        this.addPixels(area, area.owner)
+      }
+    }
+  }
+
+  // only add top-left pixel of area
+  addOwnedPixel(pixel: number) {
     const mainScene = this.view.getScene('main')
     if (!mainScene) return
 
+    this.ownedPixelSet.add(pixel)
+    const g = this.mainState.mintedPixelToGraphic.get(pixel)
+    const area = this.pixelBelongsToArea.get(pixel)
+    if (g && area) {
+      mainScene.drawColorArea(area, 0x00ff00, 0.25, g)
+    }
+  }
+
+  // add an area of minted pixels
+  addPixels(_area: PixelArea, owner: string) {
+    const mainScene = this.view.getScene('main')
+    if (!mainScene) return
+
+    // area with owner
+    const area = { ..._area, owner }
+
     // update data
     const pixels = getAreaPixels(area)
+    if (pixels.length === 0) return
+
     for (const pixel of pixels) {
       this.mainState.ownedPixelSet.add(pixel)
+      // this.mintedPixelSet.add(pixel)
+      this.pixelBelongsToArea.set(pixel, area)
     }
 
+    // check if owned
+    const isOwned = this.ownedPixelSet.has(pixels[0])
+
     // draw on scene
-    // update graphics if exists
+    // update graphics if exists, else create new
     let g = this.mainState.mintedPixelToGraphic.get(pixels[0])
-    g = mainScene.drawColorArea(area, 0x00ff00, 0.25, g)
+    g = mainScene.drawColorArea(area, isOwned ? 0x00ff00 : 0xff0000, 0.25, g)
     this.mainState.mintedPixelToGraphic.set(pixels[0], g)
+  }
+
+  isOwnedPixel(pixel: number) {
+    return this.ownedPixelSet.has(pixel)
   }
 }
