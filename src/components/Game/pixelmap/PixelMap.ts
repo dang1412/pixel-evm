@@ -159,19 +159,23 @@ export class PixelMap {
     this.view.removeScene(name)
   }
 
-  getImageFromPoint(scene: string, x: number, y: number): PixelImage | undefined {
+  getImageFromSceneXY(scene: string, x: number, y: number): PixelImage | undefined {
     const { pixelToImage } = getSceneImages(this.mainState, scene)
     const pixel = xyToPosition(x, y)
-    
+
     return pixelToImage.get(pixel)
   }
 
-  // store all pixels included in areas
-  // private mintedPixelSet: Set<number> = new Set()
   // map pixels to area
   private pixelBelongsToArea: Map<number, PixelAreaWithOwner> = new Map()
   // store only top-left pixel of owned areas
   private ownedPixelSet: Set<number> = new Set()
+
+  getPixelOwner(x: number, y: number): string | undefined {
+    const pixel = xyToPosition(x, y)
+    const area = this.pixelBelongsToArea.get(pixel)
+    return area?.owner
+  }
 
   clearOwnedPixels() {
     const ownedPixels = Array.from(this.ownedPixelSet)
@@ -186,7 +190,7 @@ export class PixelMap {
     }
   }
 
-  // only add top-left pixel of area
+  // only add top-left pixel of an area
   addOwnedPixel(pixel: number) {
     const mainScene = this.view.getScene('main')
     if (!mainScene) return
@@ -195,7 +199,7 @@ export class PixelMap {
     const g = this.mainState.mintedPixelToGraphic.get(pixel)
     const area = this.pixelBelongsToArea.get(pixel)
     if (g && area) {
-      mainScene.drawColorArea(area, 0x00ff00, 0.25, g)
+      mainScene.drawColorArea(area, 0x00ff00, 0.15, g)
     }
   }
 
@@ -223,7 +227,7 @@ export class PixelMap {
     // draw on scene
     // update graphics if exists, else create new
     let g = this.mainState.mintedPixelToGraphic.get(pixels[0])
-    g = mainScene.drawColorArea(area, isOwned ? 0x00ff00 : 0xff0000, 0.25, g)
+    g = mainScene.drawColorArea(area, isOwned ? 0x00ff00 : 0xff0000, 0.15, g)
     this.mainState.mintedPixelToGraphic.set(pixels[0], g)
   }
 

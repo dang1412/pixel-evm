@@ -29,7 +29,7 @@ interface AreaOperatable {
 }
 
 export function getAreaOperatable(state: PixelMainMap, scene: string, area: PixelArea | undefined): AreaOperatable {
-  if (!area || area.w * area.h > 30) {
+  if (!area || area.w * area.h > 100) {
     return { mintable: false, uploadable: false }
   }
 

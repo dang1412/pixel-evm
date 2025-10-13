@@ -162,4 +162,41 @@ export const mockImages: PixelImage[] = [
       },
     ]
   },
+  {
+    area: {x: 71, y: 47, w: 3, h: 2},
+    imageUrl: '/gift/images/coinbase-base1.png',
+    title: 'Base',
+    subtitle: 'Powerful for developers. Fast for everyone.',
+    link: 'https://base.org/',
+    subImages: [
+      {
+        area: {x: 5, y: 3, w: 6, h: 6},
+        imageUrl: '/gift/images/wallet.webp',
+        title: 'Base Pay',
+        subtitle: 'Express checkout with global settlement at near-zero cost. Live on Shopify, coming to more stores, and available for every business to accept USDC.',
+        link: 'https://base.org/',
+      },
+      {
+        area: {x: 6, y: 12, w: 6, h: 6},
+        imageUrl: '/gift/images/farcaster.png',
+        title: 'Farcaster',
+        subtitle: 'Farcaster is an open-source, decentralized social media protocol where users control their own data and identity.',
+        link: 'https://farcaster.xyz/',
+      },
+      {
+        area: {x: 16, y: 3, w: 6, h: 6},
+        imageUrl: '/gift/images/base.png',
+        title: 'Base Chain',
+        subtitle: 'Fast, open, and built to scale. The Base economy is growing every day, fueled by real builders.',
+        link: 'https://base.org/',
+      },
+      {
+        area: {x: 16, y: 12, w: 6, h: 6},
+        imageUrl: '/gift/images/card-2.webp',
+        title: 'Onchain Summer',
+        subtitle: 'Building on Base? We’d love to feature you. Tag @Base on your social posts for a chance to be featured.',
+        link: 'https://onchainsummer.xyz/',
+      },
+    ]
+  },
 ]

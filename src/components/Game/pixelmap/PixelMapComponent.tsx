@@ -12,10 +12,20 @@ import { useMintPixels } from './api/useMintPixels'
 import { getMintedPixels } from './api/getMintedPixels'
 import { getUserPixels } from './api/getUserPixels'
 import { xyToPosition } from '../utils'
+import { FaSpinner } from 'react-icons/fa'
+import { useNotification } from '@/providers/NotificationProvider'
 
-const PixelInfo: React.FC<{x: number, y: number}> = ({x, y}) => {
+const PixelInfo: React.FC<{x: number, y: number, owner: string}> = ({x, y, owner}) => {
+  const short = useMemo(() => {
+    if (!owner) return ''
+    return owner.slice(0, 6) + '...' + owner.slice(-4)
+  }, [owner])
+
   return (
-    <span className='bg-white p-2 shadow rounded-lg text-gray-800'>({x}, {y})</span>
+    <div className='bg-white p-2 shadow rounded-lg font-semibold'>
+      <span className='text-gray-600'>({x}, {y})</span>
+      {short && <p className='text-sm text-gray-600'>{short}</p>}
+    </div>
   )
 }
 
@@ -23,14 +33,15 @@ const ImageInfo: React.FC<{p: PointData, image: PixelImage}> = ({p, image}) => {
   const { title, subtitle, area } = image
 
   return (
-    <div className="bg-white rounded-lg shadow px-4 py-2 w-64">
-      <span className="text-gray-800">({p.x}, {p.y})</span>
+    <div className="bg-white font-semibold rounded-lg shadow px-4 py-2 max-w-64">
+      <span className="text-gray-600">({p.x}, {p.y})</span>
       <h2 className="text-xl font-bold mb-1">{title}</h2>
       <div className="text-sm text-gray-800 font-semibold">
         <span>({area.x}, {area.y})</span>
         <span> ({area.w} x {area.h})</span>
       </div>
       <p className="text-gray-600">{subtitle}</p>
+      <a href={image.link} target="_blank" className="text-xs text-blue-600 underline">{image.link}</a>
     </div>
   )
 }
@@ -39,15 +50,27 @@ interface SelectPixelsProps {
   area: PixelArea
   actionText: string
   takeAction: () => void
+  image?: PixelImage
 }
 
-const SelectPixels: React.FC<SelectPixelsProps> = ({ area, actionText, takeAction }) => {
+const SelectPixels: React.FC<SelectPixelsProps> = ({ area, actionText, takeAction, image }) => {
   const { x, y, w, h } = area
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow font-semibold flex flex-col items-center">
-      <h2 className="text-sm mb-1">Selecting {w * h} pixels</h2>
+    <div className="bg-white p-4 rounded-lg shadow font-semibold max-w-64">
+      {!image && <h2 className="text-sm mb-1">Selecting {w * h} pixels</h2>}
       <p className="text-gray-600">({x}, {y}) ({w} x {h})</p>
+
+      {image && <div>
+        <h2 className="text-xl font-bold mb-1">{image.title}</h2>
+        <div className="text-sm text-gray-800 font-semibold">
+          <span>({image.area.x}, {image.area.y})</span>
+          <span> ({image.area.w} x {image.area.h})</span>
+        </div>
+        <p className="text-gray-600">{image.subtitle}</p>
+        <a href={image.link} target="_blank" className="text-xs text-blue-600 underline">{image.link}</a>
+      </div>}
+
       {actionText && 
       <button
         onClick={takeAction}
@@ -75,6 +98,8 @@ const PixelMapComponent: React.FC<Props> = (props) => {
   const [selectArea, setSelectArea] = useState<PixelArea | undefined>()
 
   const [curScene, setCurScene] = useState<string>('')
+
+  const [owner, setOwner] = useState<string>('')
 
   // action after select
   const action = useMemo(() => mapRef.current?.getAreaOperatable(selectArea), [selectArea])
@@ -109,13 +134,18 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       })
 
       vpmap.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
-        const [x, y] = e.detail
         if (shouldUpdatePointer) {
+          const [x, y] = e.detail
           setPointerPixel({ x, y })
-          const image = pixelMap.getImageFromPoint(vpmap.activeScene, x, y)
-          // if (image) {
-            setImage(image)
-          // }
+          const image = pixelMap.getImageFromSceneXY(vpmap.activeScene, x, y)
+          setImage(image)
+          // update owner
+          if (vpmap.activeScene === 'main') {
+            const owner = pixelMap.getPixelOwner(x, y)
+            setOwner(owner || '')
+          } else {
+            setOwner('')
+          }
         }
       })
 
@@ -189,13 +219,17 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       const view = map?.getView()
       if (map && view) {
         // mint
-        await mintPixels(selectArea.x, selectArea.y, selectArea.w, selectArea.h)
-        // update map
-        const pixel = xyToPosition(selectArea.x, selectArea.y)
-        map.addPixels(selectArea, address)
-        map.addOwnedPixel(pixel)
-        // clear select
-        view.clearSelect()
+        try {
+
+          await mintPixels(selectArea.x, selectArea.y, selectArea.w, selectArea.h)
+          // update map
+          const pixel = xyToPosition(selectArea.x, selectArea.y)
+          map.addPixels(selectArea, address)
+          map.addOwnedPixel(pixel)
+          // clear select
+          view.clearSelect()
+        } catch (error) {
+        } finally {}
       }
     } else if (action.uploadable) {
       fileInputRef.current?.click()
@@ -235,6 +269,8 @@ const PixelMapComponent: React.FC<Props> = (props) => {
     reader.readAsDataURL(file)
   }, [selectArea])
 
+  const { loading } = useNotification()
+
   return (
     <>
       <input
@@ -247,16 +283,21 @@ const PixelMapComponent: React.FC<Props> = (props) => {
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
       <div className='absolute' style={{top: pointerPos.y, left: pointerPos.x}}>
         { enableEdit && action?.editable ?
-          <EditImage mapRef={mapRef} image={action.editable} /> :
+            <EditImage mapRef={mapRef} image={action?.editable} /> :
           selectArea ?
-          <SelectPixels area={selectArea} actionText={actionText} takeAction={doAction} /> :
+            <SelectPixels area={selectArea} actionText={actionText} takeAction={doAction} image={image} /> :
           image ?
-          <ImageInfo image={image} p={pointerPixel}/> :
-          <PixelInfo x={pointerPixel.x} y={pointerPixel.y} />
+            <ImageInfo image={image} p={pointerPixel}/> :
+            <PixelInfo x={pointerPixel.x} y={pointerPixel.y} owner={owner} />
         }
       </div>
       <div className='absolute top-16 left-1/2 -translate-x-1/2'>
         {curScene && curScene !== 'main' && <BackButton map={mapRef.current} />}
+      </div>
+
+      {/* Loading */}
+      <div className='w-full absolute top-16 flex items-center justify-center'>
+        { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
       </div>
     </>
   )

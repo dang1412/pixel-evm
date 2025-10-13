@@ -12,7 +12,7 @@ export class ViewportScene {
   private centureY = 0
 
   private selectPixelsGraphic = new Graphics()
-  private drawColorGraphic = new Graphics()
+  private drawColorContainer = new Container()
 
   private selectedArea: PixelArea | undefined
 
@@ -34,7 +34,7 @@ export class ViewportScene {
     this.selectPixelsGraphic.alpha = 0.15
 
     // color graphic
-    this.container.addChild(this.drawColorGraphic)
+    this.container.addChild(this.drawColorContainer)
   }
 
   selectArea(area: PixelArea) {
@@ -52,6 +52,7 @@ export class ViewportScene {
 
       // this.map.markDirty()
       this.selectedArea = area
+      this.container.addChild(this.selectPixelsGraphic) // move to the top
       this.drawColorArea(area, 0x0011ff, undefined, this.selectPixelsGraphic)
     }
   }
@@ -186,7 +187,7 @@ export class ViewportScene {
   drawColorArea(area: PixelArea, color: number, alpha = 1, _g?: Graphics) {
     const g = _g || new Graphics()
     g.clear()
-    const p = g.parent || this.container
+    const p = g.parent || this.drawColorContainer
     p.addChild(g)  // move to the top
 
     g.rect(
