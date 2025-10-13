@@ -51,9 +51,25 @@ export const mockImages: PixelImage[] = [
   {
     area: {x: 48, y: 48, w: 3, h: 3},
     imageUrl: '/images/pixel_logo.png',
-    title: 'PixelLand',
-    subtitle: '100x100 grids NFT Billboard with 2D Metaverse gaming ecosystem',
-    link: 'https://pixelland.io/'
+    title: 'PixelGame',
+    subtitle: '2D advertising map and games.',
+    link: 'https://pixelonbase.com/',
+    subImages: [
+      // {
+      //   area: {x: 8, y: 5, w: 15, h: 8},
+      //   imageUrl: '/gift/images/pixel-gift.png',
+      //   title: 'Gift boxes',
+      //   subtitle: 'Earn your early airdrop by opening boxes on map daily.',
+      //   link: '/gift'
+      // },
+      // {
+      //   area: {x: 8, y: 15, w: 15, h: 9},
+      //   imageUrl: '/gift/images/monster.png',
+      //   title: 'Monster chess',
+      //   subtitle: 'Multiplayer tactical turn-based game.',
+      //   link: '/monster'
+      // },
+    ]
   },
   {
     area: {x: 37, y: 53, w: 4, h: 4},

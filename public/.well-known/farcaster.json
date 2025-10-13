@@ -1,0 +1,39 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "baseBuilder": {
+    "allowedAddresses": [
+      ""
+    ]
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "PixelGame Mini App",
+    "homeUrl": "https://pixelonbase.com/",
+    "iconUrl": "https://pixelonbase.com/images/pixel_logo.png",
+    "subtitle": "2D advertising map and games.",
+    "description": "2D map of simple MetaVerse world with fun, rewarding games.",
+    "screenshotUrls": [
+      "https://pixelonbase.com/gift/images/pixel-gift.png",
+      "https://pixelonbase.com/gift/images/monster.png"
+    ],
+    "primaryCategory": "games",
+    "tags": [
+      "games",
+      "map",
+      "advertising",
+      "metaverse",
+      "miniapp",
+      "baseapp"
+    ],
+    "heroImageUrl": "",
+    "tagline": "Play instantly",
+    "ogTitle": "PixelGame Mini App",
+    "ogDescription": "Play and explore interesting crypto world.",
+    "ogImageUrl": "https://pixelonbase.com/gift/images/pixel-gift.png",
+    "noindex": true
+  }
+}

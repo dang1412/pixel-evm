@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
+
 import '../globals.css'
 
 import { Header } from '@/components/layouts/Header'
@@ -13,6 +16,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  useEffect(() => {
+    sdk.actions.ready();
+  }, []);
+
   return (
     <html lang="en">
       <body>
