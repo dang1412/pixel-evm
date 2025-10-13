@@ -166,7 +166,7 @@ export const mockImages: PixelImage[] = [
     area: {x: 71, y: 47, w: 3, h: 2},
     imageUrl: '/gift/images/coinbase-base1.png',
     title: 'Base',
-    subtitle: 'Powerful for developers. Fast for everyone.',
+    subtitle: 'Base is built to empower builders, creators, and people everywhere to build apps, grow businesses, create what they love, and earn onchain.',
     link: 'https://base.org/',
     subImages: [
       {

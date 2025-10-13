@@ -10,8 +10,10 @@ interface VerifyHumanResponse {
   error?: string;
 }
 
+const apiUrl = 'https://api.pixelonbase.com'
+
 export async function verifyHuman(address: Address, token: string) {
-  const response = await fetch('http://localhost:8080/verifyHuman', {
+  const response = await fetch(`${apiUrl}/verifyHuman`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

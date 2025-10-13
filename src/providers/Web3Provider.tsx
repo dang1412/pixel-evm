@@ -44,7 +44,7 @@ const config = createConfig(
     walletConnectProjectId: 'c95656a6a5af8b81d90d49036fd23353',
 
     // Required App Info
-    appName: 'Pixel EVM',
+    appName: 'PixelGame',
 
     // Optional App Info
     appDescription: 'Pixel games',
