@@ -144,6 +144,35 @@ export class PixelArenaMap {
         // this.selectingIds.clear()
       }
     })
+
+    view.subscribe('pixelmove', (e: CustomEvent<[number, number]>) => {
+      const [x, y] = e.detail
+      if ( x >= 48 && x < 51 && y >= 48 && y < 51 ) {
+        // set cursor to pointer
+        document.body.style.cursor = 'pointer'
+        if (monsterImg) {
+          monsterImg.visible = true
+          view.markDirty()
+        }
+      } else {
+        document.body.style.cursor = 'default'
+        if (monsterImg) {
+          monsterImg.visible = false
+          view.markDirty()
+        }
+      }
+    })
+
+    // Add aura to main scene
+    let monsterImg: Container | undefined
+    view.initialize.then(() => {
+      const mainScene = view.getScene('main')
+      if (mainScene) {
+        console.log('Add aura to main scene')
+        mainScene.addImage('/images/select_aura.png', { x: 47, y: 47, w: 5, h: 5 })
+        monsterImg = mainScene.addImage('/images/characters/monster.png', { x: 50, y: 48, w: 1, h: 1 })
+      }
+    })
   }
 
   private selectMonster(m: PixelArenaMonster, isSelect = true) {
