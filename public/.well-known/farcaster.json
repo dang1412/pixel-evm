@@ -1,12 +1,12 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjUxODY5MywidHlwZSI6ImF1dGgiLCJrZXkiOiIweDAxMGNCZTI4QkNkNmFkZTcxZTE5NWY3QzIyOWE5Qzc3NEY3RjRGMjMifQ",
+    "payload": "eyJkb21haW4iOiJwaXhlbG9uYmFzZS5jb20ifQ",
+    "signature": "6HOtSk49Gaoo8PnsShGfXs2hPkyIDTI5hyF/PmBhVAUMu+PcQLj9Vzlpqv49pJk6B+qmdcwwtAThRBa3vLBtHRw="
   },
   "baseBuilder": {
     "allowedAddresses": [
-      ""
+      "0x5B44daB19F5EB7bE27C0c339f515e3f92F9A43eC"
     ]
   },
   "miniapp": {
@@ -25,11 +25,9 @@
       "games",
       "map",
       "advertising",
-      "metaverse",
       "miniapp",
       "baseapp"
     ],
-    "heroImageUrl": "",
     "tagline": "Play instantly",
     "ogTitle": "PixelGame Mini App",
     "ogDescription": "Play and explore interesting crypto world.",
