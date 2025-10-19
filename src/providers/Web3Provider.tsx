@@ -8,12 +8,30 @@ import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 import { roundRobinHttp } from './roundRobinHttp'
 import { OnchainKitProvider } from '@coinbase/onchainkit'
 
+import { coinbaseWallet } from 'wagmi/connectors'
+
 const apiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY
 
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
     chains: [base, baseSepolia],
+    // connectors: [
+    //   coinbaseWallet({
+    //     appName: 'Your App Name',
+    //     preference: 'all', // 👈 'extension', 'smartWallet', or 'all'
+    //     version: '2', // 👈 This ensures using WABAuth flow
+    //     walletAppUrl: 'https://keys.coinbase.com' // 👈 force WaaS
+    //   })
+    // ],
+    connectors: [
+      coinbaseWallet({
+        appName: 'PixelGame',
+        // preference: { options: 'smartWalletOnly' },
+        // keysUrl: 'https://keys.coinbase.com/connect', // Optional: explicitly provide the keys URL
+      }),
+    ],
+
     transports: {
       // RPC URL for each chain
       // [localChain.id]: http('http://127.0.0.1:8545'),

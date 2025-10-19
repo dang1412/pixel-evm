@@ -1,2 +1,3 @@
-export * from './useClaimBox'
+export * from './claimBox/useClaimBox'
+// export * from './useClaimBoxPayMaster'
 export * from './getActiveBoxes'
