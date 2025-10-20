@@ -30,7 +30,7 @@ export function useClaimBoxPayMaster(capabilities: AccountCapabilities) {
   })
 
   useEffect(() => {
-    console.log('statusData receipts', statusData)
+    console.log('claimBoxPayMaster receipts', statusData)
   }, [statusData?.receipts])
 
   const result = useMemo(() => getBoxClaimedEventLog(statusData?.receipts?.[0] as any), [statusData?.receipts])

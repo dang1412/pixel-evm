@@ -1,11 +1,10 @@
 import { useReadContract } from 'wagmi'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useMemo } from 'react'
+
+import { globalState } from '@/components/globalState'
 
 import { GiftContractAddress } from './constants'
-import { globalEventBus } from '@/lib/EventEmitter'
 import { useRefetchWhenBoxClaimed, useRefetchWhenClaimError } from './useRefetchWhenBoxClaimed'
-import { Address } from 'viem'
-import { globalState } from '@/components/globalState'
 
 const abi = [
   {
@@ -50,20 +49,10 @@ export function useActiveBoxes() {
     }
   }, [refetch])
   useRefetchWhenBoxClaimed(undefined, refetchWhenClaimed)
-  // useEffect(() => {
-  //   const refetchWhenBoxClaimError = (msg: string) => {
-  //     console.log('refetchWhenBoxClaimError', msg)
-  //     refetch()
-  //   }
 
-  //   globalEventBus.on('boxClaimError', refetchWhenBoxClaimError)
+  const boxes = useMemo(() => data ? [...data] : [], [data])
 
-  //   return () => {
-  //     globalEventBus.off('boxClaimError', refetchWhenBoxClaimError)
-  //   }
-  // }, [refetch])
+  globalState.boxes = boxes
 
-  if (data) globalState.boxes = [...data]
-
-  return data
+  return boxes
 }

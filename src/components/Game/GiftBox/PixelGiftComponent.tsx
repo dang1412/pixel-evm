@@ -4,7 +4,6 @@ import { FaSpinner } from 'react-icons/fa'
 
 import { useNotification } from '@/providers/NotificationProvider'
 import { listenToBoxClaimed } from '@/lib/ws'
-import { globalState } from '@/components/globalState'
 
 import Turnstile, { TurnstileRef } from '@/components/Turnstile'
 
@@ -17,7 +16,6 @@ import { useCoolDownTime } from './api/useCoolDownTime'
 import { PixelGift } from './PixelGift'
 import { CoolDownCount } from './CoolDown'
 import { OnboardingModal } from './OnboardModal'
-import { verifyHuman } from './api/verifyHuman'
 
 interface Props {}
 
@@ -30,40 +28,30 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   const boxes = useActiveBoxes()
   const { address } = useAccount()
   const coolDownTime = useCoolDownTime(address)
-  const claimBox = useClaimBox()
+  const claimBox = useClaimBox(turnstileRef)
 
-  const { notify, loading } = useNotification()
+  const { notify, loading, setLoading } = useNotification()
 
   const claimBoxWithPermit = useCallback(async (pos: number) => {
-    if (!address) {
-      notify('Please connect wallet', 'error')
-      return
-    }
-
-    // check cooldown
-    const coolDownTime = globalState.giftBoxCooldownTime || 0
-    if (coolDownTime && coolDownTime > Math.floor(Date.now() / 1000)) {
-      notify(`Box cooldown not passed`, 'error')
-      return
-    }
-
     // check human
     try {
-      const token = await turnstileRef.current?.execute()
-      if (token) {
-        console.log('Got turnstile token', token)
-        const rs = await verifyHuman(address, token)
-        console.log('verifyHuman', rs)
-        if (rs.success && rs.signData) {
-          const { deadline, signature } = rs.signData
+      // const token = await turnstileRef.current?.execute()
+      // if (token) {
+      //   console.log('Got turnstile token', token)
+      //   const rs = await verifyHuman(address, token)
+      //   console.log('verifyHuman', rs)
+      //   if (rs.success && rs.signData) {
+      //     const { deadline, signature } = rs.signData
           // claim
-          await claimBox(pos, deadline + 1, signature)
-        }
-      }
+          setLoading(true)
+          await claimBox(pos)
+        // }
+      // }
     } catch (e) {
-      console.log('Turnstile execute error', e)
+      notify(`${e}`, 'error')
     } finally {
       turnstileRef.current?.remove()
+      setLoading(false)
     }
   }, [address, claimBox])
 

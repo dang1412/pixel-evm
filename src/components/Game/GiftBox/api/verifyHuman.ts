@@ -1,5 +1,7 @@
 import { Address } from 'viem'
 
+import { TurnstileRef } from '@/components/Turnstile'
+
 interface VerifyHumanResponse {
   success: boolean;
   signData?: {
@@ -27,4 +29,11 @@ export async function verifyHuman(address: Address, token: string) {
 
   const data = await response.json();
   return data as VerifyHumanResponse;
+}
+
+export async function generateTurnstileAndVerify(ref: TurnstileRef, address: Address) {
+  const token = await ref.execute()
+  const rs = await verifyHuman(address, token)
+
+  return rs.signData
 }
