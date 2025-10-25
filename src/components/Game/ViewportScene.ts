@@ -119,9 +119,10 @@ export class ViewportScene {
     }
     container.addChild(image)
 
-    this.container.addChild(container)
+    // this.container.addChild(container)
+    // this.setPosition(container, area.x, area.y)
 
-    this.setPosition(container, area.x, area.y)
+    this.addContainer(container, area.x, area.y)
 
     return container
   }
@@ -143,6 +144,13 @@ export class ViewportScene {
     return textObj
   }
 
+  addContainer(container: Container, x: number, y: number) {
+    this.container.addChild(container)
+    container.x = x * PIXEL_SIZE
+    container.y = y * PIXEL_SIZE
+  }
+
+  // Deprecated
   setPosition(container: Container, x: number, y: number) {
     container.x = x * PIXEL_SIZE
     container.y = y * PIXEL_SIZE
