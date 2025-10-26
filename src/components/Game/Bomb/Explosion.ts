@@ -33,12 +33,12 @@ export class Explosion {
 
     // Center particles
     for (let i = 0; i < maxParticles; i++) {
-      this.particles.push(this.createParticle(0, 0, colors))
+      this.particles.push(this.createParticle(colors))
     }
   }
 
-  createParticle(x: number, y: number, colors: number[]) {
-    const particle = new Particle(x, y, colors)
+  createParticle(colors: number[]) {
+    const particle = new Particle(colors)
     this.particles.push(particle)
     this.container.addChild(particle.g)
 
@@ -68,22 +68,16 @@ class Particle {
   private vy = 0
   private life = duration
 
-  private pixelX: number
-  private pixelY: number
-
-  constructor(private x: number, private y: number, private colors: number[]) {
+  constructor(colors: number[]) {
     this.g
       .circle(0, 0, Math.random() * 8 + 4)
       .fill(colors[Math.floor(Math.random() * colors.length)])
       // .fill(colors[0])
 
-    this.pixelX = x * PIXEL_SIZE
-    this.pixelY = y * PIXEL_SIZE
-
     const randx = Math.random() - 0.5
     const randy = Math.random() - 0.5
-    this.g.x = this.pixelX + PIXEL_SIZE / 2 + randx * PIXEL_SIZE;
-    this.g.y = this.pixelY + PIXEL_SIZE / 2 + randy * PIXEL_SIZE;
+    this.g.x = PIXEL_SIZE / 2 + randx * PIXEL_SIZE;
+    this.g.y = PIXEL_SIZE / 2 + randy * PIXEL_SIZE;
 
     this.vx = -randx * 4;
     this.vy = -randy * 4;
@@ -93,10 +87,10 @@ class Particle {
     const g = this.g
 
     g.x += this.vx
-    if (g.x < this.pixelX || g.x > this.pixelX + PIXEL_SIZE) this.vx = -this.vx
+    if (g.x < 0|| g.x > PIXEL_SIZE) this.vx = -this.vx
 
     g.y += this.vy
-    if (g.y < this.pixelY || g.y > this.pixelY + PIXEL_SIZE) this.vy = -this.vy
+    if (g.y < 0 || g.y > PIXEL_SIZE) this.vy = -this.vy
 
     g.scale.set(g.scale.x * 0.97)
     this.life -= delta

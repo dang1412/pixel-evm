@@ -5,6 +5,7 @@ export interface GameState {
 
 export interface BombState {
   ownerId: number
+  pos: number
   live: number
   blastRadius: number
 }
@@ -16,4 +17,11 @@ export enum ItemType {
 export interface ItemState {
   type: ItemType
   points: number
+}
+
+export interface PlayerState {
+  id: number
+  score: number
+  bombs: number
+  r: number
 }

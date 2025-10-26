@@ -1,9 +1,11 @@
 import { positionToXY, xyToPosition } from '../utils'
 import { BombMap } from './BombMap'
 
-import { BombState, GameState, ItemState } from './types'
+import { BombState, GameState, ItemState, PlayerState } from './types'
 
 const GameLoop = 200
+
+let playerId = 1
 
 export class BombGame {
   state: GameState = {
@@ -15,28 +17,16 @@ export class BombGame {
   private itemMap = new Map<number, ItemState>()
 
   // ownerId => score
-  private scoreMap = new Map<number, number>()
+  private playerStateMap = new Map<number, PlayerState>()
 
   // position => ownerId
   private explosionMap = new Map<number, number>()
 
-  // ownerId => number of bombs using
-  private ownerUsingBombs = new Map<number, number>()
+  // playerId => number of bombs using
+  private playerUsingBombs = new Map<number, number>()
 
   private caughtItems: number[] = []
-
-  addBomb(ownerId: number, x: number, y: number) {
-    const pos = xyToPosition(x, y)
-
-    if (this.bombStateMap.has(pos)) return
-
-    console.log('Add bomb', pos, x, y)
-    const usingBombs = this.ownerUsingBombs.get(ownerId) || 0
-    if (usingBombs >= 3) return
-
-    this.bombStateMap.set(pos, { ownerId, live: 3000, blastRadius: 3 })
-    this.ownerUsingBombs.set(ownerId, usingBombs + 1)
-  }
+  private explodedBombs: BombState[] = []
 
   constructor(private bombMap: BombMap) {
     setInterval(() => {
@@ -44,9 +34,34 @@ export class BombGame {
     }, GameLoop)
   }
 
+  joinGame() {
+    const id = playerId++
+    const newPlayer = { id, score: 0, bombs: 5, r: 5 }
+    this.playerStateMap.set(id, newPlayer)
+
+    return newPlayer
+  }
+
+  addBomb(ownerId: number, x: number, y: number) {
+    const pos = xyToPosition(x, y)
+
+    if (this.bombStateMap.has(pos)) return
+
+    const playerState = this.playerStateMap.get(ownerId)
+    if (!playerState) return
+
+    console.log('Add bomb', pos, x, y)
+    const usingBombs = this.playerUsingBombs.get(ownerId) || 0
+    if (usingBombs >= playerState.bombs) return
+
+    this.bombStateMap.set(pos, { ownerId, pos, live: 3000, blastRadius: playerState.r })
+    this.playerUsingBombs.set(ownerId, usingBombs + 1)
+  }
+
   update() {
     this.explosionMap.clear()
     this.caughtItems = []
+    this.explodedBombs = []
 
     for (const [pos, bombState] of this.bombStateMap) {
       bombState.live -= GameLoop
@@ -55,12 +70,17 @@ export class BombGame {
       }
     }
 
-    const bombs = Array.from(this.bombStateMap.keys())
+    const bombs = Array.from(this.bombStateMap.values())
     const explosions = Array.from(this.explosionMap.keys())
 
+    // add exploded bombs
+    for (const bomb of this.explodedBombs) {
+      bombs.push(bomb)
+    }
+
     // state update
-    this.state = { bombs, explosions }
-    this.bombMap.update(this.state)
+    this.bombMap.updateBombs(bombs)
+    this.bombMap.addExplosions(explosions)
 
     this.bombMap.removeItems(this.caughtItems)
 
@@ -75,20 +95,19 @@ export class BombGame {
     }
 
     // score
-    this.bombMap.updateScore(this.scoreMap.get(1) || 0)
+    this.bombMap.updateScore(this.playerStateMap.get(1)?.score || 0)
   }
 
   private explode(pos: number, bombState: BombState) {
     const { ownerId, blastRadius: r } = bombState
-    const usingBombs = this.ownerUsingBombs.get(ownerId) || 1
-    this.ownerUsingBombs.set(ownerId, usingBombs - 1)
+    const usingBombs = this.playerUsingBombs.get(ownerId) || 1
+    this.playerUsingBombs.set(ownerId, usingBombs - 1)
 
+    this.explodedBombs.push(bombState)
     this.bombStateMap.delete(pos)
-
     
     // check items caught
     const { x, y } = positionToXY(pos)
-    console.log('Explosion', x, y, ownerId, r)
     const affectedPositions: number[] = []
     // Add the bomb's position itself
     affectedPositions.push(pos)
@@ -116,17 +135,16 @@ export class BombGame {
       }
     }
 
-
-
     // explode
-    // const caughtItems: number[] = []
     for (const pos of affectedPositions) {
       this.explosionMap.set(pos, ownerId)
       // check item
       const item = this.itemMap.get(pos)
       if (item) {
-        const score = this.scoreMap.get(ownerId) || 0
-        this.scoreMap.set(ownerId, score + item.points)
+        const playerState = this.playerStateMap.get(ownerId)
+        if (playerState) {
+          playerState.score += item.points
+        }
         this.caughtItems.push(pos)
         this.itemMap.delete(pos) // Remove item once caught
       }

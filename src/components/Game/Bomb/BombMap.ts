@@ -5,16 +5,20 @@ import { Bomb } from './Bomb'
 import { BombGame } from './BombGame'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { GameState, ItemState } from './types'
+import { BombState, GameState, ItemState, PlayerState } from './types'
 
 export class BombMap {
   bombMap = new Map<number, Bomb>()
   explosionMap = new Map<number, Explosion>()
   itemMap = new Map<number, MapItem>()
 
+  // bombGame will be replaced by network component
   bombGame: BombGame | undefined
-  ownerId = 1
+
   bombUsing = 0
+
+  // this player state
+  playerState: PlayerState | undefined
 
   constructor(public map: PixelMap, private onScore: (score: number) => void) {
     const view = map.getView()
@@ -24,21 +28,29 @@ export class BombMap {
         return
       }
 
+      if (!this.bombGame) {
+        return
+      }
+
       const [x, y] = event.detail
 
-      if (this.bombGame && this.bombUsing < 3) {
-        this.bombGame.addBomb(1, x, y)
-        this.bombUsing++
+      // join game the first time
+      if (!this.playerState) {
+        this.playerState = this.bombGame.joinGame()
+      }
+
+      if (this.bombGame && this.bombUsing < this.playerState.bombs) {
+        this.bombGame.addBomb(this.playerState.id, x, y)
         // for smooth UX, add bomb before receiving from logic
-        this.addBomb(x, y)
+        this.addBomb(x, y, this.playerState.id)
       }
     })
 
     // update bombs and explosions animation
     view.subscribe('tick', (e: CustomEvent<number>) => {
-      const delta = Math.min(e.detail, 20)
+      const delta = Math.min(e.detail, 40)
       for (const bomb of this.bombMap.values()) {
-        bomb.update(delta)
+        bomb.update()
       }
 
       for (const [pos, explosion] of this.explosionMap) {
@@ -52,35 +64,33 @@ export class BombMap {
     })
   }
 
-  async initialize() {
-    await this.map.getView().initialize
-
-    new Bomb(this, 50, 50)
+  // Called from Network
+  updateBombs(bombStates: BombState[]) {
+    for (const { ownerId, pos, live } of bombStates) {
+      if (live > 0) {
+        const { x, y } = positionToXY(pos)
+        this.addBomb(x, y, ownerId)
+      } else {
+        this.removeBomb(pos, ownerId)
+      }
+    }
   }
 
-  update(state: GameState) {
-    for (const pos of state.bombs) {
-      const { x, y } = positionToXY(pos)
-      this.addBomb(x, y)
-    }
-
-    for (const pos of state.explosions) {
-      const bomb = this.bombMap.get(pos)
-      if (bomb) {
-        this.bombMap.delete(pos)
-        bomb.remove()
-        this.bombUsing--
-      }
+  // Called from Network
+  addExplosions(explosions: number[]) {
+    for (const pos of explosions) {
       const { x, y } = positionToXY(pos)
       this.explosionMap.set(pos, new Explosion(this, x, y))
     }
   }
 
+  // Called from Network
   addItem(pos: number, item: ItemState) {
     const { x, y } = positionToXY(pos)
     this.itemMap.set(pos, new MapItem(this, x, y, item.points))
   }
 
+  // Called from Network
   removeItems(positions: number[]) {
     for (const pos of positions) {
       const item = this.itemMap.get(pos)
@@ -91,18 +101,26 @@ export class BombMap {
     }
   }
 
+  // Called from Network
   updateScore(score: number) {
     this.onScore(score)
   }
 
-  private addBomb(x: number, y: number) {
+  private addBomb(x: number, y: number, playerId: number) {
     const pos = xyToPosition(x, y)
     if (this.bombMap.has(pos)) return
 
     console.log('Add bomb', pos, x, y)
-    this.bombMap.set(pos, new Bomb(this, x, y))
+    if (playerId === this.playerState?.id) this.bombUsing++
+    this.bombMap.set(pos, new Bomb(this, x, y, playerId))
   }
 
-  private addExplosion(x: number, y: number) {
+  private removeBomb(pos: number, playerId: number) {
+    const bomb = this.bombMap.get(pos)
+    if (bomb) {
+      this.bombMap.delete(pos)
+      bomb.remove()
+      if (playerId === this.playerState?.id) this.bombUsing--
+    }
   }
 }
