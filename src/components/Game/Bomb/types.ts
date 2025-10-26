@@ -4,7 +4,9 @@ export interface GameState {
 }
 
 export interface BombState {
+  ownerId: number
   live: number
+  blastRadius: number
 }
 
 export enum ItemType {

@@ -13,6 +13,8 @@ export class BombMap {
   itemMap = new Map<number, MapItem>()
 
   bombGame: BombGame | undefined
+  ownerId = 1
+  bombUsing = 0
 
   constructor(public map: PixelMap, private onScore: (score: number) => void) {
     const view = map.getView()
@@ -24,8 +26,9 @@ export class BombMap {
 
       const [x, y] = event.detail
 
-      if (this.bombGame) {
-        this.bombGame.addBomb(x, y)
+      if (this.bombGame && this.bombUsing < 3) {
+        this.bombGame.addBomb(1, x, y)
+        this.bombUsing++
         // for smooth UX, add bomb before receiving from logic
         this.addBomb(x, y)
       }
@@ -65,10 +68,11 @@ export class BombMap {
       const bomb = this.bombMap.get(pos)
       if (bomb) {
         this.bombMap.delete(pos)
-        bomb.explode()
+        bomb.remove()
+        this.bombUsing--
       }
       const { x, y } = positionToXY(pos)
-      this.explosionMap.set(pos, new Explosion(this, x, y, 3))
+      this.explosionMap.set(pos, new Explosion(this, x, y))
     }
   }
 
@@ -88,7 +92,6 @@ export class BombMap {
   }
 
   updateScore(score: number) {
-    console.log('Update score', score)
     this.onScore(score)
   }
 

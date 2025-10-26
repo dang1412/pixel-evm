@@ -70,7 +70,7 @@ export class Bomb {
     // }
   }
 
-  explode() {
+  remove() {
     // if (explosionSynth) {
     //   explosionSynth.triggerAttackRelease("8n");
     // }

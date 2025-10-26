@@ -11,17 +11,31 @@ export class BombGame {
     explosions: [],
   }
 
-  bombStateMap = new Map<number, BombState>()
-  itemMap = new Map<number, ItemState>()
-  score = 0
+  private bombStateMap = new Map<number, BombState>()
+  private itemMap = new Map<number, ItemState>()
 
-  addBomb(x: number, y: number) {
+  // ownerId => score
+  private scoreMap = new Map<number, number>()
+
+  // position => ownerId
+  private explosionMap = new Map<number, number>()
+
+  // ownerId => number of bombs using
+  private ownerUsingBombs = new Map<number, number>()
+
+  private caughtItems: number[] = []
+
+  addBomb(ownerId: number, x: number, y: number) {
     const pos = xyToPosition(x, y)
 
     if (this.bombStateMap.has(pos)) return
 
     console.log('Add bomb', pos, x, y)
-    this.bombStateMap.set(pos, { live: 3000 })
+    const usingBombs = this.ownerUsingBombs.get(ownerId) || 0
+    if (usingBombs >= 3) return
+
+    this.bombStateMap.set(pos, { ownerId, live: 3000, blastRadius: 3 })
+    this.ownerUsingBombs.set(ownerId, usingBombs + 1)
   }
 
   constructor(private bombMap: BombMap) {
@@ -31,51 +45,24 @@ export class BombGame {
   }
 
   update() {
-    const explosions = []
+    this.explosionMap.clear()
+    this.caughtItems = []
 
     for (const [pos, bombState] of this.bombStateMap) {
       bombState.live -= GameLoop
       if (bombState.live <= 0) {
-        explosions.push(pos)
-        this.bombStateMap.delete(pos)
-        console.log('Explosion', pos)
-
-        // check items caught
-        const { x, y } = positionToXY(pos)
-        const affectedPositions: number[] = []
-        // Add the bomb's position itself
-        affectedPositions.push(pos)
-
-        // Check 4 directions for 3 pixels
-        for (let i = 1; i <= 3; i++) {
-          affectedPositions.push(xyToPosition(x + i, y))
-          affectedPositions.push(xyToPosition(x - i, y))
-          affectedPositions.push(xyToPosition(x, y + i))
-          affectedPositions.push(xyToPosition(x, y - i))
-        }
-
-        const caughtItems: number[] = []
-        for (const affectedPos of affectedPositions) {
-          if (this.itemMap.has(affectedPos)) {
-            const item = this.itemMap.get(affectedPos)
-            if (item) {
-              this.score += item.points
-            }
-            caughtItems.push(affectedPos)
-            this.itemMap.delete(affectedPos) // Remove item once caught
-          }
-        }
-        this.bombMap.removeItems(caughtItems)
+        this.explode(pos, bombState)
       }
     }
 
     const bombs = Array.from(this.bombStateMap.keys())
+    const explosions = Array.from(this.explosionMap.keys())
 
-    if (explosions.length > 0) {
-      // state update
-      this.state = { bombs, explosions }
-      this.bombMap.update(this.state)
-    }
+    // state update
+    this.state = { bombs, explosions }
+    this.bombMap.update(this.state)
+
+    this.bombMap.removeItems(this.caughtItems)
 
     // generate item
     if (this.itemMap.size < 100) {
@@ -87,7 +74,71 @@ export class BombGame {
       }
     }
 
-    // 
-    this.bombMap.updateScore(this.score)
+    // score
+    this.bombMap.updateScore(this.scoreMap.get(1) || 0)
+  }
+
+  private explode(pos: number, bombState: BombState) {
+    const { ownerId, blastRadius: r } = bombState
+    const usingBombs = this.ownerUsingBombs.get(ownerId) || 1
+    this.ownerUsingBombs.set(ownerId, usingBombs - 1)
+
+    this.bombStateMap.delete(pos)
+
+    
+    // check items caught
+    const { x, y } = positionToXY(pos)
+    console.log('Explosion', x, y, ownerId, r)
+    const affectedPositions: number[] = []
+    // Add the bomb's position itself
+    affectedPositions.push(pos)
+
+    const affedtedBombPositions: number[] = []
+
+    // Check 4 directions
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    for (const [dx, dy] of dirs) {
+      for (let i = 1; i <= r; i++) {
+        const affectedPos = xyToPosition(x + dx * i, y + dy * i)
+
+        // stop if meet another explosion
+        if (this.explosionMap.has(affectedPos)) {
+          break
+        }
+
+        // stop if other bomb
+        if (this.bombStateMap.has(affectedPos)) {
+          affedtedBombPositions.push(affectedPos)
+          break
+        }
+
+        affectedPositions.push(affectedPos)
+      }
+    }
+
+
+
+    // explode
+    // const caughtItems: number[] = []
+    for (const pos of affectedPositions) {
+      this.explosionMap.set(pos, ownerId)
+      // check item
+      const item = this.itemMap.get(pos)
+      if (item) {
+        const score = this.scoreMap.get(ownerId) || 0
+        this.scoreMap.set(ownerId, score + item.points)
+        this.caughtItems.push(pos)
+        this.itemMap.delete(pos) // Remove item once caught
+      }
+    }
+
+    // affected bombs explode
+    for (const pos of affedtedBombPositions) {
+      const bombState = this.bombStateMap.get(pos)
+      if (bombState) {
+        bombState.live = 0
+        this.explode(pos, bombState)
+      }
+    }
   }
 }

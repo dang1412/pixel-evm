@@ -15,7 +15,7 @@ export class Explosion {
 
   private duration = duration
 
-  constructor(bombMap: BombMap, x: number, y: number, private blastRadius: number) {
+  constructor(bombMap: BombMap, x: number, y: number) {
     const view = bombMap.map.getView()
     const main = view.getScene('main')
     if (!main) {
@@ -24,40 +24,20 @@ export class Explosion {
 
     main.addContainer(this.container, x, y)
 
-    this.createParticles(x, y)
+    this.createParticles()
   }
 
-  createParticles(x: number, y: number) {
-    const maxParticles = 24
+  createParticles() {
+    const maxParticles = 6
     const colors = [0xFFD700, 0xFFA500, 0xFF4500, 0xFFFFFF]
 
     // Center particles
-    for (let i = 0; i < maxParticles / 2; i++) {
-      this.particles.push(this.createParticle(x, y, colors))
-    }
-
-    // Blast radius particles
-    for (let r = 1; r <= this.blastRadius; r++) {
-      const directions = [[r, 0], [-r, 0], [0, r], [0, -r]];
-      directions.forEach(([dx, dy]) => {
-        for (let i = 0; i < maxParticles / 4; i++) {
-          this.particles.push(this.createParticle(dx, dy, colors));
-        }
-      })
+    for (let i = 0; i < maxParticles; i++) {
+      this.particles.push(this.createParticle(0, 0, colors))
     }
   }
 
   createParticle(x: number, y: number, colors: number[]) {
-    // const particle = new Graphics()
-    //   .circle(0, 0, Math.random() * 8 + 4)
-    //   .fill(colors[Math.floor(Math.random() * colors.length)]);
-
-    // particle.x = gridX * TILE_SIZE + TILE_SIZE / 2 + (Math.random() - 0.5) * TILE_SIZE;
-    // particle.y = gridY * TILE_SIZE + TILE_SIZE / 2 + (Math.random() - 0.5) * TILE_SIZE;
-
-    // particle.vx = (Math.random() - 0.5) * 4;
-    // particle.vy = (Math.random() - 0.5) * 4;
-    // particle.life = this.duration;
     const particle = new Particle(x, y, colors)
     this.particles.push(particle)
     this.container.addChild(particle.g)
@@ -69,7 +49,6 @@ export class Explosion {
   update(delta: number) {
     this.duration -= delta
     if (this.duration <= 0) {
-      // explosions = explosions.filter(e => e !== this);
       this.container.destroy()
       return true
     }
@@ -77,16 +56,6 @@ export class Explosion {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.update(delta)
-      // p.x += p.vx;
-      // p.y += p.vy;
-      // p.scale.set(p.scale.x * 0.95);
-      // p.life -= deltaTime;
-      // p.alpha = p.life / this.duration;
-
-      // if (p.life <= 0 || p.scale.x < 0.1) {
-      //   p.destroy();
-      //   this.particles.splice(i, 1);
-      // }
     }
 
     return false
@@ -105,7 +74,8 @@ class Particle {
   constructor(private x: number, private y: number, private colors: number[]) {
     this.g
       .circle(0, 0, Math.random() * 8 + 4)
-      .fill(colors[Math.floor(Math.random() * colors.length)]);
+      .fill(colors[Math.floor(Math.random() * colors.length)])
+      // .fill(colors[0])
 
     this.pixelX = x * PIXEL_SIZE
     this.pixelY = y * PIXEL_SIZE
