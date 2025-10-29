@@ -15,6 +15,7 @@ export enum ItemType {
 }
 
 export interface ItemState {
+  pos: number
   type: ItemType
   points: number
 }

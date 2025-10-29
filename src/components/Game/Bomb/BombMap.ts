@@ -3,6 +3,7 @@ import { positionToXY, xyToPosition } from '../utils'
 
 import { Bomb } from './Bomb'
 import { BombGame } from './BombGame'
+import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
 import { BombState, GameState, ItemState, PlayerState } from './types'
@@ -13,14 +14,20 @@ export class BombMap {
   itemMap = new Map<number, MapItem>()
 
   // bombGame will be replaced by network component
-  bombGame: BombGame | undefined
-
+  // bombGame: BombGame | undefined
+  bombNetwork: BombNetwork
   bombUsing = 0
 
-  // this player state
-  playerState: PlayerState | undefined
+  // all players
+  players: PlayerState[] = []
+  // this player
+  playerId: number | undefined
 
-  constructor(public map: PixelMap, private onScore: (score: number) => void) {
+  constructor(
+    public map: PixelMap,
+    private onScore: (score: number) => void
+  ) {
+    this.bombNetwork = new BombNetwork(this)
     const view = map.getView()
 
     view.subscribe('pixelclick', async (event: CustomEvent<[number, number]>) => {
@@ -28,22 +35,25 @@ export class BombMap {
         return
       }
 
-      if (!this.bombGame) {
-        return
-      }
-
       const [x, y] = event.detail
 
       // join game the first time
-      if (!this.playerState) {
-        this.playerState = this.bombGame.joinGame()
+      // if (!this.playerState) {
+      //   this.playerState = this.bombGame.joinGame()
+      // }
+      if (!this.playerId) {
+        console.log('Not joined yet, joining game...')
+        this.bombNetwork.joinGame()
+        return
       }
 
-      if (this.bombGame && this.bombUsing < this.playerState.bombs) {
-        this.bombGame.addBomb(this.playerState.id, x, y)
-        // for smooth UX, add bomb before receiving from logic
-        this.addBomb(x, y, this.playerState.id)
-      }
+      this.bombNetwork.placeBomb(this.playerId, x, y)
+
+      // if (this.bombGame && this.bombUsing < this.playerState.bombs) {
+      //   this.bombGame.addBomb(this.playerState.id, x, y)
+      //   // for smooth UX, add bomb before receiving from logic
+      //   this.addBomb(x, y, this.playerState.id)
+      // }
     })
 
     // update bombs and explosions animation
@@ -111,7 +121,7 @@ export class BombMap {
     if (this.bombMap.has(pos)) return
 
     console.log('Add bomb', pos, x, y)
-    if (playerId === this.playerState?.id) this.bombUsing++
+    if (playerId === this.playerId) this.bombUsing++
     this.bombMap.set(pos, new Bomb(this, x, y, playerId))
   }
 
@@ -120,7 +130,7 @@ export class BombMap {
     if (bomb) {
       this.bombMap.delete(pos)
       bomb.remove()
-      if (playerId === this.playerState?.id) this.bombUsing--
+      if (playerId === this.playerId) this.bombUsing--
     }
   }
 }

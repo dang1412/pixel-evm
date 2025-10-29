@@ -10,10 +10,12 @@ import { mockImages } from '../mock/images'
 
 import { BombMap } from './BombMap'
 import { BombGame } from './BombGame'
+import { BombNetwork } from './BombNetwork'
 
 interface Props {}
 
 const BombGameComponent: React.FC<Props> = (props) => {
+  // const bombNetworkRef = useRef<BombNetwork | undefined>(undefined)
   const bombMapRef = useRef<BombMap | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [curScene, setCurScene] = useState<string>('')
@@ -37,7 +39,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       // initialize bombMap and bombGame logic
       const bombMap = new BombMap(map, (score) => setScore(score))
-      bombMap.bombGame = new BombGame(bombMap)
+      bombMap.bombNetwork.createGame()
+      // bombMap.bombNetwork = new BombNetwork(bombMap)
 
       bombMapRef.current = bombMap
 
