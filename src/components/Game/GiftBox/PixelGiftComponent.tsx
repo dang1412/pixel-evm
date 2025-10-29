@@ -3,7 +3,6 @@ import { useAccount } from 'wagmi'
 import { FaSpinner } from 'react-icons/fa'
 
 import { useNotification } from '@/providers/NotificationProvider'
-import { listenToBoxClaimed } from '@/lib/ws'
 
 import Turnstile, { TurnstileRef } from '@/components/Turnstile'
 
@@ -16,6 +15,9 @@ import { useCoolDownTime } from './api/useCoolDownTime'
 import { PixelGift } from './PixelGift'
 import { CoolDownCount } from './CoolDown'
 import { OnboardingModal } from './OnboardModal'
+import { useWebSocketSubscription } from '@/providers/useWebsocketSubscription'
+import { globalEventBus } from '@/lib/EventEmitter'
+import { BoxClaimedArgs } from '@/providers/types'
 
 interface Props {}
 
@@ -91,9 +93,16 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
   }, [canvas])
 
   // listen websocket event
-  useEffect(() => {
-    listenToBoxClaimed()
+  // useEffect(() => {
+    // listenToBoxClaimed()
+  // }, [])
+  const handleBoxClaimed = useCallback((logs: BoxClaimedArgs[]) => {
+    console.log('Boxes claimed', logs)
+    for (const log of logs) {
+      globalEventBus.emit('boxClaimed', log)
+    }
   }, [])
+  useWebSocketSubscription('box-claimed', handleBoxClaimed)
 
   // get the pixel map instance
   const map = giftRef.current?.map

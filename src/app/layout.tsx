@@ -10,6 +10,7 @@ import { WebRTCProvider } from '@/lib/webRTC/WebRTCProvider'
 
 import { Web3Provider } from '@/providers/Web3Provider'
 import { NotificationProvider } from '@/providers/NotificationProvider'
+import { WebSocketProvider } from '@/providers/WebsocketProvider'
 
 export default function RootLayout({
   children,
@@ -28,10 +29,11 @@ export default function RootLayout({
             <div className='flex flex-col h-screen'>
               <Header />
               <div className='flex-1'>
-                <WebRTCProvider>
-                  {children}
-                </WebRTCProvider>
-                {/* <TestConnect /> */}
+                <WebSocketProvider url="ws://localhost:8080">
+                  <WebRTCProvider>
+                    {children}
+                  </WebRTCProvider>
+                </WebSocketProvider>
               </div>
             </div>
           </NotificationProvider>

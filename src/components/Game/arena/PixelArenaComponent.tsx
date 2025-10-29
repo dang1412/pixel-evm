@@ -17,7 +17,8 @@ import MonsterControlSelect from './MonsterControlSelect'
 import { ArenaNetwork } from './ArenaNetwork'
 
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
-import { getAccountConnectService, useWebRTCConnect } from '@/lib/webRTC/hooks/useWebRTCConnect'
+// import { getAccountConnectService, useWebRTCConnect } from '@/lib/webRTC/hooks/useWebRTCConnect'
+import { getAccountConnectService, useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 
 interface Props {}
 
@@ -136,7 +137,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
     }
   }, [])
   
-  const { offerConnect } = useWebRTCConnect(onMsg)
+  const { offerConnect } = useWebRTCConnectWs(onMsg)
 
   // connect to server
   const connect = useCallback(async (addr: string) => {

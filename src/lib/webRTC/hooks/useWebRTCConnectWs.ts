@@ -1,0 +1,135 @@
+import { useCallback } from 'react'
+import { useAccount } from 'wagmi'
+
+import { WebRTCService } from '../WebRTCService'
+import { ConnectionStatus, useWebRTC } from '../WebRTCProvider'
+
+import { ChannelPayloadMap } from '@/providers/types'
+import { useWebSocketSubscription } from '@/providers/useWebsocketSubscription'
+import { useWebSocket } from '@/providers/WebsocketProvider'
+
+const accountConnectServices: { [acc: string]: WebRTCService } = {}
+
+export function getAccountConnectService(to: string) {
+  return accountConnectServices[to] || null
+}
+
+export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuffer) => void) {
+
+  const { address: account } = useAccount()
+
+  const { send } = useWebSocket()
+
+  const { dispatch } = useWebRTC()
+
+  const createService = useCallback((from: string, to: string, isAnswering = false) => {
+    dispatch({ type: 'ADD_ADDR', addr: to });
+
+    return new WebRTCService({
+      onLocalSDP: async (sdp) => {
+        console.log('Local SDP:', sdp);
+        // Here you would typically send the SDP to the other peer
+        dispatch({
+          type: 'UPDATE_STATUS',
+          addr: to,
+          status: isAnswering ? ConnectionStatus.ANSWERING : ConnectionStatus.OFFERING,
+        });
+
+        send({
+          action: 'send_message',
+          payload: {
+            from,
+            to,
+            content: sdp,
+          }
+        })
+
+        dispatch({
+          type: 'UPDATE_STATUS',
+          addr: to,
+          status: isAnswering ? ConnectionStatus.ANSWERED : ConnectionStatus.OFFERED,
+        });
+      },
+      onMessage: (data) => {
+        console.log('Received message:', data);
+        onMsg(to, data)
+        // dispatch({ type: 'ADD_MESSAGE', channel: to, message: {
+        //   id: 0,
+        //   text: data as string,
+        //   sender: `${to.slice(0, 8)}...${to.slice(-4)}`,
+        //   timestamp: Date.now(),
+        // } });
+      },
+      onConnect: () => {
+        dispatch({
+          type: 'UPDATE_STATUS',
+          addr: to,
+          status: ConnectionStatus.CONNECTED,
+        });
+        console.log('Connected to:', to);
+        // Notify the app that we are connected
+        // This could be a custom event or a state update
+        onMsg(to, '_connected_')
+      }
+    })
+  }, [send, onMsg, dispatch])
+
+  const onWsMessage = useCallback(async (data: ChannelPayloadMap[`message-to-${string}`]) => {
+    if (!account) return
+    const { from, content } = data
+
+    // const sdp = await ipfs.fetch<RTCSessionDescriptionInit>(e.cid)
+    const sdp = JSON.parse(content) as RTCSessionDescriptionInit
+
+    if (!accountConnectServices[from]) {
+      // received offer from a new address
+      console.log('Got offer', content)
+      dispatch({
+        type: 'UPDATE_STATUS',
+        addr: from,
+        status: ConnectionStatus.OFFER_RECEIVED,
+      })
+      const service = createService(account, from, true)
+      service.receiveOfferThenAnswer(sdp)
+
+      accountConnectServices[from] = service
+    } else {
+      // received answer after making offer
+      console.log('Got answer', sdp)
+      dispatch({
+        type: 'UPDATE_STATUS',
+        addr: from,
+        status: ConnectionStatus.ANSWER_RECEIVED,
+      })
+      const service = accountConnectServices[from]
+      service.receiveSDP(sdp)
+    }
+  }, [account, createService])
+
+  useWebSocketSubscription(`message-to-${account}`, onWsMessage)
+
+  // Start offering connect to toAddr
+  const offerConnect = useCallback(async (toAddr: string) => {
+    if (!account) return
+    // already connected or connecting
+    if (accountConnectServices[toAddr]) return
+
+    dispatch({
+      type: 'UPDATE_STATUS',
+      addr: toAddr,
+      status: ConnectionStatus.INIT,
+    })
+
+    const service = createService(account, toAddr)
+
+    service.createChannel(`${toAddr}-chat`)
+    service.createOffer()
+
+    accountConnectServices[toAddr] = service
+  }, [account, createService])
+
+  return {
+    offerConnect,
+    getAccountConnectService,
+  }
+}
