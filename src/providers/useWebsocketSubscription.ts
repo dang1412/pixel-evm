@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 
 import { useWebSocket } from './WebsocketProvider';
 
@@ -11,13 +11,17 @@ export const useWebSocketSubscription = (
   channel: string | null, // Cho phép null để "tạm dừng" sub
   onMessage: (data: any) => void
 ) => {
-  const { subscribe, unsubscribe } = useWebSocket();
+  const { subscribe, unsubscribe, isConnected } = useWebSocket();
 
   // Dùng useCallback để đảm bảo onMessage không bị tạo lại
   // nếu component cha không bọc nó trong useCallback
   // const stableOnMessage = useCallback(onMessage, [onMessage]);
 
   useEffect(() => {
+    if (!isConnected) {
+      return;
+    }
+
     // Nếu channel là null hoặc rỗng, không làm gì cả
     if (!channel) {
       return;
@@ -31,5 +35,5 @@ export const useWebSocketSubscription = (
     return () => {
       unsubscribe(channel, onMessage);
     };
-  }, [channel, onMessage, subscribe, unsubscribe]);
+  }, [isConnected, channel, onMessage, subscribe, unsubscribe]);
 };
