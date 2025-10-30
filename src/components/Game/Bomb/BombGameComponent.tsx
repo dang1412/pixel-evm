@@ -12,6 +12,7 @@ import { MenuModal } from '../MenuModal'
 import { ScoreboardModal } from './ScoreBoardModal'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { getAccountConnectService, useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
+import { PlayerState } from './types'
 
 interface Props {}
 
@@ -20,11 +21,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
   const bombMapRef = useRef<BombMap | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
 
-  const { address } = useAccount()
-
   const { notify, loading, setLoading } = useNotification()
 
-  const [ score, setScore ] = useState(-1)
+  const [ players, setPlayers ] = useState<PlayerState[]>([])
 
   // sync boxes when boxes data or scene changes
 
@@ -38,7 +37,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
       map.addMainImages(mockImages)
 
       // initialize bombMap
-      const bombMap = new BombMap(map, (score) => setScore(score))
+      const bombMap = new BombMap(map, (players) => setPlayers(players))
       bombMapRef.current = bombMap
     }
   }, [canvas])
@@ -62,12 +61,12 @@ const BombGameComponent: React.FC<Props> = (props) => {
     }
   }, [])
 
-  const players = bombMapRef.current?.playersArray || []
   const playerId = bombMapRef.current?.playerId
+  const score = bombMapRef.current?.score
 
   // WebRTC connection setup
   const { state: { addressList } } = useWebRTC()
-  
+
   // send data to all addresses
   const sendAll = useCallback((data: string) => {
     console.log('sendAll', addressList, data)

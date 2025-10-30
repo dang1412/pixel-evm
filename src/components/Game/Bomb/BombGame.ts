@@ -29,6 +29,8 @@ export class BombGame {
   private caughtItems: number[] = []
   private explodedBombs: BombState[] = []
 
+  private updatedPlayerIds = new Set<number>()
+
   constructor(private bombNetwork: BombNetwork) {
     setInterval(() => {
       this.update()
@@ -43,6 +45,8 @@ export class BombGame {
     const id = playerId++
     const newPlayer = { id, score: 0, bombs: 5, r: 5 }
     this.playerStateMap.set(id, newPlayer)
+
+    this.updatedPlayerIds.add(id)
 
     return newPlayer
   }
@@ -86,14 +90,17 @@ export class BombGame {
       bombs.push(bomb)
     }
 
-    // state update
-    // this.bombMap.updateBombs(bombs)
-    // this.bombMap.addExplosions(explosions)
-    // this.bombMap.removeItems(this.caughtItems)
+    // states update
 
-    this.bombNetwork.gameUpdate({ type: 'bombs', bombs })
-    this.bombNetwork.gameUpdate({ type: 'explosions', explosions })
-    this.bombNetwork.gameUpdate({ type: 'removeItems', positions: this.caughtItems })
+    if (bombs.length) {
+      this.bombNetwork.gameUpdate({ type: 'bombs', bombs })
+    }
+    if (explosions.length) {
+      this.bombNetwork.gameUpdate({ type: 'explosions', explosions })
+    }
+    if (this.caughtItems.length > 0) {
+      this.bombNetwork.gameUpdate({ type: 'removeItems', positions: this.caughtItems })
+    }
 
     // generate item
     const newItems: ItemState[] = []
@@ -112,8 +119,17 @@ export class BombGame {
     }
 
     // score
-    // this.bombMap.updateScore(this.playerStateMap.get(1)?.score || 0)
-    const players = this.getPlayerStates()
+    this.sendPlayerUpdates()
+  }
+
+  sendPlayerUpdates() {
+    if (this.updatedPlayerIds.size === 0) return
+
+    const players = Array.from(this.updatedPlayerIds)
+      .map(id => this.playerStateMap.get(id))
+      .filter(p => p !== undefined)
+
+    this.updatedPlayerIds.clear()
     this.bombNetwork.gameUpdate({ type: 'players', players })
   }
 
@@ -170,6 +186,7 @@ export class BombGame {
         const playerState = this.playerStateMap.get(ownerId)
         if (playerState) {
           playerState.score += item.points
+          this.updatedPlayerIds.add(ownerId)
         }
         this.caughtItems.push(pos)
         this.itemMap.delete(pos) // Remove item once caught

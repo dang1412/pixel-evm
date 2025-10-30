@@ -25,7 +25,7 @@ export class BombMap {
 
   constructor(
     public map: PixelMap,
-    private onScore: (score: number) => void
+    private onPlayersUpdated: (players: PlayerState[]) => void
   ) {
     this.bombNetwork = new BombNetwork(this)
     const view = map.getView()
@@ -37,23 +37,12 @@ export class BombMap {
 
       const [x, y] = event.detail
 
-      // join game the first time
-      // if (!this.playerState) {
-      //   this.playerState = this.bombGame.joinGame()
-      // }
       if (!this.playerId) {
         console.log('Not joined yet, joining game...')
-        this.bombNetwork.joinGame()
         return
       }
 
       this.bombNetwork.placeBomb(this.playerId, x, y)
-
-      // if (this.bombGame && this.bombUsing < this.playerState.bombs) {
-      //   this.bombGame.addBomb(this.playerState.id, x, y)
-      //   // for smooth UX, add bomb before receiving from logic
-      //   this.addBomb(x, y, this.playerState.id)
-      // }
     })
 
     // update bombs and explosions animation
@@ -77,14 +66,17 @@ export class BombMap {
   updatePlayers(players: PlayerState[]) {
     for (const player of players) {
       this.players.set(player.id, player)
-      if (player.id === this.playerId) {
-        this.onScore(player.score)
-      }
     }
+    this.onPlayersUpdated(this.playersArray)
   }
 
   get playersArray(): PlayerState[] {
     return Array.from(this.players.values())
+  }
+
+  get score(): number {
+    if (this.playerId === undefined) return 0
+    return this.players.get(this.playerId)?.score || 0
   }
 
   // Called from Network
@@ -125,9 +117,9 @@ export class BombMap {
   }
 
   // Called from Network
-  updateScore(score: number) {
-    this.onScore(score)
-  }
+  // updateScore(score: number) {
+  //   this.onScore(score)
+  // }
 
   private addBomb(x: number, y: number, playerId: number) {
     const pos = xyToPosition(x, y)
