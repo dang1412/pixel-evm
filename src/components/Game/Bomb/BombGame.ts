@@ -117,6 +117,13 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players })
   }
 
+  getCurrentStates() {
+    const players = this.getPlayerStates()
+    const items = Array.from(this.itemMap.values())
+
+    return { players, items }
+  }
+
   private explode(pos: number, bombState: BombState) {
     const { ownerId, blastRadius: r } = bombState
     const usingBombs = this.playerUsingBombs.get(ownerId) || 1

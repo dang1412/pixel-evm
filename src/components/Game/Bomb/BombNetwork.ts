@@ -77,6 +77,19 @@ export class BombNetwork {
     this.handleGameUpdate(msg)
   }
 
+  connected(addr: string) {
+    console.log('BombNetwork connected to', addr)
+    if (this.bombGame) {
+      // host send cilent states
+      const { players, items } = this.bombGame.getCurrentStates()
+      this.sendTo?.(addr, JSON.stringify({ type: 'players', players }))
+      this.sendTo?.(addr, JSON.stringify({ type: 'addItems', items }))
+    } else {
+      // client set host address
+      this.hostAddr = addr
+    }
+  }
+
   receiveMsg(from: string, data: string) {
     const msg: GameMessage = JSON.parse(data)
     if (!msg.type) {
@@ -115,7 +128,7 @@ export class BombNetwork {
       case 'joinSuccess':
         console.log('Joined game successfully', msg)
         this.bombMap.playerId = msg.playerId
-        this.bombMap.players = msg.players
+        this.bombMap.updatePlayers(msg.players)
         break
       case 'bombs':
         this.bombMap.updateBombs(msg.bombs)
@@ -124,7 +137,7 @@ export class BombNetwork {
         this.bombMap.addExplosions(msg.explosions)
         break
       case 'players':
-        this.bombMap.players = msg.players
+        this.bombMap.updatePlayers(msg.players)
         break
       case 'addItems':
         for (const item of msg.items) {

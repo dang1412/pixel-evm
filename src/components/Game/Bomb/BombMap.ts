@@ -19,7 +19,7 @@ export class BombMap {
   bombUsing = 0
 
   // all players
-  players: PlayerState[] = []
+  players: Map<number, PlayerState> = new Map()
   // this player
   playerId: number | undefined
 
@@ -72,6 +72,19 @@ export class BombMap {
 
       view.markDirty()
     })
+  }
+
+  updatePlayers(players: PlayerState[]) {
+    for (const player of players) {
+      this.players.set(player.id, player)
+      if (player.id === this.playerId) {
+        this.onScore(player.score)
+      }
+    }
+  }
+
+  get playersArray(): PlayerState[] {
+    return Array.from(this.players.values())
   }
 
   // Called from Network
