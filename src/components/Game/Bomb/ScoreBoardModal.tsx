@@ -12,6 +12,7 @@ import { PlayerState } from './types'
 
 interface ScoreboardModalProps {
   isOpen: boolean;
+  hostName: string;
   players: PlayerState[];
   playerId?: number;
   onClose: () => void;
@@ -25,7 +26,7 @@ interface ScoreboardModalProps {
  * @param {function} props.onClose - Function to call when the modal should be closed.
  * @param {Array<object>} props.players - Array of player state objects.
  */
-export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, players, playerId, onClose, onJoinGame }) => {
+export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, hostName, players, playerId, onClose, onJoinGame }) => {
   if (!isOpen) {
     return null;
   }
@@ -44,7 +45,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, player
         {/* <!-- Modal Header --> */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Scoreboard
+            Scoreboard ({hostName})
           </h2>
           <button
             onClick={onClose}

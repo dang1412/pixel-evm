@@ -1,12 +1,16 @@
+import { IMediaInstance, sound } from '@pixi/sound'
+
 import { PixelMap } from '../pixelmap/PixelMap'
 import { positionToXY, xyToPosition } from '../utils'
 
 import { Bomb } from './Bomb'
-import { BombGame } from './BombGame'
 import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { BombState, GameState, ItemState, PlayerState } from './types'
+import { BombState, ItemState, PlayerState } from './types'
+
+sound.add('explosion', '/sounds/bomb/explosion3.mp3')
+sound.add('ticking', '/sounds/bomb/ticking-bomb.mp3')
 
 export class BombMap {
   bombMap = new Map<number, Bomb>()
@@ -22,6 +26,8 @@ export class BombMap {
   players: Map<number, PlayerState> = new Map()
   // this player
   playerId: number | undefined
+
+  private bombTicking: Promise<IMediaInstance> | undefined
 
   constructor(
     public map: PixelMap,
@@ -89,6 +95,23 @@ export class BombMap {
         this.removeBomb(pos, ownerId)
       }
     }
+
+    // ticking sound
+    if (this.bombMap.size > 0) {
+      this.bombTicking = this.bombTicking || (sound.play('ticking', { loop: true, volume: 0.1 }) as Promise<IMediaInstance>)
+      // adjust ticking volume based on number of bombs
+      ;(async () => {
+        const tick = await this.bombTicking!
+        const volume = Math.min(1, this.bombMap.size * 0.05)
+        tick.volume = volume
+      })()
+    } else {
+      // stop ticking sound
+      if (this.bombTicking) {
+        sound.stop('ticking')
+        this.bombTicking = undefined
+      }
+    }
   }
 
   // Called from Network
@@ -97,6 +120,7 @@ export class BombMap {
       const { x, y } = positionToXY(pos)
       this.explosionMap.set(pos, new Explosion(this, x, y))
     }
+    sound.play('explosion', { volume: Math.min(1, explosions.length * 0.01) })
   }
 
   // Called from Network
@@ -115,11 +139,6 @@ export class BombMap {
       }
     }
   }
-
-  // Called from Network
-  // updateScore(score: number) {
-  //   this.onScore(score)
-  // }
 
   private addBomb(x: number, y: number, playerId: number) {
     const pos = xyToPosition(x, y)

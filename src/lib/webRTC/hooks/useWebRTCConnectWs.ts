@@ -14,9 +14,11 @@ export function getAccountConnectService(to: string) {
   return accountConnectServices[to] || null
 }
 
+const wsRandomName = Math.random().toString(36).substring(2, 10);
+
 export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuffer) => void) {
 
-  const { address: account } = useAccount()
+  // const { address: account } = useAccount()
 
   const { send } = useWebSocket()
 
@@ -75,7 +77,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
   }, [send, onMsg, dispatch])
 
   const onWsMessage = useCallback(async (data: ChannelPayloadMap[`message-to-${string}`]) => {
-    if (!account) return
+    if (!wsRandomName) return
     const { from, content } = data
 
     // const sdp = await ipfs.fetch<RTCSessionDescriptionInit>(e.cid)
@@ -89,7 +91,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
         addr: from,
         status: ConnectionStatus.OFFER_RECEIVED,
       })
-      const service = createService(account, from, true)
+      const service = createService(wsRandomName, from, true)
       service.receiveOfferThenAnswer(sdp)
 
       accountConnectServices[from] = service
@@ -104,13 +106,13 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
       const service = accountConnectServices[from]
       service.receiveSDP(sdp)
     }
-  }, [account, createService])
+  }, [wsRandomName, createService])
 
-  useWebSocketSubscription(`message-to-${account}`, onWsMessage)
+  useWebSocketSubscription(`message-to-${wsRandomName}`, onWsMessage)
 
   // Start offering connect to toAddr
   const offerConnect = useCallback(async (toAddr: string) => {
-    if (!account) return
+    if (!wsRandomName) return
     // already connected or connecting
     if (accountConnectServices[toAddr]) return
 
@@ -120,16 +122,17 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
       status: ConnectionStatus.INIT,
     })
 
-    const service = createService(account, toAddr)
+    const service = createService(wsRandomName, toAddr)
 
     service.createChannel(`${toAddr}-chat`)
     service.createOffer()
 
     accountConnectServices[toAddr] = service
-  }, [account, createService])
+  }, [wsRandomName, createService])
 
   return {
     offerConnect,
     getAccountConnectService,
+    wsRandomName,
   }
 }

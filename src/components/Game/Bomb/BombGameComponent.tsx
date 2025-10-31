@@ -11,7 +11,7 @@ import { BombMap } from './BombMap'
 import { MenuModal } from '../MenuModal'
 import { ScoreboardModal } from './ScoreBoardModal'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
-import { getAccountConnectService, useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
+import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 import { PlayerState } from './types'
 
 interface Props {}
@@ -23,6 +23,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const { notify, loading, setLoading } = useNotification()
 
+  const [ hostName, setHostName ] = useState<string>('')
   const [ players, setPlayers ] = useState<PlayerState[]>([])
 
   // sync boxes when boxes data or scene changes
@@ -45,14 +46,36 @@ const BombGameComponent: React.FC<Props> = (props) => {
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(true)
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false)
 
+  // receive data from host/client
+  const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
+    const bombNetwork = bombMapRef.current?.bombNetwork
+    if (!bombNetwork) return
+
+    if (data === '_connected_') {
+      setLoading(false)
+      bombNetwork.connected(from)
+      if (bombNetwork.isHost()) {
+        notify('A player has joined: ' + from, 'info')
+      } else {
+        notify('Connected to host ' + from, 'info')
+        setIsPlayerModalOpen(true)
+        setHostName(from)
+      }
+    } else {
+      bombNetwork.receiveMsg(from, data as string)
+    }
+  }, [])
+  const { offerConnect, getAccountConnectService, wsRandomName } = useWebRTCConnectWs(onMsg)
+
   const createGame = useCallback(async () => {
     const bombMap = bombMapRef.current
     if (bombMap) {
       setIsMenuModalOpen(false)
       bombMap.bombNetwork.createGame()
       setIsPlayerModalOpen(true)
+      setHostName(wsRandomName)
     }
-  }, [])
+  }, [wsRandomName])
 
   const joinGame = useCallback(async () => {
     const bombMap = bombMapRef.current
@@ -90,21 +113,6 @@ const BombGameComponent: React.FC<Props> = (props) => {
     }
   }, [sendAll, sendTo])
 
-  // receive data from host/client
-  const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
-    const bombNetwork = bombMapRef.current?.bombNetwork
-    if (!bombNetwork) return
-
-    if (data === '_connected_') {
-      setLoading(false)
-      bombNetwork.connected(from)
-    } else {
-      bombNetwork.receiveMsg(from, data as string)
-    }
-  }, [])
-
-  const { offerConnect } = useWebRTCConnectWs(onMsg)
-
   // connect to server
   const connect = useCallback(async (addr: string) => {
     setLoading(true)
@@ -125,6 +133,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       <ScoreboardModal
         isOpen={isPlayerModalOpen}
+        hostName={hostName}
         players={players}
         playerId={playerId}
         onClose={() => setIsPlayerModalOpen(false)}

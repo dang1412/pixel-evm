@@ -3,7 +3,7 @@ import { Container, Graphics } from 'pixi.js'
 import { BombMap } from './BombMap'
 import { PIXEL_SIZE } from '../utils'
 
-const duration = 1500
+const duration = 2000
 
 /**
  * Represents the explosion animation using particles.
@@ -79,8 +79,8 @@ class Particle {
     this.g.x = PIXEL_SIZE / 2 + randx * PIXEL_SIZE;
     this.g.y = PIXEL_SIZE / 2 + randy * PIXEL_SIZE;
 
-    this.vx = -randx * 4;
-    this.vy = -randy * 4;
+    this.vx = -randx * 2;
+    this.vy = -randy * 2;
   }
 
   update(delta: number) {

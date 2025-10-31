@@ -30,6 +30,10 @@ export class BombNetwork {
     // For now, we'll directly call BombGame methods.
   }
 
+  isHost() {
+    return this.bombGame !== undefined
+  }
+
   // host a game
   createGame() {
     this.bombGame = new BombGame(this)

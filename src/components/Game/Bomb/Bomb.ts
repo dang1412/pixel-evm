@@ -4,6 +4,15 @@ import { PIXEL_SIZE } from '../utils'
 
 import { BombMap } from './BombMap'
 
+const BOMB_COLORS = [
+  0x333333, // Dark
+  0x00004A, // Dark Blue
+  0x003300, // Dark Green
+  0x4A004A, // Dark Purple
+  0x4A4A00, // Dark Yellow (Olive)
+  0x004A4A  // Dark Cyan (Teal)
+]
+
 export class Bomb {
   private container = new Container()
   private spark = new Graphics()
@@ -20,10 +29,13 @@ export class Bomb {
   }
 
   private draw() {
+    const bombColor = BOMB_COLORS[(this.ownerId - 1) % BOMB_COLORS.length]
+    // random bomb color
+    // const bombColor = BOMB_COLORS[Math.floor(Math.random() * BOMB_COLORS.length)]
     // Draw the bomb body
     const bombBody = new Graphics()
       .circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * 0.4)
-      .fill(0x333333)
+      .fill(bombColor)
     this.container.addChild(bombBody)
 
     // Draw the fuse
