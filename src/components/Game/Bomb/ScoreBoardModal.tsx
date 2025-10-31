@@ -139,7 +139,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, hostNa
                               : 'text-gray-500 dark:text-gray-300'
                           }`}
                         >
-                          {player.bombs}
+                          {player.roundPlacedBombs} / {player.totalBombs}
                         </td>
                         <td
                           className={`px-6 py-4 whitespace-nowrap text-sm ${

@@ -10,8 +10,9 @@ let playerId = 1
 
 export class BombGame {
   state: GameState = {
-    bombs: [],
-    explosions: [],
+    timeLeft: 0,
+    round: 0,
+    pausing: true,
   }
 
   private bombStateMap = new Map<number, BombState>()
@@ -24,7 +25,7 @@ export class BombGame {
   private explosionMap = new Map<number, number>()
 
   // playerId => number of bombs using
-  private playerUsingBombs = new Map<number, number>()
+  // private playerUsingBombs = new Map<number, number>()
 
   private caughtItems: number[] = []
   private explodedBombs: BombState[] = []
@@ -43,7 +44,7 @@ export class BombGame {
 
   addPlayer() {
     const id = playerId++
-    const newPlayer = { id, score: 0, bombs: 5, r: 5 }
+    const newPlayer: PlayerState = { id, score: 0, roundPlacedBombs: 0, placedBombs: 0, totalBombs: 100, r: 5 }
     this.playerStateMap.set(id, newPlayer)
 
     this.updatedPlayerIds.add(id)
@@ -60,17 +61,35 @@ export class BombGame {
     if (!playerState) return
 
     console.log('Add bomb', pos, x, y)
-    const usingBombs = this.playerUsingBombs.get(ownerId) || 0
-    if (usingBombs >= playerState.bombs) return
+    // const usingBombs = this.playerUsingBombs.get(ownerId) || 0
+    // if (usingBombs >= playerState.concurrentBombs) return
 
     const bomb: BombState = { ownerId, pos, live: 3000, blastRadius: playerState.r }
     this.bombStateMap.set(pos, bomb)
-    this.playerUsingBombs.set(ownerId, usingBombs + 1)
+    // this.playerUsingBombs.set(ownerId, usingBombs + 1)
 
     return bomb
   }
 
+  startRound() {
+    this.state.round++
+    this.state.pausing = false
+    this.state.timeLeft = 90000 // 90 seconds
+
+    // reset player's roundPlacedBombs
+    for (const playerState of this.playerStateMap.values()) {
+      playerState.roundPlacedBombs = 0
+    }
+
+    // send game state
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+
+    // send player states
+    this.bombNetwork.gameUpdate({ type: 'players', players: this.getPlayerStates() })
+  }
+
   update() {
+    if (this.state.pausing) return
     this.explosionMap.clear()
     this.caughtItems = []
     this.explodedBombs = []
@@ -120,6 +139,16 @@ export class BombGame {
 
     // score
     this.sendPlayerUpdates()
+
+    // time left
+    this.state.timeLeft -= GameLoop
+    if (this.state.timeLeft % 1000 === 0) {
+      // send time update every second
+      if (this.state.timeLeft === 0) {
+        this.state.pausing = true
+      }
+      this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+    }
   }
 
   sendPlayerUpdates() {
@@ -142,8 +171,8 @@ export class BombGame {
 
   private explode(pos: number, bombState: BombState) {
     const { ownerId, blastRadius: r } = bombState
-    const usingBombs = this.playerUsingBombs.get(ownerId) || 1
-    this.playerUsingBombs.set(ownerId, usingBombs - 1)
+    // const usingBombs = this.playerUsingBombs.get(ownerId) || 1
+    // this.playerUsingBombs.set(ownerId, usingBombs - 1)
 
     this.explodedBombs.push(bombState)
     this.bombStateMap.delete(pos)

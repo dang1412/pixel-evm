@@ -1,6 +1,6 @@
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
-import { BombState, ItemState, PlayerState } from './types'
+import { BombState, GameState, ItemState, PlayerState } from './types'
 
 type GameMessage = 
   // client to host
@@ -14,6 +14,8 @@ type GameMessage =
   | { type: 'addItems', items: ItemState[] }
   | { type: 'removeItems', positions: number[] }
   | { type: 'players', players: PlayerState[] }
+
+  | { type: 'gameState', state: GameState }
 
 export class BombNetwork {
   

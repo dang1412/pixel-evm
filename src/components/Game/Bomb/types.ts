@@ -1,6 +1,9 @@
 export interface GameState {
-  bombs: number[]
-  explosions: number[]
+  // bombs: number[]
+  // explosions: number[]
+  timeLeft: number
+  round: number
+  pausing: boolean
 }
 
 export interface BombState {
@@ -23,6 +26,8 @@ export interface ItemState {
 export interface PlayerState {
   id: number
   score: number
-  bombs: number
+  roundPlacedBombs: number
+  placedBombs: number
+  totalBombs: number
   r: number
 }

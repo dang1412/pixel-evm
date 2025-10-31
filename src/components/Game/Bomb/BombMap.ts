@@ -7,7 +7,7 @@ import { Bomb } from './Bomb'
 import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { BombState, ItemState, PlayerState } from './types'
+import { BombState, GameState, ItemState, PlayerState } from './types'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
 sound.add('ticking', '/sounds/bomb/ticking-bomb.mp3')
@@ -28,6 +28,8 @@ export class BombMap {
   playerId: number | undefined
 
   private bombTicking: Promise<IMediaInstance> | undefined
+
+  private gameState: GameState | undefined
 
   constructor(
     public map: PixelMap,
