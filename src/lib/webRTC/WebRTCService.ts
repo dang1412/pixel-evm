@@ -2,6 +2,7 @@ export interface WebRTCServiceOptions {
   onLocalSDP: (sdp: string) => void
   onMessage: (data: string | ArrayBuffer) => void
   onConnect?: () => void
+  onClose?: () => void
 }
 
 export class WebRTCService {
@@ -76,7 +77,7 @@ export class WebRTCService {
 
   private setupChannel(channel: RTCDataChannel) {
     console.log('setupChannel', channel)
-    const { onMessage, onConnect } = this.options
+    const { onMessage, onConnect, onClose } = this.options
     this.channel = channel
     channel.onopen = () => {
       console.log('Channel opened', channel)
@@ -90,6 +91,11 @@ export class WebRTCService {
 
     channel.onerror = (e) => {
       console.log('Channel error', e)
+    }
+
+    channel.onclose = () => {
+      console.log('Channel closed', channel)
+      if (onClose) onClose()
     }
   }
 

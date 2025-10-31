@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import { WebRTCService } from '../WebRTCService'
@@ -14,15 +14,27 @@ export function getAccountConnectService(to: string) {
   return accountConnectServices[to] || null
 }
 
-const wsRandomName = Math.random().toString(36).substring(2, 10);
+function getRandomName() {
+  return Math.floor(Math.random() * 10) + Math.random().toString(36).substring(3, 10)
+}
 
 export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuffer) => void) {
-
-  // const { address: account } = useAccount()
 
   const { send } = useWebSocket()
 
   const { dispatch } = useWebRTC()
+
+  const [wsRandomName, setRandomName] = useState(localStorage.getItem('webrtc-ws-name') || '')
+
+  useEffect(() => {
+    // get name from local storage or generate new
+    let name = localStorage.getItem('webrtc-ws-name')
+    if (!name) {
+      name = getRandomName()
+      localStorage.setItem('webrtc-ws-name', name)
+      setRandomName(name)
+    }
+  }, [])
 
   const createService = useCallback((from: string, to: string, isAnswering = false) => {
     dispatch({ type: 'ADD_ADDR', addr: to });
@@ -68,10 +80,15 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
           addr: to,
           status: ConnectionStatus.CONNECTED,
         });
-        console.log('Connected to:', to);
+        console.log('Connected to:', to)
         // Notify the app that we are connected
         // This could be a custom event or a state update
         onMsg(to, '_connected_')
+      },
+      onClose: () => {
+        console.log('Closed connection:', to)
+        delete accountConnectServices[to]
+        onMsg(to, '_closed_')
       }
     })
   }, [send, onMsg, dispatch])

@@ -23,8 +23,10 @@ export class BombNetwork {
   sendAll?: (data: string) => void
 
   private bombGame?: BombGame
-  // private isHost = false
   private hostAddr?: string
+
+  // for host
+  private wsNameToPlayerId: { [wsName: string]: number } = {}
 
   constructor(private bombMap: BombMap) {
     // This is a mock network layer. In a real application,
@@ -47,23 +49,29 @@ export class BombNetwork {
     }
   }
 
-  // join game, self host or the connected host
+  // for host
+  removePlayer(wsName: string) {
+    if (this.bombGame) {
+      const playerId = this.wsNameToPlayerId[wsName]
+      console.log('Removing player', playerId)
+      if (playerId !== undefined) {
+        this.bombGame.removePlayer(playerId)
+      }
+    }
+  }
+
+  // join game, host or client
   joinGame() {
     if (this.bombGame) {
       // self hosted
       const newPlayer = this.bombGame.addPlayer()
       const players = this.bombGame.getPlayerStates()
       this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
+      this.wsNameToPlayerId['host'] = newPlayer.id
+      // this.sendAll?.(JSON.stringify({ type: 'players', players: [newPlayer] }))
     } else if (this.hostAddr) {
       // send join request to host
       this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'join' }))
-      // receive player state from host
-      // this.bombMap.playerState = {
-      //   id: 2,
-      //   bombs: 5,
-      //   score: 0,
-      //   r: 5,
-      // }
     }
   }
 
@@ -113,9 +121,13 @@ export class BombNetwork {
       // host
       case 'join':
         if (this.bombGame) {
-          const newPlayer = this.bombGame.addPlayer()
-          const players = this.bombGame.getPlayerStates()
-          this.sendTo?.(from, JSON.stringify({ type: 'joinSuccess', players, playerId: newPlayer.id }))
+          const id = this.wsNameToPlayerId[from]
+          const newPlayer = this.bombGame.addPlayer(id)
+          // const players = this.bombGame.getPlayerStates()
+          this.sendTo?.(from, JSON.stringify({ type: 'joinSuccess', players: [], playerId: newPlayer.id }))
+          this.wsNameToPlayerId[from] = newPlayer.id
+          // this.sendAll?.(JSON.stringify({ type: 'players', players: [newPlayer] }))
+          // this.handleGameUpdate({ type: 'players', players: [newPlayer] })
         }
         break
       case 'addBomb':
@@ -124,7 +136,7 @@ export class BombNetwork {
           if (bomb) {
             // send bomb update to this player immediately,
             // rather than waiting for the game loop
-            this.sendTo?.(from, JSON.stringify({ type: 'bombs', bombs: [bomb] }))
+            this.sendAll?.(JSON.stringify({ type: 'bombs', bombs: [bomb] }))
           }
         }
         break

@@ -77,9 +77,16 @@ export class BombMap {
     this.onGameStateUpdated(this.gameState)
   }
 
+  // Update or remove players
   updatePlayers(players: PlayerState[]) {
     for (const player of players) {
-      this.players.set(player.id, player)
+      if (player.score < 0) {
+        // remove player
+        this.players.delete(player.id)
+      } else {
+        // add or update player
+        this.players.set(player.id, player)
+      }
     }
     this.onPlayersUpdated(this.playersArray)
   }

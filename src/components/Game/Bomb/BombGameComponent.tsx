@@ -66,6 +66,12 @@ const BombGameComponent: React.FC<Props> = (props) => {
         setIsPlayerModalOpen(true)
         setHostName(from)
       }
+    } else if (data === '_closed_') {
+      notify('Connection closed: ' + from, 'info')
+      if (bombNetwork.isHost()) {
+        // remove player
+        bombNetwork.removePlayer(from)
+      }
     } else {
       bombNetwork.receiveMsg(from, data as string)
     }
@@ -133,7 +139,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
     if (!playerId) return
     if (gameState.pausing) {
       setIsPlayerModalOpen(true)
-      notify('Round ended. Please wait for the host to start a new round.', 'info')
+      if (gameState.round > 0) {
+        notify('Round ended. Wait for the host to start a new round.', 'info')
+      }
     } else {
       setIsPlayerModalOpen(false)
       notify('Round started! Place your bombs!', 'info')
@@ -146,8 +154,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       <div className='w-full absolute top-16 flex items-center justify-center'>
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-        <div className='text-gray-800 font-semibold'>Time: {gameState.timeLeft},</div>
-        <div className='text-gray-800 font-semibold'>Score: {score},</div>
+        <div className='text-gray-800 font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
+        <div className='text-gray-800 font-semibold'>&nbsp;🏆 {score}</div>
         {/* <div className='text-gray-800 font-semibold'>Bomb: 10/100</div> */}
       </div>
 
