@@ -41,6 +41,12 @@ export class BombNetwork {
     this.bombGame = new BombGame(this)
   }
 
+  startRound() {
+    if (this.bombGame) {
+      this.bombGame.startRound()
+    }
+  }
+
   // join game, self host or the connected host
   joinGame() {
     if (this.bombGame) {
@@ -152,6 +158,9 @@ export class BombNetwork {
         break
       case 'removeItems':
         this.bombMap.removeItems(msg.positions)
+        break
+      case 'gameState':
+        this.bombMap.updateGameState(msg.state)
         break
     }
   }

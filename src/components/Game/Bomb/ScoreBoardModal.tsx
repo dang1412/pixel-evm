@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { PlayerState } from './types'
+import { GameState, PlayerState } from './types'
 
 // --- PlayerState Interface (as a comment, since it's TS syntax) ---
 // export interface PlayerState {
@@ -15,8 +15,11 @@ interface ScoreboardModalProps {
   hostName: string;
   players: PlayerState[];
   playerId?: number;
+  gameState: GameState;
+  isHost: boolean;
   onClose: () => void;
   onJoinGame: () => void;
+  onStart?: () => void;
 }
 
 /**
@@ -26,7 +29,12 @@ interface ScoreboardModalProps {
  * @param {function} props.onClose - Function to call when the modal should be closed.
  * @param {Array<object>} props.players - Array of player state objects.
  */
-export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, hostName, players, playerId, onClose, onJoinGame }) => {
+export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
+  { 
+    isOpen, hostName, players, playerId, gameState, isHost,
+    onClose, onJoinGame, onStart
+  }
+) => {
   if (!isOpen) {
     return null;
   }
@@ -169,14 +177,25 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = ({ isOpen, hostNa
         </div>
 
         {/* <!-- Modal Footer --> */}
-        {!playerId && <div className="flex justify-end items-center p-5 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={onJoinGame}
-            className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
-          >
-            Join Game
-          </button>
-        </div>}
+        <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700">
+          {isHost && <div>
+            <button
+              onClick={() => onStart && onStart()}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+            >
+              {gameState.round === 0 ? 'Start' : 'Next Round'}
+            </button>
+          </div>}
+
+          {!playerId && <div>
+            <button
+              onClick={onJoinGame}
+              className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
+            >
+              Join Game
+            </button>
+          </div>}
+        </div>
       </div>
     </div>
   );

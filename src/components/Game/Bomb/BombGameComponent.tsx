@@ -12,7 +12,7 @@ import { MenuModal } from '../MenuModal'
 import { ScoreboardModal } from './ScoreBoardModal'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
-import { PlayerState } from './types'
+import { GameState, PlayerState } from './types'
 
 interface Props {}
 
@@ -25,6 +25,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const [ hostName, setHostName ] = useState<string>('')
   const [ players, setPlayers ] = useState<PlayerState[]>([])
+  const [ gameState, setGameState ] = useState<GameState>({ timeLeft: 0, round: 0, pausing: true })
 
   // sync boxes when boxes data or scene changes
 
@@ -38,7 +39,11 @@ const BombGameComponent: React.FC<Props> = (props) => {
       map.addMainImages(mockImages)
 
       // initialize bombMap
-      const bombMap = new BombMap(map, (players) => setPlayers(players))
+      const bombMap = new BombMap(
+        map,
+        (players) => setPlayers(players),
+        (state) => setGameState(state),
+      )
       bombMapRef.current = bombMap
     }
   }, [canvas])
@@ -120,13 +125,30 @@ const BombGameComponent: React.FC<Props> = (props) => {
     setIsMenuModalOpen(false)
   }, [offerConnect])
 
+  const startRound = useCallback(() => {
+    bombMapRef.current?.bombNetwork.startRound()
+  }, [])
+
+  useEffect(() => {
+    if (!playerId) return
+    if (gameState.pausing) {
+      setIsPlayerModalOpen(true)
+      notify('Round ended. Please wait for the host to start a new round.', 'info')
+    } else {
+      setIsPlayerModalOpen(false)
+      notify('Round started! Place your bombs!', 'info')
+    }
+  }, [gameState.pausing, playerId])
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
 
       <div className='w-full absolute top-16 flex items-center justify-center'>
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-        <div className='text-gray-800 font-semibold'>Score: {score}</div>
+        <div className='text-gray-800 font-semibold'>Time: {gameState.timeLeft},</div>
+        <div className='text-gray-800 font-semibold'>Score: {score},</div>
+        {/* <div className='text-gray-800 font-semibold'>Bomb: 10/100</div> */}
       </div>
 
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={createGame} />}
@@ -136,8 +158,11 @@ const BombGameComponent: React.FC<Props> = (props) => {
         hostName={hostName}
         players={players}
         playerId={playerId}
+        gameState={gameState}
+        isHost={bombMapRef.current?.bombNetwork.isHost() || false}
         onClose={() => setIsPlayerModalOpen(false)}
-        onJoinGame={joinGame} 
+        onJoinGame={joinGame}
+        onStart={startRound}
       />
 
       <button

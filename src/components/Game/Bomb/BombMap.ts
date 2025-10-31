@@ -33,7 +33,8 @@ export class BombMap {
 
   constructor(
     public map: PixelMap,
-    private onPlayersUpdated: (players: PlayerState[]) => void
+    private onPlayersUpdated: (players: PlayerState[]) => void,
+    private onGameStateUpdated: (state: GameState) => void
   ) {
     this.bombNetwork = new BombNetwork(this)
     const view = map.getView()
@@ -69,6 +70,11 @@ export class BombMap {
 
       view.markDirty()
     })
+  }
+
+  updateGameState(state: GameState) {
+    this.gameState = {...this.gameState, ...state}
+    this.onGameStateUpdated(this.gameState)
   }
 
   updatePlayers(players: PlayerState[]) {

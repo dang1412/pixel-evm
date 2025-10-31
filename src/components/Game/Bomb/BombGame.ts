@@ -53,6 +53,8 @@ export class BombGame {
   }
 
   addBomb(ownerId: number, x: number, y: number) {
+    if (this.state.pausing) return
+
     const pos = xyToPosition(x, y)
 
     if (this.bombStateMap.has(pos)) return
