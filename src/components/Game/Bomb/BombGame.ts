@@ -29,7 +29,7 @@ export class BombGame {
   // private playerUsingBombs = new Map<number, number>()
 
   private caughtItems: number[] = []
-  private explodedBombs: BombState[] = []
+  // private explodedBombs: BombState[] = []
 
   private updatedPlayerIds = new Set<number>()
 
@@ -104,27 +104,28 @@ export class BombGame {
     if (this.state.pausing && this.bombStateMap.size === 0) return
     this.explosionMap.clear()
     this.caughtItems = []
-    this.explodedBombs = []
+    const explodedBombs = []
 
     for (const [pos, bombState] of this.bombStateMap) {
       bombState.live -= GameLoop
       if (bombState.live <= 0) {
-        this.explode(pos, bombState)
+        const bombs = this.explode(pos, bombState)
+        explodedBombs.push(...bombs)
       }
     }
 
-    const bombs = Array.from(this.bombStateMap.values())
+    // const bombs = Array.from(this.bombStateMap.values())
     const explosions = Array.from(this.explosionMap.keys())
 
     // add exploded bombs
-    for (const bomb of this.explodedBombs) {
-      bombs.push(bomb)
-    }
+    // for (const bomb of this.explodedBombs) {
+    //   bombs.push(bomb)
+    // }
 
     // states update
 
-    if (bombs.length) {
-      this.bombNetwork.gameUpdate({ type: 'bombs', bombs })
+    if (explodedBombs.length) {
+      this.bombNetwork.gameUpdate({ type: 'bombs', bombs: explodedBombs })
     }
     if (explosions.length) {
       this.bombNetwork.gameUpdate({ type: 'explosions', explosions })
@@ -185,8 +186,8 @@ export class BombGame {
     const { ownerId, blastRadius: r } = bombState
     // const usingBombs = this.playerUsingBombs.get(ownerId) || 1
     // this.playerUsingBombs.set(ownerId, usingBombs - 1)
-
-    this.explodedBombs.push(bombState)
+    const bombs = [bombState]
+    // this.explodedBombs.push(bombState)
     this.bombStateMap.delete(pos)
     
     // check items caught
@@ -239,8 +240,11 @@ export class BombGame {
       const bombState = this.bombStateMap.get(pos)
       if (bombState) {
         bombState.live = 0
-        this.explode(pos, bombState)
+        const explodedBombs = this.explode(pos, bombState)
+        bombs.push(...explodedBombs)
       }
     }
+
+    return bombs
   }
 }
