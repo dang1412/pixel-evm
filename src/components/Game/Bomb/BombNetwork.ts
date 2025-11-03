@@ -43,10 +43,8 @@ export class BombNetwork {
     this.bombGame = new BombGame(this)
   }
 
-  startRound() {
-    if (this.bombGame) {
-      this.bombGame.startRound()
-    }
+  getBombGame() {
+    return this.bombGame
   }
 
   // for host

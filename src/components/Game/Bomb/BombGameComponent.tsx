@@ -131,8 +131,13 @@ const BombGameComponent: React.FC<Props> = (props) => {
     setIsMenuModalOpen(false)
   }, [offerConnect])
 
+  // host actions
   const startRound = useCallback(() => {
-    bombMapRef.current?.bombNetwork.startRound()
+    bombMapRef.current?.bombNetwork.getBombGame()?.startRound()
+  }, [])
+
+  const restart = useCallback(() => {
+    bombMapRef.current?.bombNetwork.getBombGame()?.restart()
   }, [])
 
   useEffect(() => {
@@ -171,6 +176,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
         onClose={() => setIsPlayerModalOpen(false)}
         onJoinGame={joinGame}
         onStart={startRound}
+        onRestart={restart}
       />
 
       <button

@@ -142,6 +142,10 @@ export class BombMap {
   addItem(pos: number, item: ItemState) {
     const { x, y } = positionToXY(pos)
     this.itemMap.set(pos, new MapItem(this, x, y, item.points))
+
+    // update minimap
+    const view = this.map.getView()
+    view.eventTarget.dispatchEvent(new Event('updated'))
   }
 
   // Called from Network

@@ -55,6 +55,25 @@ export class BombGame {
     return newPlayer
   }
 
+  restart() {
+    // game state
+    this.state = {
+      timeLeft: 0,
+      round: 0,
+      pausing: true,
+    }
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+
+    // players
+    const players = this.getPlayerStates()
+    for (const player of players) {
+      player.score = 0
+      player.roundPlacedBombs = 0
+      player.placedBombs = 0
+    }
+    this.bombNetwork.gameUpdate({ type: 'players', players })
+  }
+
   removePlayer(id: number) {
     this.playerStoreMap.set(id, this.playerStateMap.get(id)!)
     this.playerStateMap.delete(id)

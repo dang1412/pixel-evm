@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 
+import { FaRedo } from 'react-icons/fa'
 import { GameState, PlayerState } from './types'
 
 // --- PlayerState Interface (as a comment, since it's TS syntax) ---
@@ -19,7 +20,10 @@ interface ScoreboardModalProps {
   isHost: boolean;
   onClose: () => void;
   onJoinGame: () => void;
+
+  // for host
   onStart?: () => void;
+  onRestart?: () => void;
 }
 
 /**
@@ -32,7 +36,7 @@ interface ScoreboardModalProps {
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   { 
     isOpen, hostName, players, playerId, gameState, isHost,
-    onClose, onJoinGame, onStart
+    onClose, onJoinGame, onStart, onRestart,
   }
 ) => {
   if (!isOpen) {
@@ -43,7 +47,6 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
     // <!-- Modal Overlay -->
     <div
       className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
-      onClick={onClose} // Close modal on overlay click
     >
       {/* <!-- Modal Content --> */}
       <div
@@ -52,9 +55,23 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
       >
         {/* <!-- Modal Header --> */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Scoreboard ({hostName})
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+              Scoreboard ({hostName})
+              {isHost && (
+                <button
+                  onClick={() => onRestart && onRestart()}
+                  className="ml-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <FaRedo className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                </button>
+              )}
+              
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-300">
+              Round: {gameState.round} | ⏱️ {gameState.timeLeft / 1000}s
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors rounded-full p-1"
@@ -181,16 +198,16 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           {isHost && <div>
             <button
               onClick={() => onStart && onStart()}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+              className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
             >
-              {gameState.round === 0 ? 'Start' : 'Next Round'}
+              {gameState.round === 0 ? 'Start' : 'Continue'}
             </button>
           </div>}
 
           {!playerId && <div>
             <button
               onClick={onJoinGame}
-              className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
+              className="px-6 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
             >
               Join Game
             </button>
