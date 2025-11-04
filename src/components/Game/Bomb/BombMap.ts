@@ -8,6 +8,7 @@ import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
 import { BombState, GameState, ItemState, PlayerState } from './types'
+import { AtomicExplode } from './AtomicExplode'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
 sound.add('ticking', '/sounds/bomb/ticking-bomb.mp3')
@@ -52,6 +53,7 @@ export class BombMap {
       }
 
       this.bombNetwork.placeBomb(this.playerId, x, y)
+      // new AtomicExplode(this, x, y)
     })
 
     // update bombs and explosions animation

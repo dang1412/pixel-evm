@@ -5,19 +5,28 @@ import { PIXEL_SIZE } from '../utils'
 import { BombMap } from './BombMap'
 
 const BOMB_COLORS = [
-  0x333333, // Dark
-  0x00004A, // Dark Blue
-  0x003300, // Dark Green
-  0x4A004A, // Dark Purple
-  0x4A4A00, // Dark Yellow (Olive)
-  0x004A4A  // Dark Cyan (Teal)
+  0x333333, // Lighter Dark Grey
+  0x333366, // Lighter Dark Blue
+  0x336633, // Lighter Dark Green
+  0x663366, // Lighter Dark Purple
+  0x666633, // Lighter Dark Yellow (Olive)
+  0x336666  // Lighter Dark Cyan (Teal)
 ]
+
+// const BOMB_COLORS = [
+//   0x333333, // Dark
+//   0x00004A, // Dark Blue
+//   0x003300, // Dark Green
+//   0x4A004A, // Dark Purple
+//   0x4A4A00, // Dark Yellow (Olive)
+//   0x004A4A  // Dark Cyan (Teal)
+// ]
 
 export class Bomb {
   private container = new Container()
   private spark = new Graphics()
 
-  constructor(bombMap: BombMap, x: number, y: number, private ownerId: number) {
+  constructor(private bombMap: BombMap, x: number, y: number, private ownerId: number) {
     const view = bombMap.map.getView()
 
     const mainScene = view.getScene('main')

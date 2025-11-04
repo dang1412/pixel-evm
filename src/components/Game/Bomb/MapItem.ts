@@ -2,7 +2,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { BombMap } from './BombMap'
 import { PIXEL_SIZE } from '../utils'
 
-const flashAnimationTime = 500
+const flashAnimationTime = 800
 
 export class MapItem {
   private container = new Container()
@@ -53,14 +53,14 @@ export class MapItem {
   }
 
   explode() {
-    const flash = new Graphics();
+    const flash = new Graphics()
     flash.circle(0, 0, PIXEL_SIZE / 3)
-      .fill(0xFF0000, 0.9);
-    flash.pivot.set(0, 0);
-    flash.x = PIXEL_SIZE / 2;
-    flash.y = PIXEL_SIZE / 2;
-    flash.scale.set(1);
-    this.container.addChild(flash);
+      .fill({ color: 0xFF0000, alpha: 0.9})
+    flash.pivot.set(0, 0)
+    flash.x = PIXEL_SIZE / 2
+    flash.y = PIXEL_SIZE / 2
+    flash.scale.set(1)
+    this.container.addChild(flash)
 
     const view = this.bombMap.map.getView()
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
@@ -68,7 +68,7 @@ export class MapItem {
       animateFlash(delta)
     })
 
-    let flashElapsedTime = 0;
+    let flashElapsedTime = 0
 
     const text = this.container.getChildAt(1) as Text
 
@@ -86,7 +86,6 @@ export class MapItem {
       text.alpha = 1.2 - easeOut
 
       if (progress === 1) {
-        // app.ticker.remove(animateFlash)
         unsub()
         this.container.destroy()
       }
