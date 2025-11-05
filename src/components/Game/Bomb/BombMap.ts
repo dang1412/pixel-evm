@@ -11,7 +11,9 @@ import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
 import { AtomicBomb } from './AtomicBomb'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
+sound.add('explosion2', '/sounds/bomb/explosion2.mp3')
 sound.add('ticking', '/sounds/bomb/ticking-bomb.mp3')
+sound.add('laser', '/sounds/bomb/laser.mp3')
 
 export class BombMap {
   bombMap = new Map<number, Bomb | AtomicBomb>()
@@ -104,15 +106,28 @@ export class BombMap {
     return this.players.get(this.playerId)?.score || 0
   }
 
+  setBombType(type: BombType) {
+    this.bombType = type
+  }
+
   // Called from Network
   updateBombs(bombStates: BombState[]) {
+    let atomicBombExploded = 0
     for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {
         const { x, y } = positionToXY(pos)
         this.addBomb(x, y, ownerId, type)
       } else {
-        this.removeBomb(pos, ownerId)
+        const bomb = this.removeBomb(pos, ownerId)
+        if (bomb && type === BombType.Atomic) {
+          atomicBombExploded++
+        }
       }
+    }
+
+    // atomic bomb explosion sound
+    if (atomicBombExploded) {
+      sound.play('laser', { volume: 0.1 * atomicBombExploded })
     }
 
     // ticking sound
@@ -181,6 +196,7 @@ export class BombMap {
       this.bombMap.delete(pos)
       bomb.remove()
       if (playerId === this.playerId) this.bombUsing--
+      return bomb
     }
   }
 }

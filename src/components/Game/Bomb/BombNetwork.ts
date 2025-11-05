@@ -98,9 +98,10 @@ export class BombNetwork {
     console.log('BombNetwork connected to', addr)
     if (this.bombGame) {
       // host send cilent states
-      const { players, items } = this.bombGame.getCurrentStates()
+      const { players, items, state } = this.bombGame.getCurrentStates()
       this.sendTo?.(addr, JSON.stringify({ type: 'players', players }))
       this.sendTo?.(addr, JSON.stringify({ type: 'addItems', items }))
+      this.sendTo?.(addr, JSON.stringify({ type: 'gameState', state }))
     } else {
       // client set host address
       this.hostAddr = addr
@@ -120,11 +121,10 @@ export class BombNetwork {
         if (this.bombGame) {
           const id = this.wsNameToPlayerId[from]
           const newPlayer = this.bombGame.addPlayer(id)
-          // const players = this.bombGame.getPlayerStates()
+
+          // send playerId
           this.sendTo?.(from, JSON.stringify({ type: 'joinSuccess', players: [], playerId: newPlayer.id }))
           this.wsNameToPlayerId[from] = newPlayer.id
-          // this.sendAll?.(JSON.stringify({ type: 'players', players: [newPlayer] }))
-          // this.handleGameUpdate({ type: 'players', players: [newPlayer] })
         }
         break
       case 'addBomb':

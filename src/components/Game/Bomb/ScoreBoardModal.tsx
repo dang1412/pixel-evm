@@ -68,9 +68,11 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
               )}
               
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-300">
-              Round: {gameState.round} | ⏱️ {gameState.timeLeft / 1000}s
-            </p>
+            {gameState && (
+              <p className="text-sm text-gray-500 dark:text-gray-300">
+                Round: {gameState.round} | ⏱️ {gameState.timeLeft / 1000}s
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -200,7 +202,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
               onClick={() => onStart && onStart()}
               className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
             >
-              {gameState.round === 0 ? 'Start' : 'Continue'}
+              {gameState.round === 0 ? 'Start' : 'Next'}
             </button>
           </div>}
 

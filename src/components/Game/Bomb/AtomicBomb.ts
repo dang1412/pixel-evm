@@ -40,8 +40,8 @@ export class AtomicBomb {
     // this.container.pivot.set(PIXEL_SIZE / 2, PIXEL_SIZE / 2)
     // this.container.rotation = Math.PI / 4
 
-    // this.bombColor = BOMB_COLORS[(this.ownerId - 1) % BOMB_COLORS.length]
-    this.bombColor = BOMB_COLORS[Math.floor(Math.random() * BOMB_COLORS.length)]
+    this.bombColor = BOMB_COLORS[(this.ownerId - 1) % BOMB_COLORS.length]
+    // this.bombColor = BOMB_COLORS[Math.floor(Math.random() * BOMB_COLORS.length)]
     this.draw()
   }
 

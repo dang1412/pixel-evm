@@ -22,7 +22,7 @@ export class BombGame {
   private playerStoreMap = new Map<number, PlayerState>()
 
   // position => ownerId
-  private explosionMap = new Map<number, { playerId: number, d: number }>()
+  private explosionMap = new Map<number, { playerId: number, d: number, type: BombType }>()
 
   // playerId => number of bombs using
   // private playerUsingBombs = new Map<number, number>()
@@ -36,6 +36,8 @@ export class BombGame {
     setInterval(() => {
       this.update()
     }, GameLoop)
+
+    bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
   }
 
   getPlayerStates() {
@@ -133,8 +135,10 @@ export class BombGame {
       }
     }
 
-    // const bombs = Array.from(this.bombStateMap.values())
+    // only get standard bomb explosion positions
     const explosions = Array.from(this.explosionMap.keys())
+    const standardExplosions = explosions
+      .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
 
     // add exploded bombs
     // for (const bomb of this.explodedBombs) {
@@ -147,7 +151,7 @@ export class BombGame {
       this.bombNetwork.gameUpdate({ type: 'bombs', bombs: explodedBombs })
     }
     if (explosions.length) {
-      this.bombNetwork.gameUpdate({ type: 'explosions', explosions })
+      this.bombNetwork.gameUpdate({ type: 'explosions', explosions: standardExplosions })
     }
 
     // remove caught items
@@ -213,7 +217,7 @@ export class BombGame {
     const players = this.getPlayerStates()
     const items = Array.from(this.itemMap.values())
 
-    return { players, items }
+    return { players, items, state: this.state }
   }
 
   private explode(pos: number, bombState: BombState) {
@@ -264,7 +268,7 @@ export class BombGame {
       const p = this.explosionMap.get(pos)
       if (!p || p.d > d) {
         // update explosion map
-        this.explosionMap.set(pos, { playerId: ownerId, d })
+        this.explosionMap.set(pos, { playerId: ownerId, d, type })
       }
       // check item
       // const item = this.itemMap.get(pos)

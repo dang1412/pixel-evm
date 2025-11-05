@@ -14,6 +14,7 @@ import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 import { GameState, PlayerState } from './types'
 import { FloatScoreTable } from './FloatScoreTable'
+import BombSelect from './BombSelect'
 
 interface Props {}
 
@@ -26,7 +27,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const [ hostName, setHostName ] = useState<string>('')
   const [ players, setPlayers ] = useState<PlayerState[]>([])
-  const [ gameState, setGameState ] = useState<GameState>({ timeLeft: 0, round: 0, pausing: true })
+  const [ gameState, setGameState ] = useState<GameState>()
 
   // sync boxes when boxes data or scene changes
 
@@ -142,17 +143,17 @@ const BombGameComponent: React.FC<Props> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (!playerId) return
+    if (!gameState || !playerId) return
     if (gameState.pausing) {
       setIsPlayerModalOpen(true)
       if (gameState.round > 0) {
-        notify('Round ended. Wait for the host to start a new round.', 'info')
+        notify('Round ended. Wait for the new round.', 'info')
       }
     } else {
       setIsPlayerModalOpen(false)
       notify('Round started! Place your bombs!', 'info')
     }
-  }, [gameState.pausing, playerId])
+  }, [gameState?.pausing, playerId])
 
   return (
     <>
@@ -163,13 +164,18 @@ const BombGameComponent: React.FC<Props> = (props) => {
         {/* <div className='text-gray-800 font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
         <div className='text-gray-800 font-semibold'>&nbsp;🏆 {score}</div> */}
         {/* <div className='text-gray-800 font-semibold'>Bomb: 10/100</div> */}
+        {playerId && (
+          <BombSelect onSelect={(type) => bombMapRef.current?.setBombType(type)} />
+        )}
       </div>
 
-      <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
+      {gameState && (
+        <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
+      )}
 
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={createGame} />}
 
-      <ScoreboardModal
+      {gameState && <ScoreboardModal
         isOpen={isPlayerModalOpen}
         hostName={hostName}
         players={players}
@@ -180,7 +186,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
         onJoinGame={joinGame}
         onStart={startRound}
         onRestart={restart}
-      />
+      />}
 
       <button
         onClick={() => setIsPlayerModalOpen(true)}
