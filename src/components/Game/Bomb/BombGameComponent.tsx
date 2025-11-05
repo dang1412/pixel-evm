@@ -13,6 +13,7 @@ import { ScoreboardModal } from './ScoreBoardModal'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 import { GameState, PlayerState } from './types'
+import { FloatScoreTable } from './FloatScoreTable'
 
 interface Props {}
 
@@ -60,7 +61,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
       setLoading(false)
       bombNetwork.connected(from)
       if (bombNetwork.isHost()) {
-        notify('A player has joined: ' + from, 'info')
+        notify('A player has connected: ' + from, 'info')
       } else {
         notify('Connected to host ' + from, 'info')
         setIsPlayerModalOpen(true)
@@ -159,10 +160,12 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       <div className='w-full absolute top-16 flex items-center justify-center'>
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-        <div className='text-gray-800 font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
-        <div className='text-gray-800 font-semibold'>&nbsp;🏆 {score}</div>
+        {/* <div className='text-gray-800 font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
+        <div className='text-gray-800 font-semibold'>&nbsp;🏆 {score}</div> */}
         {/* <div className='text-gray-800 font-semibold'>Bomb: 10/100</div> */}
       </div>
+
+      <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
 
       {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={createGame} />}
 
