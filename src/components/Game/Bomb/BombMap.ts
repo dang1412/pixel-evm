@@ -7,14 +7,14 @@ import { Bomb } from './Bomb'
 import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { BombState, GameState, ItemState, PlayerState } from './types'
-import { AtomicExplode } from './AtomicExplode'
+import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
+import { AtomicBomb } from './AtomicBomb'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
 sound.add('ticking', '/sounds/bomb/ticking-bomb.mp3')
 
 export class BombMap {
-  bombMap = new Map<number, Bomb>()
+  bombMap = new Map<number, Bomb | AtomicBomb>()
   explosionMap = new Map<number, Explosion>()
   itemMap = new Map<number, MapItem>()
 
@@ -31,6 +31,8 @@ export class BombMap {
   private bombTicking: Promise<IMediaInstance> | undefined
 
   private gameState: GameState | undefined
+
+  private bombType = BombType.Standard
 
   constructor(
     public map: PixelMap,
@@ -52,7 +54,7 @@ export class BombMap {
         return
       }
 
-      this.bombNetwork.placeBomb(this.playerId, x, y)
+      this.bombNetwork.placeBomb(this.playerId, x, y, this.bombType)
       // new AtomicExplode(this, x, y)
     })
 
@@ -104,10 +106,10 @@ export class BombMap {
 
   // Called from Network
   updateBombs(bombStates: BombState[]) {
-    for (const { ownerId, pos, live } of bombStates) {
+    for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {
         const { x, y } = positionToXY(pos)
-        this.addBomb(x, y, ownerId)
+        this.addBomb(x, y, ownerId, type)
       } else {
         this.removeBomb(pos, ownerId)
       }
@@ -161,13 +163,16 @@ export class BombMap {
     }
   }
 
-  private addBomb(x: number, y: number, playerId: number) {
+  private addBomb(x: number, y: number, playerId: number, type: BombType) {
     const pos = xyToPosition(x, y)
     if (this.bombMap.has(pos)) return
 
     console.log('Add bomb', pos, x, y)
     if (playerId === this.playerId) this.bombUsing++
-    this.bombMap.set(pos, new Bomb(this, x, y, playerId))
+    const bomb = type === BombType.Standard 
+      ? new Bomb(this, x, y, playerId)
+      : new AtomicBomb(this, x, y, playerId)
+    this.bombMap.set(pos, bomb)
   }
 
   private removeBomb(pos: number, playerId: number) {

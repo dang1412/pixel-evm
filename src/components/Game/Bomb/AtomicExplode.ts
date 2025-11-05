@@ -6,7 +6,7 @@ import { BombMap } from './BombMap'
 export class AtomicExplode {
   private container = new Container()
 
-  constructor(private bombMap: BombMap, x: number, y: number) {
+  constructor(private bombMap: BombMap, x: number, y: number, private color: number = 0xFF0000) {
     const mainScene = bombMap.map.getView().getScene('main')
     if (!mainScene) throw new Error('Main scene not loaded yet!')
 
@@ -18,13 +18,15 @@ export class AtomicExplode {
     const explosionTime = 800 // 1 giây cho toàn bộ hiệu ứng
     const flashTime = explosionTime * 0.2 // Thời gian hào quang
     const shockwaveMaxRadius = PIXEL_SIZE * 10 // Sóng lan rộng bao xa
-    const color = 0xFF0000
+    // dark green for atomic bomb
+    // const color = 0x333333
+    // const color = 0xFF0000
     let elapsedTime = 0
 
     // 1. Hào quang trung tâm (rất nhanh)
     const flash = new Graphics()
     flash.circle(0, 0, PIXEL_SIZE * 1.5) // Hào quang lớn
-      .fill({ color, alpha: 1 }) // Màu trắng
+      .fill({ color: this.color, alpha: 0.9 }) // Màu trắng
     flash.x = flash.y = PIXEL_SIZE / 2
     flash.scale.set(0.5)
     flash.alpha = 1.0
@@ -66,7 +68,7 @@ export class AtomicExplode {
       shockwave.clear() // Xóa vòng tròn cũ
       shockwave
         .circle(0, 0, currentRadius) // Vẽ vòng tròn mới
-        .stroke({ width: currentWidth, color, alpha: currentAlpha })
+        .stroke({ width: currentWidth, color: this.color, alpha: currentAlpha })
 
       if (progress === 1) {
         unsub()

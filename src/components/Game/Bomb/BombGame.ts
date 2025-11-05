@@ -1,8 +1,7 @@
 import { positionToXY, xyToPosition } from '../utils'
-import { BombMap } from './BombMap'
 import { BombNetwork } from './BombNetwork'
 
-import { BombState, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
 
 const GameLoop = 200
 
@@ -23,12 +22,12 @@ export class BombGame {
   private playerStoreMap = new Map<number, PlayerState>()
 
   // position => ownerId
-  private explosionMap = new Map<number, number>()
+  private explosionMap = new Map<number, { playerId: number, d: number }>()
 
   // playerId => number of bombs using
   // private playerUsingBombs = new Map<number, number>()
 
-  private caughtItems: number[] = []
+  // private caughtItems: number[] = []
   // private explodedBombs: BombState[] = []
 
   private updatedPlayerIds = new Set<number>()
@@ -82,7 +81,7 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players: [{ id, score: -1, roundPlacedBombs: 0, placedBombs: 0, totalBombs: 0, r: 0 }] })
   }
 
-  addBomb(ownerId: number, x: number, y: number) {
+  addBomb(ownerId: number, x: number, y: number, bombType = BombType.Standard) {
     if (this.state.pausing) return
 
     const pos = xyToPosition(x, y)
@@ -92,8 +91,9 @@ export class BombGame {
     const playerState = this.playerStateMap.get(ownerId)
     if (!playerState) return
 
-    console.log('Add bomb', pos, x, y)
-    const bomb: BombState = { ownerId, pos, live: 3000, blastRadius: playerState.r }
+    console.log('Add bomb', pos, x, y, bombType)
+    const blastRadius = bombType === BombType.Standard ? playerState.r : 9
+    const bomb: BombState = { ownerId, pos, live: 3000, blastRadius, type: bombType }
     this.bombStateMap.set(pos, bomb)
 
     // notify all the new bomb
@@ -122,7 +122,7 @@ export class BombGame {
   update() {
     if (this.state.pausing && this.bombStateMap.size === 0) return
     this.explosionMap.clear()
-    this.caughtItems = []
+    // this.caughtItems = []
     const explodedBombs = []
 
     for (const [pos, bombState] of this.bombStateMap) {
@@ -149,19 +149,34 @@ export class BombGame {
     if (explosions.length) {
       this.bombNetwork.gameUpdate({ type: 'explosions', explosions })
     }
-    if (this.caughtItems.length > 0) {
-      this.bombNetwork.gameUpdate({ type: 'removeItems', positions: this.caughtItems })
+
+    // remove caught items
+    const caughtItems: number[] = []
+    for (const pos of explosions) {
+      const item = this.itemMap.get(pos)
+      if (item) {
+        const playerId = this.explosionMap.get(pos)!.playerId
+        const playerState = this.playerStateMap.get(playerId)
+        if (playerState) {
+          playerState.score += item.points
+          this.updatedPlayerIds.add(playerId)
+        }
+        caughtItems.push(pos)
+        this.itemMap.delete(pos) // Remove item once caught
+      }
+    }
+    if (caughtItems.length > 0) {
+      this.bombNetwork.gameUpdate({ type: 'removeItems', positions: caughtItems })
     }
 
     // generate item
     const newItems: ItemState[] = []
-    if (this.itemMap.size < 100) {
+    while (this.itemMap.size < 200) {
       const pos = Math.floor(Math.random() * 10000)
       if (!this.itemMap.has(pos)) {
         const item: ItemState = { pos, type: 0, points: Math.floor(Math.random() * 99) + 1 }
         this.itemMap.set(pos, item)
         newItems.push(item)
-        // this.bombMap.addItem(pos, item)
       }
     }
 
@@ -202,7 +217,7 @@ export class BombGame {
   }
 
   private explode(pos: number, bombState: BombState) {
-    const { ownerId, blastRadius: r } = bombState
+    const { ownerId, blastRadius: r, type } = bombState
     // const usingBombs = this.playerUsingBombs.get(ownerId) || 1
     // this.playerUsingBombs.set(ownerId, usingBombs - 1)
     const bombs = [bombState]
@@ -211,13 +226,76 @@ export class BombGame {
     
     // check items caught
     const { x, y } = positionToXY(pos)
-    const affectedPositions: number[] = []
-    // Add the bomb's position itself
-    affectedPositions.push(pos)
+    // const affectedPositions: number[] = []
+    // // Add the bomb's position itself
+    // affectedPositions.push(pos)
 
-    const affedtedBombPositions: number[] = []
+    // const affedtedBombPositions: number[] = []
 
     // Check 4 directions
+    // const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    // for (const [dx, dy] of dirs) {
+    //   for (let i = 1; i <= r; i++) {
+    //     const affectedPos = xyToPosition(x + dx * i, y + dy * i)
+
+    //     // stop if meet another explosion
+    //     if (this.explosionMap.has(affectedPos)) {
+    //       break
+    //     }
+
+    //     // stop if other bomb
+    //     if (this.bombStateMap.has(affectedPos)) {
+    //       affedtedBombPositions.push(affectedPos)
+    //       break
+    //     }
+
+    //     affectedPositions.push(affectedPos)
+    //   }
+    // }
+    const { affectedPositions, affedtedBombPositions } = type === BombType.Standard
+      ? this.calculateStandardExplodePositions(x, y, r)
+      : this.calculateAtomicExplodePositions(x, y, r)
+
+    // explode
+    for (const pos of affectedPositions) {
+      // calculate distance
+      const {x: ex, y: ey} = positionToXY(pos)
+      const d = (ex - x) ** 2 + (ey - y) ** 2
+      const p = this.explosionMap.get(pos)
+      if (!p || p.d > d) {
+        // update explosion map
+        this.explosionMap.set(pos, { playerId: ownerId, d })
+      }
+      // check item
+      // const item = this.itemMap.get(pos)
+      // if (item) {
+      //   const playerState = this.playerStateMap.get(ownerId)
+      //   if (playerState) {
+      //     playerState.score += item.points
+      //     this.updatedPlayerIds.add(ownerId)
+      //   }
+      //   this.caughtItems.push(pos)
+      //   this.itemMap.delete(pos) // Remove item once caught
+      // }
+    }
+
+    // affected bombs explode
+    for (const pos of affedtedBombPositions) {
+      const bombState = this.bombStateMap.get(pos)
+      if (bombState) {
+        bombState.live = 0
+        const explodedBombs = this.explode(pos, bombState)
+        bombs.push(...explodedBombs)
+      }
+    }
+
+    return bombs
+  }
+
+  private calculateStandardExplodePositions(x: number, y: number, r: number) {
+    const affectedPositions = [xyToPosition(x, y)]
+    const affedtedBombPositions: number[] = []
+
     const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
     for (const [dx, dy] of dirs) {
       for (let i = 1; i <= r; i++) {
@@ -238,32 +316,29 @@ export class BombGame {
       }
     }
 
-    // explode
-    for (const pos of affectedPositions) {
-      this.explosionMap.set(pos, ownerId)
-      // check item
-      const item = this.itemMap.get(pos)
-      if (item) {
-        const playerState = this.playerStateMap.get(ownerId)
-        if (playerState) {
-          playerState.score += item.points
-          this.updatedPlayerIds.add(ownerId)
+    return { affectedPositions, affedtedBombPositions }
+  }
+
+  private calculateAtomicExplodePositions(x: number, y: number, r: number) {
+    const affectedPositions = [xyToPosition(x, y)]
+    const affedtedBombPositions: number[] = []
+
+    // Atomic bomb affects all positions in a square area
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        // if (dx === 0 && dy === 0) continue // Skip the center position
+        // const affectedPos = xyToPosition(x + dx, y + dy)
+        if (dx * dx + dy * dy <= r * r) {
+          const affectedPos = xyToPosition(x + dx, y + dy)
+          if (this.bombStateMap.has(affectedPos)) {
+            affedtedBombPositions.push(affectedPos)
+          } else if (!this.explosionMap.has(affectedPos)) {
+            affectedPositions.push(affectedPos)
+          }
         }
-        this.caughtItems.push(pos)
-        this.itemMap.delete(pos) // Remove item once caught
       }
     }
 
-    // affected bombs explode
-    for (const pos of affedtedBombPositions) {
-      const bombState = this.bombStateMap.get(pos)
-      if (bombState) {
-        bombState.live = 0
-        const explodedBombs = this.explode(pos, bombState)
-        bombs.push(...explodedBombs)
-      }
-    }
-
-    return bombs
+    return { affectedPositions, affedtedBombPositions }
   }
 }

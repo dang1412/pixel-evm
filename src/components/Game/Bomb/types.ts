@@ -6,11 +6,17 @@ export interface GameState {
   pausing: boolean
 }
 
+export enum BombType {
+  Standard,
+  Atomic,
+}
+
 export interface BombState {
   ownerId: number
   pos: number
   live: number
   blastRadius: number
+  type: BombType
 }
 
 export enum ItemType {

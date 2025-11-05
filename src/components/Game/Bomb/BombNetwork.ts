@@ -1,11 +1,11 @@
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
-import { BombState, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
 
 type GameMessage = 
   // client to host
   | { type: 'join' }
-  | { type: 'addBomb', playerId: number, x: number, y: number }
+  | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
 
   // host to client
   | { type: 'joinSuccess', players: PlayerState[], playerId: number }
@@ -66,7 +66,6 @@ export class BombNetwork {
       const players = this.bombGame.getPlayerStates()
       this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
       this.wsNameToPlayerId['host'] = newPlayer.id
-      // this.sendAll?.(JSON.stringify({ type: 'players', players: [newPlayer] }))
     } else if (this.hostAddr) {
       // send join request to host
       this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'join' }))
@@ -74,17 +73,17 @@ export class BombNetwork {
   }
 
   // action: place bomb
-  placeBomb(playerId: number, x: number, y: number) {
+  placeBomb(playerId: number, x: number, y: number, bombType = BombType.Standard) {
     if (this.bombGame) {
       // host
-      const bomb = this.bombGame.addBomb(playerId, x, y)
+      const bomb = this.bombGame.addBomb(playerId, x, y, bombType)
       if (bomb) {
         this.bombMap.updateBombs([bomb])
       }
     } else {
       // send add bomb request to host
       if (this.hostAddr) {
-        this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'addBomb', playerId, x, y }))
+        this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'addBomb', playerId, x, y, bombType }))
       }
     }
   }
@@ -130,7 +129,7 @@ export class BombNetwork {
         break
       case 'addBomb':
         if (this.bombGame) {
-          const bomb =this.bombGame.addBomb(msg.playerId, msg.x, msg.y)
+          const bomb =this.bombGame.addBomb(msg.playerId, msg.x, msg.y, msg.bombType)
           if (bomb) {
             // send bomb update to this player immediately,
             // rather than waiting for the game loop
