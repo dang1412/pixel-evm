@@ -155,6 +155,14 @@ const BombGameComponent: React.FC<Props> = (props) => {
     }
   }, [gameState?.pausing, playerId])
 
+  const openModal = useCallback(() => {
+    if (gameState) {
+      setIsPlayerModalOpen(true)
+    } else {
+      setIsMenuModalOpen(true)
+    }
+  }, [gameState])
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
@@ -189,7 +197,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
       />}
 
       <button
-        onClick={() => setIsPlayerModalOpen(true)}
+        onClick={openModal}
         className="fixed bottom-4 right-4 z-50 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
       >
         <FaInfo className="w-4 h-4 text-gray-600" />

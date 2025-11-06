@@ -84,11 +84,11 @@ export const MenuModal: React.FC<Props> = ({ onClose, onConnect, onStartServer }
 
           {selectedJoin && <div className="relative">
             <h3 className="mb-2 text-lg font-medium text-gray-500 dark:text-gray-400">
-              Enter address to connect
+              Enter host's connect name
             </h3>
             <input
               className="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
-              placeholder="0x"
+              placeholder="8a5xwesa"
               value={addrInput}
               onChange={(e) => setAddrInput(e.target.value)}
             />
