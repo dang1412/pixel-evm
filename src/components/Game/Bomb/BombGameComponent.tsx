@@ -167,14 +167,13 @@ const BombGameComponent: React.FC<Props> = (props) => {
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
 
-      <div className='w-full absolute top-16 flex items-center justify-center'>
-        { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-        {/* <div className='text-gray-800 font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
-        <div className='text-gray-800 font-semibold'>&nbsp;🏆 {score}</div> */}
-        {/* <div className='text-gray-800 font-semibold'>Bomb: 10/100</div> */}
-        {playerId && (
-          <BombSelect onSelect={(type) => bombMapRef.current?.setBombType(type)} />
-        )}
+      <div className='w-full absolute top-16 flex items-center justify-center pointer-events-none'>
+        <div className="pointer-events-auto">
+          { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
+          {playerId && (
+            <BombSelect onSelect={(type) => bombMapRef.current?.setBombType(type)} />
+          )}
+        </div>
       </div>
 
       {gameState && (

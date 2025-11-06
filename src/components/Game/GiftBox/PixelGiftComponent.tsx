@@ -121,7 +121,7 @@ const PixelGiftComponent: React.FC<Props> = (props) => {
       <OnboardingModal />
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
 
-      <div className='w-full absolute top-16 flex items-center justify-center'>
+      <div className='w-full absolute top-16 flex items-center justify-center pointer-events-none'>
         {curScene && curScene !== 'main' && <BackButton map={map} />}
         { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
         <CoolDownCount coolDownTime={coolDownTime || 0} />

@@ -22,7 +22,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId 
   const isOutTop3 = currentPlayerIndex > 2
 
   return (
-    <div className="absolute text-sm top-16 right-2 bg-white/90 backdrop-blur-sm shadow-lg rounded-lg py-2 px-4 min-w-[150px]">
+    <div className="absolute text-sm top-16 right-2 bg-white/80 shadow-lg rounded-lg py-2 px-4 min-w-[150px] pointer-events-none">
       <div className="flex text-sm justify-between items-center mb-2 border-b pb-2">
         <div><span className='font-semibold'>Round</span> {gameState.round}</div>
         <div className='font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
