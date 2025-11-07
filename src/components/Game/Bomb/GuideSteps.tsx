@@ -1,0 +1,105 @@
+export const GuideSteps = [
+  {
+    content: (
+      <div>
+        <p className="mt-2">This is a simple multi-players Bomb game.</p>
+        <p className="mt-2">Devices can connect and play together—ideally on the same Wi-Fi or local network (via WebRTC).</p>
+        <p className="ml-2">✅ One device acts as the host, and others connect to it.</p>
+        <p className="ml-2">✅ P2p connection, no server required.</p>
+        <p className="ml-2">✅ Instant connect. No account/signup required.</p>
+        <p className="mt-2">First, make the host by clicking on "Create game".</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-1.png"
+  },
+  {
+    content: (
+      <div>
+        <p className="mt-2">Remember the host connect name, next to Scoreboard (8a5xwesa).</p>
+        <p className="mt-2">Dashboard display no players.</p>
+        <p className="mt-2">Click "Join game" to be the first player.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-2.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Single-player</h2>
+        <p className="mt-2">Confirm dashboard show the first player</p>
+        <p className="mt-2">Click "Start" to play in single mode</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-3.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Single-player</h2>
+        <p className="mt-2">Choose bomb type, checking time countdown and score in the corner.</p>
+        <p className="mt-2">Click on map to place bomb, try to be near stars to blow them up.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-4.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">On other device, click "Join a game".</p>
+        <p className="mt-2">Enter first device (host)'s connect name.</p>
+        <p className="mt-2">Click "Connect".</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-5.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">Allow microphone on both devices to enable WebRTC.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-allow.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">Confirm the "Connected" notification.</p>
+        <p className="mt-2">Confirm the first player in the dashboard.</p>
+        <p className="mt-2">Click "Join game" to be the second player.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-6.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">Confirm 2 players in the dashboard.</p>
+        <p className="mt-2">Current player is highlighted.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-7.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">Confirm 2 players in the host's dashboard too.</p>
+        <p className="mt-2">Click "Start/Next" button to start the game.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-8.png"
+  },
+  {
+    content: (
+      <div>
+        <h2 className="text-xl font-semibold">Multi-players</h2>
+        <p className="mt-2">Enjoy the game together.</p>
+      </div>
+    ),
+    image: "/bomb/guide/bomb-guide-9.png"
+  },
+]

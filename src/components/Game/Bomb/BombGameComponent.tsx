@@ -1,25 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAccount } from 'wagmi'
 import { FaInfo, FaSpinner } from 'react-icons/fa'
 
 import { useNotification } from '@/providers/NotificationProvider'
+import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
+import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { mockImages } from '../mock/images'
 
-import { BombMap } from './BombMap'
 import { MenuModal } from '../MenuModal'
+import { GuideModal } from '../GuideModal'
+import { BombMap } from './BombMap'
 import { ScoreboardModal } from './ScoreBoardModal'
-import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
-import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
 import { GameState, PlayerState } from './types'
 import { FloatScoreTable } from './FloatScoreTable'
 import BombSelect from './BombSelect'
+import { GuideSteps } from './GuideSteps'
 
 interface Props {}
 
 const BombGameComponent: React.FC<Props> = (props) => {
-  // const bombNetworkRef = useRef<BombNetwork | undefined>(undefined)
   const bombMapRef = useRef<BombMap | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
 
@@ -163,6 +163,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
     }
   }, [gameState])
 
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(true)
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
@@ -180,7 +182,14 @@ const BombGameComponent: React.FC<Props> = (props) => {
         <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
       )}
 
-      {isMenuModalOpen && <MenuModal onConnect={connect} onClose={() => setIsMenuModalOpen(false)} onStartServer={createGame} />}
+      {isMenuModalOpen && (
+        <MenuModal
+          onConnect={connect}
+          onClose={() => setIsMenuModalOpen(false)}
+          onStartServer={createGame}
+          onInfoClick={() => setIsGuideModalOpen(true)}
+        />
+      )}
 
       {gameState && <ScoreboardModal
         isOpen={isPlayerModalOpen}
@@ -201,6 +210,13 @@ const BombGameComponent: React.FC<Props> = (props) => {
       >
         <FaInfo className="w-4 h-4 text-gray-600" />
       </button>
+
+      {isGuideModalOpen && (
+        <GuideModal
+          steps={GuideSteps}
+          onClose={() => setIsGuideModalOpen(false)}
+        />
+      )}
     </>
   )
 }
