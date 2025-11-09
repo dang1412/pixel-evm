@@ -3,6 +3,7 @@ import { BombMap } from './BombMap'
 import { PIXEL_SIZE } from '../utils'
 
 const flashAnimationTime = 800
+const appearAnimationTime = 600
 
 export class MapItem {
   private container = new Container()
@@ -11,6 +12,12 @@ export class MapItem {
     const view = bombMap.map.getView()
     const mainScene = view.getScene('main')
     if (!mainScene) throw new Error('Main scene not loaded yet!')
+
+    // Glow effect
+    const glow = new Graphics()
+    glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE)
+        .fill({ color: 0xFFD700, alpha: 0.5 })
+    this.container.addChild(glow)
 
     // Draw a star for the item
     const star = new Graphics()
@@ -43,6 +50,41 @@ export class MapItem {
     this.container.addChild(text)
 
     mainScene.addContainer(this.container, x, y)
+
+    this.container.scale.set(0)
+    this.appear()
+  }
+
+  appear() {
+    const view = this.bombMap.map.getView()
+    const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+      const delta = Math.min(e.detail, 40)
+      animateAppear(delta)
+    })
+
+    let appearElapsedTime = 0
+    const glow = this.container.getChildAt(0) as Graphics
+
+    const animateAppear = (delta: number) => {
+      appearElapsedTime += delta
+      let progress = appearElapsedTime / appearAnimationTime
+      if (progress > 1) progress = 1
+
+      const c4 = (2 * Math.PI) / 3
+      const scale = progress === 0
+        ? 0
+        : progress === 1
+        ? 1
+        : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1
+      
+      this.container.scale.set(scale)
+      glow.alpha = Math.sin(progress * Math.PI) * 0.7
+
+      if (progress === 1) {
+        unsub()
+        glow.destroy()
+      }
+    }
   }
 
   remove() {
@@ -51,6 +93,7 @@ export class MapItem {
     const star = this.container.getChildAt(0) as Graphics
     star.clear()
   }
+
 
   explode() {
     const flash = new Graphics()
