@@ -1,15 +1,7 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { FaRedo } from 'react-icons/fa'
-import { GameState, PlayerState } from './types'
-
-// --- PlayerState Interface (as a comment, since it's TS syntax) ---
-// export interface PlayerState {
-//   id: number
-//   score: number
-//   bombs: number
-//   r: number // blastRadius
-// }
+import { BombType, GameState, PlayerState } from './types'
 
 interface ScoreboardModalProps {
   isOpen: boolean;
@@ -166,7 +158,8 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                               : 'text-gray-500 dark:text-gray-300'
                           }`}
                         >
-                          {player.roundPlacedBombs} / {player.totalBombs}
+                          {player.usedBombs[BombType.Standard]} / {player.totalBombs[BombType.Standard]}
+                          {player.usedBombs[BombType.Atomic]} / {player.totalBombs[BombType.Atomic]}
                         </td>
                         <td
                           className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -217,5 +210,5 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
         </div>
       </div>
     </div>
-  );
+  )
 }

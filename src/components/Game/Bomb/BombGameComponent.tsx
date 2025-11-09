@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaInfo, FaSpinner } from 'react-icons/fa'
 
 import { useNotification } from '@/providers/NotificationProvider'
@@ -98,7 +98,6 @@ const BombGameComponent: React.FC<Props> = (props) => {
   }, [])
 
   const playerId = bombMapRef.current?.playerId
-  const score = bombMapRef.current?.score
 
   // WebRTC connection setup
   const { state: { addressList } } = useWebRTC()
@@ -165,6 +164,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(true)
 
+  const playerState = useMemo(() => players.find(p => p.id === playerId), [players])
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
@@ -172,8 +173,11 @@ const BombGameComponent: React.FC<Props> = (props) => {
       <div className='w-full absolute top-16 flex items-center justify-center pointer-events-none'>
         <div className="pointer-events-auto">
           { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-          {playerId && (
-            <BombSelect onSelect={(type) => bombMapRef.current?.setBombType(type)} />
+          {playerId && playerState && (
+            <BombSelect
+              onSelect={(type) => bombMapRef.current?.setBombType(type)}
+              playerState={playerState}
+            />
           )}
         </div>
       </div>

@@ -7,6 +7,19 @@ const GameLoop = 200
 
 let playerId = 1
 
+function getInitPlayerBombs(): Pick<PlayerState, 'usedBombs' | 'totalBombs'> {
+  return {
+    usedBombs: {
+      [BombType.Standard]: 0,
+      [BombType.Atomic]: 0,
+    },
+    totalBombs: {
+      [BombType.Standard]: 30,
+      [BombType.Atomic]: 3,
+    },
+  }
+}
+
 export class BombGame {
   state: GameState = {
     timeLeft: 0,
@@ -23,12 +36,6 @@ export class BombGame {
 
   // position => ownerId
   private explosionMap = new Map<number, { playerId: number, d: number, type: BombType }>()
-
-  // playerId => number of bombs using
-  // private playerUsingBombs = new Map<number, number>()
-
-  // private caughtItems: number[] = []
-  // private explodedBombs: BombState[] = []
 
   private updatedPlayerIds = new Set<number>()
 
@@ -47,7 +54,10 @@ export class BombGame {
   addPlayer(_id?: number) {
     const id = _id || playerId++
     const newPlayer = this.playerStoreMap.get(id)
-      || { id, score: 0, roundPlacedBombs: 0, placedBombs: 0, totalBombs: 100, r: 5 }
+      || {
+        id, score: 0, r: 2,
+        ...getInitPlayerBombs(),
+      }
     this.playerStateMap.set(id, newPlayer)
 
     // notify all the new player
@@ -69,18 +79,21 @@ export class BombGame {
     const players = this.getPlayerStates()
     for (const player of players) {
       player.score = 0
-      player.roundPlacedBombs = 0
-      player.placedBombs = 0
+      Object.assign(player, getInitPlayerBombs())
     }
     this.bombNetwork.gameUpdate({ type: 'players', players })
   }
 
   removePlayer(id: number) {
-    this.playerStoreMap.set(id, this.playerStateMap.get(id)!)
+    const player = this.playerStateMap.get(id)
+    if (!player) return
+
+    this.playerStoreMap.set(id, player)
     this.playerStateMap.delete(id)
 
     // notify all the removed player by sending negative score
-    this.bombNetwork.gameUpdate({ type: 'players', players: [{ id, score: -1, roundPlacedBombs: 0, placedBombs: 0, totalBombs: 0, r: 0 }] })
+    const removed = { ...player, score: -1 }
+    this.bombNetwork.gameUpdate({ type: 'players', players: [removed] })
   }
 
   addBomb(ownerId: number, x: number, y: number, bombType = BombType.Standard) {
@@ -88,10 +101,15 @@ export class BombGame {
 
     const pos = xyToPosition(x, y)
 
+    // already bomb
     if (this.bombStateMap.has(pos)) return
 
     const playerState = this.playerStateMap.get(ownerId)
     if (!playerState) return
+
+    // ran out of bombs
+    if (playerState.usedBombs[bombType] >= playerState.totalBombs[bombType]) return
+    playerState.usedBombs[bombType]++
 
     console.log('Add bomb', pos, x, y, bombType)
     const blastRadius = bombType === BombType.Standard ? playerState.r : 9
@@ -101,17 +119,21 @@ export class BombGame {
     // notify all the new bomb
     this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [bomb] })
 
+    this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+
     return bomb
   }
 
   startRound() {
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 90000 // 90 seconds
+    this.state.timeLeft = 60000 // 60 seconds
 
-    // reset player's roundPlacedBombs
+    // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
-      playerState.roundPlacedBombs = 0
+      playerState.usedBombs[BombType.Standard] = 0
+      playerState.totalBombs[BombType.Standard] = 30
+      playerState.r = 2 + this.state.round
     }
 
     // send game state
@@ -140,17 +162,10 @@ export class BombGame {
     const standardExplosions = explosions
       .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
 
-    // add exploded bombs
-    // for (const bomb of this.explodedBombs) {
-    //   bombs.push(bomb)
-    // }
-
-    // states update
-
     if (explodedBombs.length) {
       this.bombNetwork.gameUpdate({ type: 'bombs', bombs: explodedBombs })
     }
-    if (explosions.length) {
+    if (standardExplosions.length) {
       this.bombNetwork.gameUpdate({ type: 'explosions', explosions: standardExplosions })
     }
 
@@ -202,11 +217,11 @@ export class BombGame {
     }
   }
 
-  sendPlayerUpdates() {
+  private sendPlayerUpdates() {
     if (this.updatedPlayerIds.size === 0) return
 
     const players = Array.from(this.updatedPlayerIds)
-      .map(id => this.playerStateMap.get(id))
+      .map(id => ({...this.playerStateMap.get(id)} as PlayerState))
       .filter(p => p !== undefined)
 
     this.updatedPlayerIds.clear()
@@ -222,40 +237,11 @@ export class BombGame {
 
   private explode(pos: number, bombState: BombState) {
     const { ownerId, blastRadius: r, type } = bombState
-    // const usingBombs = this.playerUsingBombs.get(ownerId) || 1
-    // this.playerUsingBombs.set(ownerId, usingBombs - 1)
     const bombs = [bombState]
-    // this.explodedBombs.push(bombState)
     this.bombStateMap.delete(pos)
     
     // check items caught
     const { x, y } = positionToXY(pos)
-    // const affectedPositions: number[] = []
-    // // Add the bomb's position itself
-    // affectedPositions.push(pos)
-
-    // const affedtedBombPositions: number[] = []
-
-    // Check 4 directions
-    // const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-    // for (const [dx, dy] of dirs) {
-    //   for (let i = 1; i <= r; i++) {
-    //     const affectedPos = xyToPosition(x + dx * i, y + dy * i)
-
-    //     // stop if meet another explosion
-    //     if (this.explosionMap.has(affectedPos)) {
-    //       break
-    //     }
-
-    //     // stop if other bomb
-    //     if (this.bombStateMap.has(affectedPos)) {
-    //       affedtedBombPositions.push(affectedPos)
-    //       break
-    //     }
-
-    //     affectedPositions.push(affectedPos)
-    //   }
-    // }
     const { affectedPositions, affedtedBombPositions } = type === BombType.Standard
       ? this.calculateStandardExplodePositions(x, y, r)
       : this.calculateAtomicExplodePositions(x, y, r)
@@ -270,17 +256,6 @@ export class BombGame {
         // update explosion map
         this.explosionMap.set(pos, { playerId: ownerId, d, type })
       }
-      // check item
-      // const item = this.itemMap.get(pos)
-      // if (item) {
-      //   const playerState = this.playerStateMap.get(ownerId)
-      //   if (playerState) {
-      //     playerState.score += item.points
-      //     this.updatedPlayerIds.add(ownerId)
-      //   }
-      //   this.caughtItems.push(pos)
-      //   this.itemMap.delete(pos) // Remove item once caught
-      // }
     }
 
     // affected bombs explode
@@ -330,8 +305,6 @@ export class BombGame {
     // Atomic bomb affects all positions in a square area
     for (let dx = -r; dx <= r; dx++) {
       for (let dy = -r; dy <= r; dy++) {
-        // if (dx === 0 && dy === 0) continue // Skip the center position
-        // const affectedPos = xyToPosition(x + dx, y + dy)
         if (dx * dx + dy * dy <= r * r) {
           const affectedPos = xyToPosition(x + dx, y + dy)
           if (this.bombStateMap.has(affectedPos)) {
