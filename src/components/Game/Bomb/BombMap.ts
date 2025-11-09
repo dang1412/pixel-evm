@@ -152,6 +152,11 @@ export class BombMap {
   addExplosions(explosions: number[]) {
     for (const pos of explosions) {
       const { x, y } = positionToXY(pos)
+      const old = this.explosionMap.get(pos)
+      if (old) {
+        // erase old explosion
+        old.update(800)
+      }
       this.explosionMap.set(pos, new Explosion(this, x, y))
     }
     sound.play('explosion', { volume: Math.min(1, explosions.length * 0.01) })

@@ -3,7 +3,9 @@ import { Container, Graphics } from 'pixi.js'
 import { BombMap } from './BombMap'
 import { PIXEL_SIZE } from '../utils'
 
-const duration = 600
+const duration = 800
+
+let count = 0
 
 /**
  * Represents the explosion animation using particles.
@@ -49,7 +51,7 @@ export class Explosion {
   update(delta: number) {
     this.duration -= delta
     if (this.duration <= 0) {
-      this.container.destroy()
+      this.container.removeChildren()
       return true
     }
 

@@ -15,7 +15,7 @@ function getInitPlayerBombs(): Pick<PlayerState, 'usedBombs' | 'totalBombs'> {
     },
     totalBombs: {
       [BombType.Standard]: 30,
-      [BombType.Atomic]: 3,
+      [BombType.Atomic]: 30,
     },
   }
 }
@@ -133,7 +133,7 @@ export class BombGame {
     for (const playerState of this.playerStateMap.values()) {
       playerState.usedBombs[BombType.Standard] = 0
       playerState.totalBombs[BombType.Standard] = 30
-      playerState.r = 2 + this.state.round
+      playerState.r = 5 + this.state.round
     }
 
     // send game state
