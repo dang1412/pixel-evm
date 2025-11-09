@@ -160,7 +160,7 @@ export class BombGame {
     // only get standard bomb explosion positions
     const explosions = Array.from(this.explosionMap.keys())
     const standardExplosions = explosions
-      .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
+      // .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
 
     if (explodedBombs.length) {
       this.bombNetwork.gameUpdate({ type: 'bombs', bombs: explodedBombs })

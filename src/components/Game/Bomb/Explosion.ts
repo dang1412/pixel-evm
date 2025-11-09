@@ -3,7 +3,7 @@ import { Container, Graphics } from 'pixi.js'
 import { BombMap } from './BombMap'
 import { PIXEL_SIZE } from '../utils'
 
-const duration = 2000
+const duration = 600
 
 /**
  * Represents the explosion animation using particles.
@@ -33,7 +33,7 @@ export class Explosion {
 
     // Center particles
     for (let i = 0; i < maxParticles; i++) {
-      this.particles.push(this.createParticle(colors))
+      this.createParticle(colors)
     }
   }
 
@@ -53,9 +53,11 @@ export class Explosion {
       return true
     }
 
+    const percentage = this.duration / duration
+
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      p.update(delta)
+      p.update(percentage)
     }
 
     return false
@@ -66,24 +68,22 @@ class Particle {
   g = new Graphics()
   private vx = 0
   private vy = 0
-  private life = duration
 
   constructor(colors: number[]) {
     this.g
       .circle(0, 0, Math.random() * 8 + 4)
       .fill(colors[Math.floor(Math.random() * colors.length)])
-      // .fill(colors[0])
 
     const randx = Math.random() - 0.5
     const randy = Math.random() - 0.5
     this.g.x = PIXEL_SIZE / 2 + randx * PIXEL_SIZE;
     this.g.y = PIXEL_SIZE / 2 + randy * PIXEL_SIZE;
 
-    this.vx = -randx * 2;
-    this.vy = -randy * 2;
+    this.vx = -randx * 4;
+    this.vy = -randy * 4;
   }
 
-  update(delta: number) {
+  update(percentage: number) {
     const g = this.g
 
     g.x += this.vx
@@ -92,8 +92,7 @@ class Particle {
     g.y += this.vy
     if (g.y < 0 || g.y > PIXEL_SIZE) this.vy = -this.vy
 
-    g.scale.set(g.scale.x * 0.97)
-    this.life -= delta
-    g.alpha = this.life / duration
+    g.scale.set(g.scale.x * 0.96)
+    g.alpha = percentage
   }
 }
