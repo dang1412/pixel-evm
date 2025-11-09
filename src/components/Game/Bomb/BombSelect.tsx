@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { FaBomb, FaRocket } from 'react-icons/fa'
 
 import { BombType, PlayerState } from './types'
+import { FaShop } from 'react-icons/fa6'
 
 interface BombSelectProps {
   playerState: PlayerState
   onSelect: (bombType: BombType) => void
+  onOpenShop?: () => void
 }
 
 const bombTypes = [
@@ -25,7 +27,7 @@ function getRemainingBombs({ totalBombs, usedBombs }: PlayerState) {
   return remaining
 }
 
-const BombSelect = ({ playerState, onSelect }: BombSelectProps) => {
+const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelectProps) => {
   const [selected, setSelected] = useState(BombType.Standard)
 
   const remainingBombs = useMemo(() => getRemainingBombs(playerState), [playerState])
@@ -38,6 +40,12 @@ const BombSelect = ({ playerState, onSelect }: BombSelectProps) => {
 
   return (
     <div className="flex space-x-1">
+      <button
+        onClick={onOpenShop}
+        className="bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
+      >
+        <FaShop className="w-4 h-4 text-gray-600" />
+      </button>
       {bombTypes.map((bomb) => {
         const Icon = bomb.icon
         return (

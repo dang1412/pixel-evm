@@ -16,6 +16,8 @@ import { GameState, PlayerState } from './types'
 import { FloatScoreTable } from './FloatScoreTable'
 import BombSelect from './BombSelect'
 import { GuideSteps } from './GuideSteps'
+import { BombShop } from './BombShop'
+import { FaShop } from 'react-icons/fa6'
 
 interface Props {}
 
@@ -166,6 +168,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const playerState = useMemo(() => players.find(p => p.id === playerId), [players])
 
+  const [isBombShopOpen, setIsBombShopOpen] = useState(false)
+
   return (
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
@@ -177,6 +181,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
             <BombSelect
               onSelect={(type) => bombMapRef.current?.setBombType(type)}
               playerState={playerState}
+              onOpenShop={() => setIsBombShopOpen(true)}
             />
           )}
         </div>
@@ -208,12 +213,14 @@ const BombGameComponent: React.FC<Props> = (props) => {
         onRestart={restart}
       />}
 
-      <button
-        onClick={openModal}
-        className="fixed bottom-4 right-4 z-50 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
-      >
-        <FaInfo className="w-4 h-4 text-gray-600" />
-      </button>
+      <div className='fixed bottom-4 right-4 z-50 flex space-x-2'>
+        <button
+          onClick={openModal}
+          className="bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
+        >
+          <FaInfo className="w-4 h-4 text-gray-600" />
+        </button>
+      </div>
 
       {isGuideModalOpen && (
         <GuideModal
@@ -221,6 +228,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
           onClose={() => setIsGuideModalOpen(false)}
         />
       )}
+
+      <BombShop isOpen={isBombShopOpen} onClose={() => setIsBombShopOpen(false)} />
     </>
   )
 }

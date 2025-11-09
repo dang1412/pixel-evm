@@ -2,11 +2,13 @@ export const GuideSteps = [
   {
     content: (
       <div>
-        <p className="mt-2">This is a simple <b>real-time</b>, <b>multi-players</b> Bomb game.</p>
-        <p className="mt-2">Devices can connect and play together—ideally on the same Wi-Fi or local network (via WebRTC).</p>
+        <p className="mt-2">
+          A simple real-time <b>multiplayer</b> Bomb game you can play with friends over Wi-Fi.
+        </p>
+        {/* <p className="mt-2">Devices can connect and play together—ideally on the same Wi-Fi or local network (via WebRTC).</p>
         <p className="ml-2">✅ One device acts as the host, and others connect to it.</p>
         <p className="ml-2">✅ P2p connection, no server required.</p>
-        <p className="ml-2">✅ Instant connect. No account/signup required.</p>
+        <p className="ml-2">✅ Instant connect. No account/signup required.</p> */}
         <p className="mt-2">First, make the host by clicking on "<b>Create game</b>".</p>
       </div>
     ),
