@@ -1,49 +1,54 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
+import { FaBomb, FaRocket, FaBolt } from 'react-icons/fa'
+import { BombMap } from './BombMap'
+import { BombType } from './types'
 
 /**
  * Component hiển thị một vật phẩm trong cửa hàng
  * @param {object} props
  * @param {string} props.name - Tên vật phẩm
  * @param {number} props.price - Giá vật phẩm
- * @param {string} props.imageUrl - URL hình ảnh hoặc icon
+ * @param {React.ElementType} props.icon - Icon component for the item
  */
 
 interface ShopItemProps {
   name: string
   price: number
-  imageUrl: string
+  icon: React.ElementType
+  onBuyClick?: () => void
 }
 
-const ShopItem: React.FC<ShopItemProps> = ({ name, price, imageUrl }) => {
+const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick }) => {
   // State để lưu trữ số lượng
   const [quantity, setQuantity] = useState(1)
 
   // Hàm xử lý khi thay đổi số lượng
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10)
     // Đảm bảo số lượng luôn là số dương và ít nhất là 1
     setQuantity(isNaN(value) || value < 1 ? 1 : value)
-  }
+  }, [])
 
   // Hàm xử lý khi nhấn nút Mua
-  const handleBuyClick = () => {
+  const handleBuyClick = useCallback(() => {
     // Logic xử lý mua hàng (ví dụ: gọi API, cập nhật state global)
     console.log(`Đã mua ${quantity} x ${name} với tổng giá ${price * quantity} vàng.`)
     // Bạn có thể thêm logic đóng modal hoặc hiển thị thông báo tại đây
-  }
+    onBuyClick?.()
+  }, [name, price, quantity, onBuyClick])
 
   return (
     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white shadow-sm gap-3">
       {/* Phần thông tin item (ảnh, tên, giá) */}
       <div className="flex items-center space-x-3 flex-1 min-w-0">
-        <img
-          src={imageUrl}
-          alt={name}
-          className="w-12 h-12 rounded-md object-cover bg-gray-100 flex-shrink-0"
-        />
+        <div className="w-12 h-12 rounded-md bg-gray-100 flex-shrink-0 flex items-center justify-center">
+          <Icon className="w-8 h-8 text-gray-600" />
+        </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm sm:text-base font-semibold text-gray-800 truncate">{name}</h3>
-          <p className="text-xs text-yellow-600 font-medium">Giá: {price} vàng</p>
+          <p className="text-xs text-yellow-600 font-medium flex items-center">
+            <FaBolt className="mr-1" /> {price}
+          </p>
         </div>
       </div>
 
@@ -75,28 +80,34 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, imageUrl }) => {
  */
 
 interface ShopModalProps {
-  isOpen: boolean
+  bomMapRef: React.RefObject<BombMap | undefined>
   onClose: () => void
 }
 
-export const BombShop: React.FC<ShopModalProps> = ({ isOpen, onClose }) => {
+export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
-    { id: 1, name: "Bình Máu Nhỏ", price: 50, imageUrl: "https://placehold.co/100x100/red/white?text=HP" },
-    { id: 2, name: "Bình Năng Lượng", price: 75, imageUrl: "https://placehold.co/100x100/blue/white?text=MP" },
-    { id: 3, name: "Chìa Khóa Vàng", price: 200, imageUrl: "https://placehold.co/100x100/yellow/black?text=Key" },
-    { id: 4, name: "Bom", price: 150, imageUrl: "https://placehold.co/100x100/black/white?text=Bomb" },
+    { id: BombType.Standard, name: "Normal", price: 50, icon: FaBomb },
+    { id: BombType.Atomic, name: "Atomic", price: 200, icon: FaRocket },
   ]
 
-  if (!isOpen) {
-    return null // Không hiển thị gì nếu modal không mở
-  }
+  const doBuyItem = useCallback((type: BombType) => {
+    // Logic xử lý sau khi mua hàng (ví dụ: cập nhật số dư vàng, thông báo thành công, v.v.)
+    console.log('Đã mua vật phẩm thành công!')
+    bomMapRef.current?.bombNetwork.buyBomb(type)
+  }, [])
 
   return (
     // Lớp phủ nền (overlay)
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      onClick={onClose}
+    >
       {/* Box nội dung modal */}
-      <div className="bg-gray-100 w-full max-w-2xl rounded-lg shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div
+        className="bg-gray-100 w-full max-w-2xl rounded-lg shadow-xl overflow-hidden max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header Modal */}
         <div className="flex justify-between items-center p-4 sm:p-5 border-b border-gray-300 bg-white flex-shrink-0">
@@ -117,7 +128,8 @@ export const BombShop: React.FC<ShopModalProps> = ({ isOpen, onClose }) => {
               key={item.id}
               name={item.name}
               price={item.price}
-              imageUrl={item.imageUrl}
+              icon={item.icon}
+              onBuyClick={() => doBuyItem(item.id)}
             />
           ))}
         </div>

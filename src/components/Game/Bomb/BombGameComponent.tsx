@@ -230,7 +230,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
         />
       )}
 
-      <BombShop isOpen={isBombShopOpen} onClose={() => setIsBombShopOpen(false)} />
+      {isBombShopOpen && (
+        <BombShop bomMapRef={bombMapRef} onClose={() => setIsBombShopOpen(false)} />
+      )}
     </>
   )
 }

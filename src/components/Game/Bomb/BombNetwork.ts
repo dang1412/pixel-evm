@@ -6,6 +6,7 @@ type GameMessage =
   // client to host
   | { type: 'join' }
   | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
+  | { type: 'buyBomb', bombType: BombType }
 
   // host to client
   | { type: 'joinSuccess', players: PlayerState[], playerId: number }
@@ -68,7 +69,7 @@ export class BombNetwork {
       this.wsNameToPlayerId['host'] = newPlayer.id
     } else if (this.hostAddr) {
       // send join request to host
-      this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'join' }))
+      this.sendToAddr(this.hostAddr, { type: 'join' })
     }
   }
 
@@ -82,10 +83,29 @@ export class BombNetwork {
       }
     } else {
       // send add bomb request to host
-      if (this.hostAddr) {
-        this.sendTo?.(this.hostAddr, JSON.stringify({ type: 'addBomb', playerId, x, y, bombType }))
-      }
+      this.sendToHost({ type: 'addBomb', playerId, x, y, bombType })
     }
+  }
+
+  buyBomb(bombType: BombType) {
+    if (this.bombGame) {
+      // host
+      if (!this.bombMap.playerId) return
+      this.bombGame.buyBomb(this.bombMap.playerId, bombType)
+    } else {
+      // send buy bomb request to host
+      this.sendToHost({ type: 'buyBomb', bombType })
+    }
+  }
+
+  private sendToHost(msg: GameMessage) {
+    if (this.hostAddr) {
+      this.sendToAddr(this.hostAddr, msg)
+    }
+  }
+
+  private sendToAddr(addr: string, msg: GameMessage) {
+    this.sendTo?.(addr, JSON.stringify(msg))
   }
 
   // for host
@@ -99,9 +119,9 @@ export class BombNetwork {
     if (this.bombGame) {
       // host send cilent states
       const { players, items, state } = this.bombGame.getCurrentStates()
-      this.sendTo?.(addr, JSON.stringify({ type: 'players', players }))
-      this.sendTo?.(addr, JSON.stringify({ type: 'addItems', items }))
-      this.sendTo?.(addr, JSON.stringify({ type: 'gameState', state }))
+      this.sendToAddr(addr, { type: 'players', players })
+      this.sendToAddr(addr, { type: 'addItems', items })
+      this.sendToAddr(addr, { type: 'gameState', state })
     } else {
       // client set host address
       this.hostAddr = addr
@@ -123,7 +143,7 @@ export class BombNetwork {
           const newPlayer = this.bombGame.addPlayer(id)
 
           // send playerId
-          this.sendTo?.(from, JSON.stringify({ type: 'joinSuccess', players: [], playerId: newPlayer.id }))
+          this.sendToAddr(from, { type: 'joinSuccess', players: [], playerId: newPlayer.id })
           this.wsNameToPlayerId[from] = newPlayer.id
         }
         break
@@ -135,6 +155,12 @@ export class BombNetwork {
             // rather than waiting for the game loop
             this.sendAll?.(JSON.stringify({ type: 'bombs', bombs: [bomb] }))
           }
+        }
+        break
+      case 'buyBomb':
+        if (this.bombGame) {
+          const playerId = this.wsNameToPlayerId[from]
+          this.bombGame.buyBomb(playerId, msg.bombType)
         }
         break
       // client

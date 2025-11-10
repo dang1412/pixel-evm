@@ -1,9 +1,8 @@
 import { positionToXY, xyToPosition } from '../utils'
 import { BombNetwork } from './BombNetwork'
+import { bombPrices, GameLoop } from './constant'
 
 import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
-
-const GameLoop = 200
 
 let playerId = 1
 
@@ -66,24 +65,6 @@ export class BombGame {
     return newPlayer
   }
 
-  restart() {
-    // game state
-    this.state = {
-      timeLeft: 0,
-      round: 0,
-      pausing: true,
-    }
-    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
-
-    // players
-    const players = this.getPlayerStates()
-    for (const player of players) {
-      player.score = 0
-      Object.assign(player, getInitPlayerBombs())
-    }
-    this.bombNetwork.gameUpdate({ type: 'players', players })
-  }
-
   removePlayer(id: number) {
     const player = this.playerStateMap.get(id)
     if (!player) return
@@ -101,11 +82,25 @@ export class BombGame {
 
     const pos = xyToPosition(x, y)
 
-    // already bomb
-    if (this.bombStateMap.has(pos)) return
-
     const playerState = this.playerStateMap.get(ownerId)
     if (!playerState) return
+
+    // already bomb
+    const bomb = this.bombStateMap.get(pos)
+    if (bomb) {
+      // defuse the bomb
+      if (bomb.ownerId === ownerId) {
+        this.bombStateMap.delete(pos)
+        console.log('Defuse bomb', pos, x, y, bombType)
+        this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [{ ...bomb, live: 0 }] })
+
+        // increase back the bomb count
+        playerState.usedBombs[bomb.type] = Math.max(0, playerState.usedBombs[bomb.type] - 1)
+        this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+      }
+
+      return
+    }
 
     // ran out of bombs
     if (playerState.usedBombs[bombType] >= playerState.totalBombs[bombType]) return
@@ -113,16 +108,33 @@ export class BombGame {
 
     console.log('Add bomb', pos, x, y, bombType)
     const blastRadius = bombType === BombType.Standard ? playerState.r : 9
-    const bomb: BombState = { ownerId, pos, live: 3000, blastRadius, type: bombType }
-    this.bombStateMap.set(pos, bomb)
+    const newBomb: BombState = { ownerId, pos, live: 3000, blastRadius, type: bombType }
+    this.bombStateMap.set(pos, newBomb)
 
     // notify all the new bomb
-    this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [bomb] })
+    this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [newBomb] })
 
     this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
 
-    return bomb
+    return newBomb
   }
+
+  buyBomb(playerId: number, bombType: BombType) {
+    const playerState = this.playerStateMap.get(playerId)
+    if (!playerState) return
+
+    const cost = bombPrices[bombType]
+    if (playerState.score < cost) return
+
+    playerState.score -= cost
+    playerState.totalBombs[bombType] += 1
+
+    this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+  }
+
+  /**
+   * Admin(host)'s functions
+   */
 
   startRound() {
     this.state.round++
@@ -143,7 +155,25 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players: this.getPlayerStates() })
   }
 
-  update() {
+  restart() {
+    // game state
+    this.state = {
+      timeLeft: 0,
+      round: 0,
+      pausing: true,
+    }
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+
+    // players
+    const players = this.getPlayerStates()
+    for (const player of players) {
+      player.score = 0
+      Object.assign(player, getInitPlayerBombs())
+    }
+    this.bombNetwork.gameUpdate({ type: 'players', players })
+  }
+
+  private update() {
     if (this.state.pausing && this.bombStateMap.size === 0) return
     this.explosionMap.clear()
     // this.caughtItems = []
