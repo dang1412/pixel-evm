@@ -40,12 +40,6 @@ const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelect
 
   return (
     <div className="flex space-x-1">
-      <button
-        onClick={onOpenShop}
-        className="bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
-      >
-        <FaShop className="w-4 h-4 text-gray-600" />
-      </button>
       {bombTypes.map((bomb) => {
         const Icon = bomb.icon
         return (
@@ -75,6 +69,12 @@ const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelect
           </label>
         );
       })}
+      <button
+        onClick={onOpenShop}
+        className="bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition"
+      >
+        <FaShop className="w-4 h-4 text-gray-600" />
+      </button>
     </div>
   );
 };

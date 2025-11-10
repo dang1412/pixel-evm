@@ -35,7 +35,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       {/* Notification container */}
-      <div className="fixed top-16 right-4 space-y-2 z-50 max-w-sm">
+      <div className="fixed bottom-4 right-4 space-y-2 z-50 max-w-sm">
         {notifications.map((n) => (
           <div
             key={n.id}

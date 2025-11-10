@@ -190,12 +190,15 @@ export class BombGame {
 
     // generate item
     const newItems: ItemState[] = []
-    while (this.itemMap.size < 200) {
-      const pos = Math.floor(Math.random() * 10000)
-      if (!this.itemMap.has(pos)) {
-        const item: ItemState = { pos, type: 0, points: Math.floor(Math.random() * 99) + 1 }
-        this.itemMap.set(pos, item)
-        newItems.push(item)
+    if (this.itemMap.size < 200) {
+      const count = Math.random() * 10 + 1
+      for (let i = 0; i < count; i++) {
+        const pos = Math.floor(Math.random() * 10000)
+        if (!this.itemMap.has(pos)) {
+          const item: ItemState = { pos, type: 0, points: Math.floor(Math.random() * 99) + 1 }
+          this.itemMap.set(pos, item)
+          newItems.push(item)
+        }
       }
     }
 

@@ -174,22 +174,23 @@ const BombGameComponent: React.FC<Props> = (props) => {
     <>
       <canvas ref={(c) => setCanvas(c)} className='' style={{border: '1px solid #ccc'}} />
 
-      <div className='w-full absolute top-16 flex items-center justify-center pointer-events-none'>
-        <div className="pointer-events-auto">
-          { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
-          {playerId && playerState && (
-            <BombSelect
-              onSelect={(type) => bombMapRef.current?.setBombType(type)}
-              playerState={playerState}
-              onOpenShop={() => setIsBombShopOpen(true)}
-            />
+      <div className='w-full absolute top-16 flex justify-end pointer-events-none px-4'>
+        <div className="flex flex-col items-end space-y-2">
+          {gameState && (
+            <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
           )}
+          <div className="pointer-events-auto">
+            { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
+            {playerId && playerState && (
+              <BombSelect
+                onSelect={(type) => bombMapRef.current?.setBombType(type)}
+                playerState={playerState}
+                onOpenShop={() => setIsBombShopOpen(true)}
+              />
+            )}
+          </div>
         </div>
       </div>
-
-      {gameState && (
-        <FloatScoreTable gameState={gameState} players={players} playerId={playerId} />
-      )}
 
       {isMenuModalOpen && (
         <MenuModal
