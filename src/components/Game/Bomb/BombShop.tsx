@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { FaBomb, FaRocket, FaBolt } from 'react-icons/fa'
 import { BombMap } from './BombMap'
-import { BombType } from './types'
+import { BombType, PlayerState } from './types'
 import { bombPrices } from './constant'
 
 /**
@@ -71,10 +71,11 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
 
 interface ShopModalProps {
   bomMapRef: React.RefObject<BombMap | undefined>
+  playerState: PlayerState
   onClose: () => void
 }
 
-export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, onClose }) => {
+export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, playerState, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
     { id: BombType.Standard, name: "Normal", price: bombPrices[BombType.Standard], icon: FaBomb },
@@ -90,7 +91,7 @@ export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, onClose }) => {
   return (
     // Lớp phủ nền (overlay)
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Box nội dung modal */}
@@ -109,6 +110,28 @@ export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, onClose }) => {
           >
             &times;
           </button>
+        </div>
+
+        {/* Player State Info */}
+        <div className="px-4 sm:px-5 py-3 bg-gray-50 border-b border-gray-300">
+          <div className="flex gap-6 text-sm sm:text-base">
+            <div className="flex items-center">
+              <FaBolt className="text-yellow-500 mr-1" />
+              <span className="text-gray-900 font-bold">{playerState.score}</span>
+            </div>
+            <div className="flex items-center">
+              <FaBomb className="mr-1" />
+              <span className="text-gray-900 font-bold">
+                {playerState.bombs[BombType.Standard] || 0}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <FaRocket className="mr-1" />
+              <span className="text-gray-900 font-bold">
+                {playerState.bombs[BombType.Atomic] || 0}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Danh sách vật phẩm */}
