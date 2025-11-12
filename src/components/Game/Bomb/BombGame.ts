@@ -6,15 +6,11 @@ import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
 
 let playerId = 1
 
-function getInitPlayerBombs(): Pick<PlayerState, 'usedBombs' | 'totalBombs'> {
+function getInitPlayerBombs(): Pick<PlayerState, 'bombs'> {
   return {
-    usedBombs: {
+    bombs: {
       [BombType.Standard]: 0,
       [BombType.Atomic]: 0,
-    },
-    totalBombs: {
-      [BombType.Standard]: 30,
-      [BombType.Atomic]: 30,
     },
   }
 }
@@ -95,7 +91,7 @@ export class BombGame {
         this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [{ ...bomb, live: 0 }] })
 
         // increase back the bomb count
-        playerState.usedBombs[bomb.type] = Math.max(0, playerState.usedBombs[bomb.type] - 1)
+        playerState.bombs[bomb.type]++
         this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
       }
 
@@ -103,8 +99,8 @@ export class BombGame {
     }
 
     // ran out of bombs
-    if (playerState.usedBombs[bombType] >= playerState.totalBombs[bombType]) return
-    playerState.usedBombs[bombType]++
+    if (playerState.bombs[bombType] <= 0) return
+    playerState.bombs[bombType]--
 
     console.log('Add bomb', pos, x, y, bombType)
     const blastRadius = bombType === BombType.Standard ? playerState.r : 9
@@ -127,7 +123,7 @@ export class BombGame {
     if (playerState.score < cost) return
 
     playerState.score -= cost
-    playerState.totalBombs[bombType] += 1
+    playerState.bombs[bombType] += 1
 
     this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
   }
@@ -139,13 +135,13 @@ export class BombGame {
   startRound() {
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 60000 // 60 seconds
+    this.state.timeLeft = 90000 // 90 seconds
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
-      playerState.usedBombs[BombType.Standard] = 0
-      playerState.totalBombs[BombType.Standard] = 30
-      playerState.r = 5 + this.state.round
+      playerState.bombs[BombType.Standard] +=30
+      playerState.bombs[BombType.Atomic] +=5
+      playerState.r = 2 + this.state.round
     }
 
     // send game state

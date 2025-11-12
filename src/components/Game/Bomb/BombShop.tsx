@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react'
 import { FaBomb, FaRocket, FaBolt } from 'react-icons/fa'
 import { BombMap } from './BombMap'
 import { BombType } from './types'
+import { bombPrices } from './constant'
 
 /**
  * Component hiển thị một vật phẩm trong cửa hàng
@@ -19,23 +20,12 @@ interface ShopItemProps {
 }
 
 const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick }) => {
-  // State để lưu trữ số lượng
-  const [quantity, setQuantity] = useState(1)
-
-  // Hàm xử lý khi thay đổi số lượng
-  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10)
-    // Đảm bảo số lượng luôn là số dương và ít nhất là 1
-    setQuantity(isNaN(value) || value < 1 ? 1 : value)
-  }, [])
-
   // Hàm xử lý khi nhấn nút Mua
   const handleBuyClick = useCallback(() => {
     // Logic xử lý mua hàng (ví dụ: gọi API, cập nhật state global)
-    console.log(`Đã mua ${quantity} x ${name} với tổng giá ${price * quantity} vàng.`)
     // Bạn có thể thêm logic đóng modal hoặc hiển thị thông báo tại đây
     onBuyClick?.()
-  }, [name, price, quantity, onBuyClick])
+  }, [name, price, onBuyClick])
 
   return (
     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white shadow-sm gap-3">
@@ -54,13 +44,13 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
 
       {/* Phần hành động (số lượng, nút mua) */}
       <div className="flex items-center space-x-2 flex-shrink-0">
-        <input
+        {/* <input
           type="number"
           value={quantity}
           onChange={handleQuantityChange}
           min="1"
           className="w-14 text-center border border-gray-300 rounded-md p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        /> */}
         <button
           onClick={handleBuyClick}
           className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors duration-200"
@@ -87,15 +77,15 @@ interface ShopModalProps {
 export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
-    { id: BombType.Standard, name: "Normal", price: 50, icon: FaBomb },
-    { id: BombType.Atomic, name: "Atomic", price: 200, icon: FaRocket },
+    { id: BombType.Standard, name: "Normal", price: bombPrices[BombType.Standard], icon: FaBomb },
+    { id: BombType.Atomic, name: "Atomic", price: bombPrices[BombType.Atomic], icon: FaRocket },
   ]
 
   const doBuyItem = useCallback((type: BombType) => {
     // Logic xử lý sau khi mua hàng (ví dụ: cập nhật số dư vàng, thông báo thành công, v.v.)
     console.log('Đã mua vật phẩm thành công!')
     bomMapRef.current?.bombNetwork.buyBomb(type)
-  }, [])
+  }, [onClose])
 
   return (
     // Lớp phủ nền (overlay)

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { FaBomb, FaRocket } from 'react-icons/fa'
 
 import { BombType, PlayerState } from './types'
@@ -15,23 +15,10 @@ const bombTypes = [
   { type: BombType.Atomic, icon: FaRocket, label: 'Atomic Bomb' },
 ]
 
-const types = [BombType.Standard, BombType.Atomic]
-
-function getRemainingBombs({ totalBombs, usedBombs }: PlayerState) {
-  const remaining: { [type: number]: number } = {}
-  for (const type of types) {
-    remaining[type] = totalBombs[type] - usedBombs[type]
-  }
-
-  console.log('remaining', remaining)
-  return remaining
-}
-
 const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelectProps) => {
   const [selected, setSelected] = useState(BombType.Standard)
 
-  const remainingBombs = useMemo(() => getRemainingBombs(playerState), [playerState])
-  // const remainingBombs = getRemainingBombs(playerState)
+  const remainingBombs = playerState.bombs
 
   const handleSelect = (bombType: BombType) => {
     setSelected(bombType)
@@ -67,7 +54,7 @@ const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelect
               {remainingBombs[bomb.type]}
             </span>
           </label>
-        );
+        )
       })}
       <button
         onClick={onOpenShop}
@@ -76,7 +63,7 @@ const BombSelect = ({ playerState, onSelect, onOpenShop = () => {} }: BombSelect
         <FaShop className="w-4 h-4 text-gray-600" />
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default BombSelect;
+export default BombSelect

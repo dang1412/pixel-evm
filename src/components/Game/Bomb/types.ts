@@ -30,7 +30,6 @@ export interface ItemState {
 export interface PlayerState {
   id: number
   score: number
-  usedBombs: {[type: number]: number}
-  totalBombs: {[type: number]: number}
+  bombs: {[type in BombType]: number}
   r: number
 }
