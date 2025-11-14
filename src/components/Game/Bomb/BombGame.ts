@@ -1,3 +1,4 @@
+import { ClientMessage } from '@/providers/types'
 import { positionToXY, xyToPosition } from '../utils'
 import { BombNetwork } from './BombNetwork'
 import { bombPrices, GameLoop } from './constant'
@@ -34,19 +35,45 @@ export class BombGame {
 
   private updatedPlayerIds = new Set<number>()
 
-  constructor(private bombNetwork: BombNetwork) {
+  private gameId = 0
+
+  constructor(
+    private bombNetwork: BombNetwork,
+    private host: string,
+    private sendServer: (msg: ClientMessage) => void
+  ) {
     setInterval(() => {
       this.update()
     }, GameLoop)
 
     bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+
+    // notify server about game creation
+    sendServer({ action: 'bomb_game', msg: { type: 'create_game', payload: { host } } })
+  }
+
+  // receive gameId from server
+  setGameId(id: number) {
+    this.gameId = id
+    // self connect
+    this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: 'host' } } })
   }
 
   getPlayerStates() {
     return Array.from(this.playerStateMap.values())
   }
 
-  addPlayer(_id?: number) {
+  connected(from: string) {
+    // notify server about new connection
+    this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: from } } })
+  }
+
+  addPlayer(host: string, _id?: number) {
+    if (!this.gameId) {
+      console.warn('Game ID not set yet')
+      return
+    }
+
     const id = _id || playerId++
     const newPlayer = this.playerStoreMap.get(id)
       || {
@@ -57,6 +84,9 @@ export class BombGame {
 
     // notify all the new player
     this.bombNetwork.gameUpdate({ type: 'players', players: [newPlayer] })
+
+    // notify server about new player
+    this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.gameId, client: host || this.host, playerId: id } } })
 
     return newPlayer
   }
@@ -73,19 +103,19 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players: [removed] })
   }
 
-  addBomb(ownerId: number, x: number, y: number, bombType = BombType.Standard) {
-    if (this.state.pausing) return
+  addBomb(playerId: number, x: number, y: number, bombType = BombType.Standard) {
+    if (!this.gameId || this.state.pausing) return
 
     const pos = xyToPosition(x, y)
 
-    const playerState = this.playerStateMap.get(ownerId)
+    const playerState = this.playerStateMap.get(playerId)
     if (!playerState) return
 
     // already bomb
     const bomb = this.bombStateMap.get(pos)
     if (bomb) {
       // defuse the bomb
-      if (bomb.ownerId === ownerId) {
+      if (bomb.ownerId === playerId) {
         this.bombStateMap.delete(pos)
         console.log('Defuse bomb', pos, x, y, bombType)
         this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [{ ...bomb, live: 0 }] })
@@ -104,13 +134,16 @@ export class BombGame {
 
     console.log('Add bomb', pos, x, y, bombType)
     const blastRadius = bombType === BombType.Standard ? playerState.r : 9
-    const newBomb: BombState = { ownerId, pos, live: 3000, blastRadius, type: bombType }
+    const newBomb: BombState = { ownerId: playerId, pos, live: 3000, blastRadius, type: bombType }
     this.bombStateMap.set(pos, newBomb)
 
     // notify all the new bomb
     this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [newBomb] })
 
     this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+
+    // notify server about new bomb
+    this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.gameId, round: this.state.round, playerId, pos, bombType } } })
 
     return newBomb
   }
@@ -126,6 +159,9 @@ export class BombGame {
     playerState.bombs[bombType] += 1
 
     this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+
+    // notify server about buy bomb
+    this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.gameId, playerId, bombType } } })
   }
 
   /**
@@ -135,7 +171,7 @@ export class BombGame {
   startRound() {
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 90000 // 90 seconds
+    this.state.timeLeft = 10000 // 90 seconds
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
@@ -237,11 +273,30 @@ export class BombGame {
 
     // time left
     this.state.timeLeft = Math.max(this.state.timeLeft - GameLoop, 0)
+
+    // round end
+    if (this.state.timeLeft === 0) {
+      this.state.pausing = true
+      // round ends if no bombs left, notify scores to server
+      if (this.bombStateMap.size === 0) {
+        const playerScores = this.getPlayerStates().map(p => ({ playerId: p.id, score: p.score }))
+        console.log('Round ended, sending scores to server', playerScores)
+        this.sendServer({
+          action: 'bomb_game',
+          msg: {
+            type: 'scores',
+            payload: {
+              gameId: this.gameId,
+              round: this.state.round,
+              players: playerScores,
+            }
+          }
+        })
+      }
+    }
+
     if (this.state.timeLeft % 1000 === 0) {
       // send time update every second
-      if (this.state.timeLeft === 0) {
-        this.state.pausing = true
-      }
       this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
     }
   }

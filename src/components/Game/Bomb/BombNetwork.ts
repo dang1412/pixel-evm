@@ -1,3 +1,4 @@
+import { ClientMessage } from '@/providers/types'
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
 import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
@@ -40,8 +41,8 @@ export class BombNetwork {
   }
 
   // host a game
-  createGame() {
-    this.bombGame = new BombGame(this)
+  createGame(host: string, sendServer: (msg: ClientMessage) => void) {
+    this.bombGame = new BombGame(this, host, sendServer)
   }
 
   getBombGame() {
@@ -59,11 +60,14 @@ export class BombNetwork {
     }
   }
 
+  // TODO self receive msg in case of self hosted to reduce duplicate code
   // join game, host or client
   joinGame() {
     if (this.bombGame) {
       // self hosted
-      const newPlayer = this.bombGame.addPlayer()
+      const newPlayer = this.bombGame.addPlayer('host')
+      if (!newPlayer) return
+
       const players = this.bombGame.getPlayerStates()
       this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
       this.wsNameToPlayerId['host'] = newPlayer.id
@@ -122,6 +126,9 @@ export class BombNetwork {
       this.sendToAddr(addr, { type: 'players', players })
       this.sendToAddr(addr, { type: 'addItems', items })
       this.sendToAddr(addr, { type: 'gameState', state })
+
+      // notify server about new connection
+      this.bombGame.connected(addr)
     } else {
       // client set host address
       this.hostAddr = addr
@@ -140,7 +147,8 @@ export class BombNetwork {
       case 'join':
         if (this.bombGame) {
           const id = this.wsNameToPlayerId[from]
-          const newPlayer = this.bombGame.addPlayer(id)
+          const newPlayer = this.bombGame.addPlayer(from, id)
+          if (!newPlayer) return
 
           // send playerId
           this.sendToAddr(from, { type: 'joinSuccess', players: [], playerId: newPlayer.id })
@@ -149,6 +157,7 @@ export class BombNetwork {
         break
       case 'addBomb':
         if (this.bombGame) {
+          // TODO get playerId from wsNameToPlayerId map for security
           const bomb =this.bombGame.addBomb(msg.playerId, msg.x, msg.y, msg.bombType)
           if (bomb) {
             // send bomb update to this player immediately,

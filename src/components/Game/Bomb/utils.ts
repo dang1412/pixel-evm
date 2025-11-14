@@ -5,8 +5,7 @@ export function clonePlayerState(original: PlayerState) {
     id: original.id,
     score: original.score,
     r: original.r,
-    usedBombs: { ...original.usedBombs },
-    totalBombs: { ...original.totalBombs },
+    bombs: { ...original.bombs },
   }
 
   return cloned

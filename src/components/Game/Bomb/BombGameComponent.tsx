@@ -18,6 +18,8 @@ import BombSelect from './BombSelect'
 import { GuideSteps } from './GuideSteps'
 import { BombShop } from './BombShop'
 import { FaShop } from 'react-icons/fa6'
+import { useWebSocket } from '@/providers/WebsocketProvider'
+import { ChannelPayloadMap } from '@/providers/types'
 
 interface Props {}
 
@@ -81,16 +83,24 @@ const BombGameComponent: React.FC<Props> = (props) => {
     }
   }, [])
   const { offerConnect, getAccountConnectService, wsRandomName } = useWebRTCConnectWs(onMsg)
+  const { send, subscribe } = useWebSocket()
 
   const createGame = useCallback(async () => {
     const bombMap = bombMapRef.current
-    if (bombMap) {
-      setIsMenuModalOpen(false)
-      bombMap.bombNetwork.createGame()
-      setIsPlayerModalOpen(true)
+    if (bombMap && !bombMap.bombNetwork.isHost()) {
+      // subscribe to bomb game channel
+      subscribe('bomb-game', (data) => {
+        bombMap.bombNetwork.getBombGame()?.setGameId(data.gameId)
+      })
+
+      // create game as host
+      bombMap.bombNetwork.createGame(wsRandomName, send)
+
       setHostName(wsRandomName)
+      setIsMenuModalOpen(false)
+      setIsPlayerModalOpen(true)
     }
-  }, [wsRandomName])
+  }, [wsRandomName, send])
 
   const joinGame = useCallback(async () => {
     const bombMap = bombMapRef.current

@@ -7,7 +7,7 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import { ClientMessage } from './types';
+import { ChannelPayloadMap, ClientMessage } from './types';
 
 // Giả định kiểu dữ liệu tin nhắn server trả về
 interface WebSocketMessage {
@@ -16,17 +16,17 @@ interface WebSocketMessage {
 }
 
 // Kiểu dữ liệu cho các hàm callback được đăng ký
-type MessageCallback = (data: any) => void;
+type MessageCallback<T = any> = (data: T) => void;
 
 // Danh sách listeners, dùng useRef để tránh re-render không cần thiết
 // Cấu trúc: { "channel_A": [callback1, callback2], "channel_B": [callback3] }
 type ListenerMap = Record<string, MessageCallback[]>;
 
-interface WebSocketContextType {
+interface WebSocketContextType<T = ClientMessage> {
   // Hàm để gửi tin nhắn đi (bao gồm cả tin nhắn subscribe/unsubscribe)
-  send: (message: ClientMessage) => void;
+  send: (message: T) => void;
   // Hàm để đăng ký lắng nghe một channel
-  subscribe: (channel: string, callback: MessageCallback) => void;
+  subscribe: <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) => void;
   // Hàm để hủy đăng ký
   unsubscribe: (channel: string, callback: MessageCallback) => void;
   isConnected: boolean;
@@ -76,16 +76,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       try {
         // GIẢ ĐỊNH QUAN TRỌNG:
         // Server trả về JSON có dạng { channel: "...", data: ... }
-        const message: WebSocketMessage = JSON.parse(event.data);
-        const { channel, data } = message;
+        const message = JSON.parse(event.data);
+        if (message.channel) {
+          const { channel, data } = message as WebSocketMessage;
 
-        // Tìm tất cả các callback đã đăng ký cho channel này
-        const channelListeners = listeners.current[channel];
-        if (channelListeners) {
-          // Gửi dữ liệu đến tất cả các component đang lắng nghe
-          channelListeners.forEach((callback) => {
-            callback(data);
-          });
+          // Tìm tất cả các callback đã đăng ký cho channel này
+          const channelListeners = listeners.current[channel];
+          if (channelListeners) {
+            // Gửi dữ liệu đến tất cả các component đang lắng nghe
+            channelListeners.forEach((callback) => {
+              callback(data);
+            });
+          }
+        } else {
+          console.warn('Received message without channel:', message);
         }
       } catch (error) {
         console.warn('Failed to parse WebSocket message:', event.data);
@@ -109,7 +113,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   // Hàm đăng ký channel
-  const subscribe = useCallback((channel: string, callback: MessageCallback) => {
+  const subscribe = useCallback(
+    <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) =>
+  {
     if (!listeners.current[channel]) {
       listeners.current[channel] = [];
     }
@@ -169,8 +175,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 };
 
 // Hook tiện ích để truy cập Context
-export const useWebSocket = (): WebSocketContextType => {
-  const context = useContext(WebSocketContext);
+export const useWebSocket = <T = ClientMessage>(): WebSocketContextType<T> => {
+  const context = useContext(WebSocketContext) as WebSocketContextType<T>;
   if (!context) {
     throw new Error('useWebSocket must be used within a WebSocketProvider');
   }

@@ -97,7 +97,6 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
     if (!wsRandomName) return
     const { from, content } = data
 
-    // const sdp = await ipfs.fetch<RTCSessionDescriptionInit>(e.cid)
     const sdp = JSON.parse(content) as RTCSessionDescriptionInit
 
     if (!accountConnectServices[from]) {

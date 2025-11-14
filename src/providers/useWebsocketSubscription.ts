@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 
 import { useWebSocket } from './WebsocketProvider';
+import { ChannelPayloadMap, KnownChannel } from './types';
 
 /**
  * Custom hook để tự động đăng ký và hủy đăng ký một channel.
  * @param channel Tên channel muốn lắng nghe.
  * @param onMessage Callback sẽ được gọi khi có tin nhắn từ channel này.
  */
-export const useWebSocketSubscription = (
-  channel: string | null, // Cho phép null để "tạm dừng" sub
-  onMessage: (data: any) => void
+export const useWebSocketSubscription = <T extends KnownChannel>(
+  channel: T | null, // Cho phép null để "tạm dừng" sub
+  onMessage: (data: ChannelPayloadMap[T]) => void
 ) => {
   const { subscribe, unsubscribe, isConnected } = useWebSocket();
 
