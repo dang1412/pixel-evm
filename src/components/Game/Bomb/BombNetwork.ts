@@ -65,7 +65,7 @@ export class BombNetwork {
   joinGame() {
     if (this.bombGame) {
       // self hosted
-      const newPlayer = this.bombGame.addPlayer('host')
+      const newPlayer = this.bombGame.addPlayer('')
       if (!newPlayer) return
 
       const players = this.bombGame.getPlayerStates()

@@ -36,6 +36,9 @@ export class BombGame {
   private updatedPlayerIds = new Set<number>()
 
   private gameId = 0
+  private originalGameId = 0
+
+  private maxStarsCount = 100
 
   constructor(
     private bombNetwork: BombNetwork,
@@ -55,8 +58,10 @@ export class BombGame {
   // receive gameId from server
   setGameId(id: number) {
     this.gameId = id
-    // self connect
-    this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: 'host' } } })
+    // self connect in case this is original game (no restart yet)
+    if (!this.originalGameId) {
+      this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: 'host' } } })
+    }
   }
 
   getPlayerStates() {
@@ -169,14 +174,16 @@ export class BombGame {
    */
 
   startRound() {
+    if (this.state.round >= 5) return // max 5 rounds
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 10000 // 90 seconds
+    this.state.timeLeft = 100000 // 100 seconds
+    this.maxStarsCount = 120 * this.state.round
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
-      playerState.bombs[BombType.Standard] +=30
-      playerState.bombs[BombType.Atomic] +=5
+      playerState.bombs[BombType.Standard] = 30
+      // playerState.bombs[BombType.Atomic] +=5
       playerState.r = 2 + this.state.round
     }
 
@@ -203,6 +210,11 @@ export class BombGame {
       Object.assign(player, getInitPlayerBombs())
     }
     this.bombNetwork.gameUpdate({ type: 'players', players })
+
+    // notify server to reset
+    if (!this.originalGameId) this.originalGameId = this.gameId
+    this.gameId = 0
+    this.sendServer({ action: 'bomb_game', msg: { type: 'create_game', payload: { host: this.host, originalGameId: this.originalGameId } } })
   }
 
   private update() {
@@ -250,9 +262,9 @@ export class BombGame {
       this.bombNetwork.gameUpdate({ type: 'removeItems', positions: caughtItems })
     }
 
-    // generate item
+    // generate items
     const newItems: ItemState[] = []
-    if (this.itemMap.size < 200) {
+    if (this.itemMap.size < this.maxStarsCount) {
       const count = Math.random() * 10 + 1
       for (let i = 0; i < count; i++) {
         const pos = Math.floor(Math.random() * 10000)

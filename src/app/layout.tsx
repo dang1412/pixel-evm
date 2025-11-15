@@ -29,8 +29,8 @@ export default function RootLayout({
             <div className='flex flex-col h-screen'>
               <Header />
               <div className='flex-1'>
-                {/* <WebSocketProvider url="wss://ws.pixelonbase.com"> */}
-                <WebSocketProvider url="ws://localhost:8080">
+                <WebSocketProvider url="wss://ws.pixelonbase.com">
+                {/* <WebSocketProvider url="ws://localhost:8080"> */}
                   <WebRTCProvider>
                     {children}
                   </WebRTCProvider>
