@@ -60,7 +60,10 @@ export class BombGame {
     this.gameId = id
     // self connect in case this is original game (no restart yet)
     if (!this.originalGameId) {
-      this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: 'host' } } })
+      this.sendServer({
+        action: 'bomb_game',
+        msg: { type: 'connect', payload: { gameId: this.gameId, client: this.bombNetwork.myWsName || '' } }
+      })
     }
   }
 

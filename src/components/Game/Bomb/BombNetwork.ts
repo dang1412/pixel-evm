@@ -20,12 +20,14 @@ type GameMessage =
   | { type: 'gameState', state: GameState }
 
 export class BombNetwork {
-  
+
   sendTo?: (addr: string, data: string) => void
   sendAll?: (data: string) => void
+  notify?: (message: string, type?: 'success' | 'error' | 'info') => void
 
   private bombGame?: BombGame
-  private hostAddr?: string
+  hostWsName?: string
+  myWsName?: string
 
   // for host
   private wsNameToPlayerId: { [wsName: string]: number } = {}
@@ -41,8 +43,9 @@ export class BombNetwork {
   }
 
   // host a game
-  createGame(host: string, sendServer: (msg: ClientMessage) => void) {
-    this.bombGame = new BombGame(this, host, sendServer)
+  createGame(sendServer: (msg: ClientMessage) => void) {
+    this.hostWsName = this.myWsName
+    this.bombGame = new BombGame(this, this.myWsName || '', sendServer)
   }
 
   getBombGame() {
@@ -71,9 +74,9 @@ export class BombNetwork {
       const players = this.bombGame.getPlayerStates()
       this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
       this.wsNameToPlayerId['host'] = newPlayer.id
-    } else if (this.hostAddr) {
+    } else if (this.hostWsName) {
       // send join request to host
-      this.sendToAddr(this.hostAddr, { type: 'join' })
+      this.sendToAddr(this.hostWsName, { type: 'join' })
     }
   }
 
@@ -103,8 +106,8 @@ export class BombNetwork {
   }
 
   private sendToHost(msg: GameMessage) {
-    if (this.hostAddr) {
-      this.sendToAddr(this.hostAddr, msg)
+    if (this.hostWsName) {
+      this.sendToAddr(this.hostWsName, msg)
     }
   }
 
@@ -129,19 +132,38 @@ export class BombNetwork {
 
       // notify server about new connection
       this.bombGame.connected(addr)
+      this.notify?.('A client has connected: ' + addr, 'info')
     } else {
       // client set host address
-      this.hostAddr = addr
+      this.hostWsName = addr
+      this.notify?.('Connected to host ' + addr, 'info')
     }
   }
 
   receiveMsg(from: string, data: string) {
-    const msg: GameMessage = JSON.parse(data)
-    if (!msg.type) {
-      console.warn('Invalid message received:', data)
-      return
+    if (data === '_connected_') {
+      this.connected(from)
+    } else if (data === '_closed_') {
+      this.notify?.('Connection closed: ' + from, 'info')
+      if (this.isHost()) {
+        // remove player
+        this.removePlayer(from)
+      }
+    } else {
+      try {
+        const msg: GameMessage = JSON.parse(data)
+        if (!msg.type) {
+          console.warn('Invalid message received:', data)
+          return
+        }
+        this.receiveGameMsg(from, msg)
+      } catch (e) {
+        console.error('Failed to parse message:', data, e)
+      }
     }
+  }
 
+  private receiveGameMsg(from: string, msg: GameMessage) {
     switch (msg.type) {
       // host
       case 'join':

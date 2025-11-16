@@ -20,8 +20,6 @@ export class BombMap {
   explosionMap = new Map<number, Explosion>()
   itemMap = new Map<number, MapItem>()
 
-  // bombGame will be replaced by network component
-  // bombGame: BombGame | undefined
   bombNetwork: BombNetwork
   bombUsing = 0
 
@@ -36,10 +34,11 @@ export class BombMap {
 
   private bombType = BombType.Standard
 
+  onPlayersUpdated?: (players: PlayerState[]) => void
+  onGameStateUpdated?: (state: GameState) => void
+
   constructor(
     public map: PixelMap,
-    private onPlayersUpdated: (players: PlayerState[]) => void,
-    private onGameStateUpdated: (state: GameState) => void
   ) {
     this.bombNetwork = new BombNetwork(this)
     const view = map.getView()
@@ -80,7 +79,7 @@ export class BombMap {
 
   updateGameState(state: GameState) {
     this.gameState = {...this.gameState, ...state}
-    this.onGameStateUpdated(this.gameState)
+    this.onGameStateUpdated?.(this.gameState)
   }
 
   // Update or remove players
@@ -94,7 +93,7 @@ export class BombMap {
         this.players.set(player.id, player)
       }
     }
-    this.onPlayersUpdated(this.playersArray)
+    this.onPlayersUpdated?.(this.playersArray)
   }
 
   get playersArray(): PlayerState[] {

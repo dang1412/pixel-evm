@@ -26,6 +26,12 @@ export type BombGameMsg =
   | { type: 'place_bomb'; payload: { gameId: number; round: number; playerId: number; pos: number; bombType: BombType } }
   | { type: 'defuse_bomb'; payload: { gameId: number; round: number; playerId: number; pos: number; } }
   | { type: 'buy_bomb'; payload: { gameId: number; playerId: number; bombType: BombType } }
+  // api
+  | { type: 'get_top_rank'; payload: { round: number } }
 
 export type BombGameMsgResponse =
+  // respond to 'create_game'
   | { type: 'game_created'; gameId: number }
+
+  // respond to 'get_top_rank'
+  | { type: 'top_rank'; players: { gameId: number; playerId: number; score: number; }[] }

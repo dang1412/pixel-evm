@@ -146,9 +146,27 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
     accountConnectServices[toAddr] = service
   }, [wsRandomName, createService])
 
+  // WebRTC connection setup
+  const { state: { addressList } } = useWebRTC()
+
+  // send data to all addresses
+  const sendAll = useCallback((data: string) => {
+    console.log('sendAll', addressList, data)
+    for (const addr of addressList) {
+      getAccountConnectService(addr)?.sendMessage(data)
+    }
+  }, [addressList, getAccountConnectService])
+
+  // send data to specific address
+  const sendTo = useCallback((addr: string, data: string) => {
+    console.log('sendTo', addr, data)
+    getAccountConnectService(addr)?.sendMessage(data)
+  }, [getAccountConnectService])
+
   return {
     offerConnect,
-    getAccountConnectService,
+    sendAll,
+    sendTo,
     wsRandomName,
   }
 }
