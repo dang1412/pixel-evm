@@ -198,18 +198,18 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 onClick={() => onStart && onStart()}
                 className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
               >
-                {gameState.round === 0 ? 'Start' :  'Next Round'}
+                {gameState.round === 0 ? 'Start' :  'Next'}
               </button>
             )}
           </div>
 
-          {!playerId && <div className="flex items-center gap-3">
+          {!playerId && <div className="flex items-center gap-2">
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Enter your name"
-              className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Your name"
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white w-32 sm:w-auto"
               onKeyUp={(e) => {
                 if (e.key === 'Enter') {
                   handleJoinGame();
@@ -219,9 +219,9 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
             <button
               onClick={handleJoinGame}
               disabled={!playerName.trim()}
-              className="px-6 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
             >
-              Join Game
+              Join
             </button>
           </div>}
         </div>
