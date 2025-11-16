@@ -13,9 +13,12 @@ export class MapItem {
     const mainScene = view.getScene('main')
     if (!mainScene) throw new Error('Main scene not loaded yet!')
 
+    // Determine star size based on points
+    const starScale = this.getStarScale(points)
+
     // Glow effect
     const glow = new Graphics()
-    glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE)
+    glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * starScale)
         .fill({ color: 0xFFD700, alpha: 0.5 })
     this.container.addChild(glow)
 
@@ -25,12 +28,12 @@ export class MapItem {
       PIXEL_SIZE / 2, // x
       PIXEL_SIZE / 2, // y
       5,              // number of points
-      PIXEL_SIZE / 2.2, // radius
-      PIXEL_SIZE / 4.5, // inner radius
+      (PIXEL_SIZE / 2.2) * starScale, // radius
+      (PIXEL_SIZE / 4.5) * starScale, // inner radius
       0               // rotation
     )
     .fill(0xFFD700) // Gold color
-    .stroke({ width: 2, color: 0xFF4500 }) // Orange-Red outline
+    .stroke({ width: 2 * starScale, color: 0xFF4500 }) // Orange-Red outline
 
     this.container.addChild(star)
 
@@ -38,7 +41,7 @@ export class MapItem {
     const text = new Text({
       text: `${points}`,
       style: {
-        fontSize: 40, // Render at a higher font size for crispness
+        fontSize: 40 * Math.max(starScale, 1), // Render at a higher font size for crispness
         fill: 0x32CD32,
         align: 'center',
         stroke: { color: 0x000000, width: 2, join: 'round' }, // Add a stroke for better visibility
@@ -133,5 +136,11 @@ export class MapItem {
         this.container.destroy()
       }
     }
+  }
+
+  private getStarScale(points: number): number {
+    // Linear interpolation: points 0->100 maps to scale 0.6->1.4
+    // Formula: scale = 0.6 + (points / 100) * (1.4 - 0.6)
+    return 0.8 + (points / 100) * 0.6
   }
 }
