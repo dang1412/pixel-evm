@@ -27,7 +27,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
       <div className="text-sm bg-white/80 shadow-lg rounded-lg p-2 min-w-[150px] pointer-events-none">
         <div className="flex text-sm justify-between items-center mb-2 border-b pb-2">
           <span className='font-semibold'>Round {gameState.round}</span>
-          <div className='font-semibold'>⏱️ {gameState.timeLeft / 1000}s</div>
+          <div className='font-semibold'>⏱️ {gameState.timeLeft}s</div>
           {onExpandClick && (
             <button 
               onClick={onExpandClick}
@@ -63,7 +63,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
                 {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
                 <span className="truncate">{index + 1}</span>
               </div>
-              <div className="font-medium">{player.id}</div>
+              <div className="font-medium">{player.name}</div>
               <div className="font-medium">{player.score || 0}</div>
             </div>
           ))}

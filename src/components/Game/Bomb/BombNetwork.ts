@@ -5,7 +5,7 @@ import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
 
 type GameMessage = 
   // client to host
-  | { type: 'join' }
+  | { type: 'join', name: string }
   | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
   | { type: 'buyBomb', bombType: BombType }
 
@@ -17,7 +17,7 @@ type GameMessage =
   | { type: 'removeItems', positions: number[] }
   | { type: 'players', players: PlayerState[] }
 
-  | { type: 'gameState', state: GameState }
+  | { type: 'gameState', state: Partial<GameState> }
 
 export class BombNetwork {
 
@@ -65,10 +65,10 @@ export class BombNetwork {
 
   // TODO self receive msg in case of self hosted to reduce duplicate code
   // join game, host or client
-  joinGame() {
+  joinGame(name: string) {
     if (this.bombGame) {
       // self hosted
-      const newPlayer = this.bombGame.addPlayer('')
+      const newPlayer = this.bombGame.addPlayer(this.myWsName || '', name)
       if (!newPlayer) return
 
       const players = this.bombGame.getPlayerStates()
@@ -76,7 +76,7 @@ export class BombNetwork {
       this.wsNameToPlayerId['host'] = newPlayer.id
     } else if (this.hostWsName) {
       // send join request to host
-      this.sendToAddr(this.hostWsName, { type: 'join' })
+      this.sendToAddr(this.hostWsName, { type: 'join', name })
     }
   }
 
@@ -121,7 +121,7 @@ export class BombNetwork {
     this.handleGameUpdate(msg)
   }
 
-  connected(addr: string) {
+  private connected(addr: string) {
     console.log('BombNetwork connected to', addr)
     if (this.bombGame) {
       // host send cilent states
@@ -169,7 +169,7 @@ export class BombNetwork {
       case 'join':
         if (this.bombGame) {
           const id = this.wsNameToPlayerId[from]
-          const newPlayer = this.bombGame.addPlayer(from, id)
+          const newPlayer = this.bombGame.addPlayer(from, msg.name, id)
           if (!newPlayer) return
 
           // send playerId

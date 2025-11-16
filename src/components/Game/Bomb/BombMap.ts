@@ -30,7 +30,7 @@ export class BombMap {
 
   private bombTicking: Promise<IMediaInstance> | undefined
 
-  private gameState: GameState | undefined
+  private gameState: GameState = { timeLeft: 0, round: 0, pausing: true }
 
   private bombType = BombType.Standard
 
@@ -77,7 +77,7 @@ export class BombMap {
     })
   }
 
-  updateGameState(state: GameState) {
+  updateGameState(state: Partial<GameState>) {
     this.gameState = {...this.gameState, ...state}
     this.onGameStateUpdated?.(this.gameState)
   }

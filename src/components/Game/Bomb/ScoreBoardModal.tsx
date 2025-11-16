@@ -1,17 +1,16 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { FaRedo } from 'react-icons/fa'
 import { BombType, GameState, PlayerState } from './types'
 
 interface ScoreboardModalProps {
-  isOpen: boolean;
   hostName: string;
   players: PlayerState[];
   playerId?: number;
   gameState: GameState;
   isHost: boolean;
   onClose: () => void;
-  onJoinGame: () => void;
+  onJoinGame: (playerName: string) => void;
 
   // for host
   onStart?: () => void;
@@ -27,13 +26,17 @@ interface ScoreboardModalProps {
  */
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   { 
-    isOpen, hostName, players, playerId, gameState, isHost,
+    hostName, players, playerId, gameState, isHost,
     onClose, onJoinGame, onStart, onRestart,
   }
 ) => {
-  if (!isOpen) {
-    return null;
-  }
+  const [playerName, setPlayerName] = useState('');
+
+  const handleJoinGame = useCallback(() => {
+    if (playerName.trim()) {
+      onJoinGame(playerName.trim());
+    }
+  }, [playerName, onJoinGame]);
 
   return (
     // <!-- Modal Overlay -->
@@ -62,7 +65,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
             </h2>
             {gameState && (
               <p className="text-sm text-gray-500 dark:text-gray-300">
-                Round: {gameState.round} | ⏱️ {gameState.timeLeft / 1000}s
+                Round: {gameState.round} | ⏱️ {gameState.timeLeft}s
               </p>
             )}
           </div>
@@ -98,7 +101,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                     scope="col"
                     className="px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
-                    Player ID
+                    Player
                   </th>
                   <th
                     scope="col"
@@ -140,7 +143,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                               : 'text-gray-900 dark:text-white'
                           }`}
                         >
-                          {player.id}
+                          {player.name}
                         </td>
                         <td
                           className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -189,19 +192,34 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
 
         {/* <!-- Modal Footer --> */}
         <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700">
-          {isHost && <div>
-            <button
-              onClick={() => onStart && onStart()}
-              className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
-            >
-              {gameState.round === 0 ? 'Start' : 'Next'}
-            </button>
-          </div>}
+          <div>
+            {isHost && gameState.pausing && (
+              <button
+                onClick={() => onStart && onStart()}
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+              >
+                {gameState.round === 0 ? 'Start' :  'Next Round'}
+              </button>
+            )}
+          </div>
 
-          {!playerId && <div>
+          {!playerId && <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Enter your name"
+              className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              onKeyUp={(e) => {
+                if (e.key === 'Enter') {
+                  handleJoinGame();
+                }
+              }}
+            />
             <button
-              onClick={onJoinGame}
-              className="px-6 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
+              onClick={handleJoinGame}
+              disabled={!playerName.trim()}
+              className="px-6 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Join Game
             </button>

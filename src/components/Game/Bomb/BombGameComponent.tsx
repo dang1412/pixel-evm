@@ -29,10 +29,10 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState(true)
 
-  const joinGame = useCallback(async () => {
+  const joinGame = useCallback(async (name: string) => {
     const bombMap = bombMapRef.current
     if (bombMap) {
-      bombMap.bombNetwork.joinGame()
+      bombMap.bombNetwork.joinGame(name)
     }
   }, [])
 
@@ -91,18 +91,19 @@ const BombGameComponent: React.FC<Props> = (props) => {
         </div>
       </div>
 
-      {gameState && <ScoreboardModal
-        isOpen={isScoreboardModalOpen}
-        hostName={hostWsName || ''}
-        players={players}
-        playerId={playerId}
-        gameState={gameState}
-        isHost={bombMapRef.current?.bombNetwork.isHost() || false}
-        onClose={() => setIsScoreboardModalOpen(false)}
-        onJoinGame={joinGame}
-        onStart={startRound}
-        onRestart={restart}
-      />}
+      {gameState && isScoreboardModalOpen && (
+        <ScoreboardModal
+          hostName={hostWsName || ''}
+          players={players}
+          playerId={playerId}
+          gameState={gameState}
+          isHost={bombMapRef.current?.bombNetwork.isHost() || false}
+          onClose={() => setIsScoreboardModalOpen(false)}
+          onJoinGame={joinGame}
+          onStart={startRound}
+          onRestart={restart}
+        />
+      )}
 
       {isBombShopOpen && playerState && (
         <BombShop

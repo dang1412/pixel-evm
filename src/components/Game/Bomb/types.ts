@@ -29,6 +29,7 @@ export interface ItemState {
 
 export interface PlayerState {
   id: number
+  name: string
   score: number
   bombs: {[type in BombType]: number}
   r: number

@@ -76,16 +76,18 @@ export class BombGame {
     this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: from } } })
   }
 
-  addPlayer(host: string, _id?: number) {
+  addPlayer(host: string, name: string, _id?: number) {
     if (!this.gameId) {
       console.warn('Game ID not set yet')
       return
     }
 
+    console.log('Adding player', host, name, _id)
+
     const id = _id || playerId++
     const newPlayer = this.playerStoreMap.get(id)
       || {
-        id, score: 0, r: 2,
+        id, name, score: 0, r: 2,
         ...getInitPlayerBombs(),
       }
     this.playerStateMap.set(id, newPlayer)
@@ -180,7 +182,7 @@ export class BombGame {
     if (this.state.round >= 5) return // max 5 rounds
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 100000 // 100 seconds
+    this.state.timeLeft = 100 // seconds
     this.maxStarsCount = 120 * this.state.round
 
     // reset player's standard bombs
@@ -224,7 +226,7 @@ export class BombGame {
     if (this.state.pausing && this.bombStateMap.size === 0) return
     this.explosionMap.clear()
     // this.caughtItems = []
-    const explodedBombs = []
+    const explodedBombs: BombState[] = []
 
     for (const [pos, bombState] of this.bombStateMap) {
       bombState.live -= GameLoop
@@ -287,11 +289,13 @@ export class BombGame {
     this.sendPlayerUpdates()
 
     // time left
-    this.state.timeLeft = Math.max(this.state.timeLeft - GameLoop, 0)
+    this.state.timeLeft = Math.max(this.state.timeLeft * 1000 - GameLoop, 0) / 1000
 
     // round end
+    const update: Partial<GameState> = {}
     if (this.state.timeLeft === 0) {
       this.state.pausing = true
+      update.pausing = true
       // round ends if no bombs left, notify scores to server
       if (this.bombStateMap.size === 0) {
         const playerScores = this.getPlayerStates().map(p => ({ playerId: p.id, score: p.score }))
@@ -310,9 +314,11 @@ export class BombGame {
       }
     }
 
-    if (this.state.timeLeft % 1000 === 0) {
+    // check if timeLeft is integer value
+    if (Number.isInteger(this.state.timeLeft)) {
       // send time update every second
-      this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+      update.timeLeft = this.state.timeLeft
+      this.bombNetwork.gameUpdate({ type: 'gameState', state: update })
     }
   }
 
