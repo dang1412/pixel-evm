@@ -187,8 +187,8 @@ export class BombGame {
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
-      playerState.bombs[BombType.Standard] = 30
-      // playerState.bombs[BombType.Atomic] +=5
+      playerState.bombs[BombType.Standard] += 30
+      playerState.bombs[BombType.Atomic] += 1
       playerState.r = 2 + this.state.round
     }
 
@@ -289,7 +289,7 @@ export class BombGame {
     this.sendPlayerUpdates()
 
     // time left
-    this.state.timeLeft = Math.max(this.state.timeLeft * 1000 - GameLoop, 0) / 1000
+    this.state.timeLeft = Math.round(Math.max(this.state.timeLeft - GameLoop / 1000, 0) * 10) / 10
 
     // round end
     const update: Partial<GameState> = {}
