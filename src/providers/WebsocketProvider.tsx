@@ -26,7 +26,7 @@ interface WebSocketContextType<T = ClientMessage> {
   // Hàm để gửi tin nhắn đi (bao gồm cả tin nhắn subscribe/unsubscribe)
   send: (message: T) => void;
   // Hàm để đăng ký lắng nghe một channel
-  subscribe: <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) => void;
+  subscribe: <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) => () => void;
   // Hàm để hủy đăng ký
   unsubscribe: (channel: string, callback: MessageCallback) => void;
   isConnected: boolean;
@@ -133,6 +133,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     listeners.current[channel].push(callback);
     console.log(`Subscribed to channel: ${channel}`);
+
+    // return unsubscribe function
+    return () => {
+      unsubscribe(channel, callback)
+    }
+
   }, [send]); // Phụ thuộc vào hàm `send`
 
   // Hàm hủy đăng ký channel

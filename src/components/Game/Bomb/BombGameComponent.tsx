@@ -46,7 +46,6 @@ const BombGameComponent: React.FC<Props> = (props) => {
   }, [])
 
   const playerId = bombMapRef.current?.playerId
-  const hostWsName = bombMapRef.current?.bombNetwork.hostWsName
   const playerState = useMemo(() => players.find(p => p.id === playerId), [players])
 
   useEffect(() => {
@@ -93,7 +92,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       {gameState && isScoreboardModalOpen && (
         <ScoreboardModal
-          hostName={hostWsName || ''}
+          // hostName={hostWsName || ''}
+          bombMapRef={bombMapRef}
           players={players}
           playerId={playerId}
           gameState={gameState}
@@ -107,7 +107,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
       {isBombShopOpen && playerState && (
         <BombShop
-          bomMapRef={bombMapRef}
+          bombMapRef={bombMapRef}
           playerState={playerState}
           onClose={() => setIsBombShopOpen(false)}
           />

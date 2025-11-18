@@ -70,12 +70,12 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
  */
 
 interface ShopModalProps {
-  bomMapRef: React.RefObject<BombMap | undefined>
+  bombMapRef: React.RefObject<BombMap | undefined>
   playerState: PlayerState
   onClose: () => void
 }
 
-export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, playerState, onClose }) => {
+export const BombShop: React.FC<ShopModalProps> = ({ bombMapRef, playerState, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
     { id: BombType.Standard, name: "Normal", price: bombPrices[BombType.Standard], icon: FaBomb },
@@ -85,7 +85,7 @@ export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, playerState, onC
   const doBuyItem = useCallback((type: BombType) => {
     // Logic xử lý sau khi mua hàng (ví dụ: cập nhật số dư vàng, thông báo thành công, v.v.)
     console.log('Đã mua vật phẩm thành công!')
-    bomMapRef.current?.bombNetwork.buyBomb(type)
+    bombMapRef.current?.bombNetwork.buyBomb(type)
   }, [onClose])
 
   return (

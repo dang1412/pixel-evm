@@ -1,10 +1,15 @@
-import React, { useCallback, useState } from 'react'
-
+import React, { useCallback, useEffect, useState } from 'react'
 import { FaRedo } from 'react-icons/fa'
+
 import { BombType, GameState, PlayerState } from './types'
+import { BombMap } from './BombMap'
+import { useWebSocket } from '@/providers/WebsocketProvider'
+import { BombGame } from './BombGame'
+import { BombGameMsg } from '@/providers/bombTypes'
 
 interface ScoreboardModalProps {
-  hostName: string;
+  // hostName: string;
+  bombMapRef: React.RefObject<BombMap | undefined>
   players: PlayerState[];
   playerId?: number;
   gameState: GameState;
@@ -26,17 +31,45 @@ interface ScoreboardModalProps {
  */
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   { 
-    hostName, players, playerId, gameState, isHost,
+    bombMapRef, players, playerId, gameState, isHost,
     onClose, onJoinGame, onStart, onRestart,
   }
 ) => {
-  const [playerName, setPlayerName] = useState('');
+  const [playerName, setPlayerName] = useState('')
 
   const handleJoinGame = useCallback(() => {
     if (playerName.trim()) {
-      onJoinGame(playerName.trim());
+      onJoinGame(playerName.trim())
     }
-  }, [playerName, onJoinGame]);
+  }, [playerName, onJoinGame])
+
+  const hostWsName = bombMapRef.current?.bombNetwork.hostWsName
+  const myWsName = bombMapRef.current?.bombNetwork.myWsName
+
+  const { send, subscribe } = useWebSocket()
+
+  const [highScore, setHighScore] = useState(0)
+  const [highScoreTime, setHighScoreTime] = useState('')
+  const [highScoreRound, setHighScoreRound] = useState(gameState.round)
+
+  // listen to bomb_game channel for high score updates
+  useEffect(() => {
+    const unsubscribe = subscribe('bomb-game', (payload) => {
+      if (payload.type === 'high_score') {
+        console.log('Top Ranks:', payload.score)
+        setHighScore(payload.score.score)
+        setHighScoreTime(new Date(payload.score.ts).toLocaleString())
+      }
+    })
+
+    return unsubscribe
+  }, [subscribe])
+
+  // request high score update when round or pausing changes
+  useEffect(() => {
+    const bombGameMsg: BombGameMsg = { type: 'get_high_score', payload: { client: myWsName || '', round: highScoreRound } }
+    send({ action: 'bomb_game', msg: bombGameMsg})
+  }, [send, highScoreRound])
 
   return (
     // <!-- Modal Overlay -->
@@ -52,7 +85,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-              Scoreboard ({hostName})
+              Scoreboard ({hostWsName})
               {isHost && (
                 <button
                   onClick={() => onRestart && onRestart()}
@@ -92,7 +125,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
         </div>
 
         {/* <!-- Modal Body - Table --> */}
-        <div className="p-5">
+        <div className="p-4">
           <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
               <thead className="bg-gray-50 dark:bg-gray-700">
@@ -188,7 +221,39 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
               </tbody>
             </table>
           </div>
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                ({myWsName}) Highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setHighScoreRound(highScoreRound - 1)}
+                  disabled={highScoreRound <= 1}
+                  className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Previous round"
+                >
+                  ←
+                </button>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-300 text-center">
+                  {highScoreRound}
+                </span>
+                <button
+                  onClick={() => setHighScoreRound(highScoreRound + 1)}
+                  disabled={highScoreRound >= 5}
+                  className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Next round"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {highScoreTime}
+            </p>
+          </div>
         </div>
+
 
         {/* <!-- Modal Footer --> */}
         <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700">

@@ -96,7 +96,7 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players: [newPlayer] })
 
     // notify server about new player
-    this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.gameId, client: host || this.host, playerId: id } } })
+    this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.gameId, client: host || this.host, playerId: id, name } } })
 
     return newPlayer
   }
