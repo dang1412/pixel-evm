@@ -8,6 +8,7 @@ export interface WebRTCServiceOptions {
 export class WebRTCService {
   pc: RTCPeerConnection
   channel: RTCDataChannel | null = null
+  private isClosed = false
 
   constructor(private options: WebRTCServiceOptions) {
     const pc = this.pc = new RTCPeerConnection()
@@ -33,6 +34,28 @@ export class WebRTCService {
 
     pc.ontrack = (e) => {
       console.log('ontrack', e.streams)
+    }
+
+    // Monitor connection state changes to detect when peer closes browser
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState)
+      if (pc.connectionState === 'disconnected' || 
+          pc.connectionState === 'failed' || 
+          pc.connectionState === 'closed') {
+        console.log('Peer connection closed or failed')
+        this.handleClose()
+      }
+    }
+
+    // Additional monitoring via ICE connection state
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', pc.iceConnectionState)
+      if (pc.iceConnectionState === 'disconnected' || 
+          pc.iceConnectionState === 'failed' || 
+          pc.iceConnectionState === 'closed') {
+        console.log('ICE connection closed or failed')
+        this.handleClose()
+      }
     }
   }
 
@@ -99,7 +122,15 @@ export class WebRTCService {
 
     channel.onclose = () => {
       console.log('Channel closed', channel)
-      if (onClose) onClose()
+      this.handleClose()
+    }
+  }
+
+  private handleClose() {
+    if (this.isClosed) return
+    this.isClosed = true
+    if (this.options.onClose) {
+      this.options.onClose()
     }
   }
 
