@@ -92,19 +92,11 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           onClick={(e) => e.stopPropagation()} // Prevent overlay click from triggering when clicking content
         >
           {/* <!-- Modal Header --> */}
-          <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex relative justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 Scoreboard ({hostWsName})
-                {/* add button with FaQr */}
-                <button
-                  onClick={() => setShowHostQr(true)}
-                  className="ml-3 flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg"
-                  aria-label="Show Host QR Code"
-                >
-                  <FaQrcode className="w-4 h-4" />
-                  <span>Share</span>
-                </button>
+                
               </h2>
               {gameState && (
                 <p className="text-sm text-gray-500 dark:text-gray-300">
@@ -112,9 +104,18 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 </p>
               )}
             </div>
+            {/* add button with FaQr */}
+            <button
+              onClick={() => setShowHostQr(true)}
+              className="ml-3 flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg"
+              aria-label="Show Host QR Code"
+            >
+              <FaQrcode className="w-4 h-4" />
+              <span>Share</span>
+            </button>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors rounded-full p-1"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors rounded-full p-1"
               aria-label="Close modal"
             >
               <FaTimes />

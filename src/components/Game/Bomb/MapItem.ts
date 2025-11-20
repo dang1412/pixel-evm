@@ -16,10 +16,21 @@ export class MapItem {
     // Determine star size based on points
     const starScale = this.getStarScale(points)
 
+    // Randomly choose between multiple color schemes
+    const colorSchemes = [
+      { glow: 0xFFD700, fill: 0xFFD700, stroke: 0xFF4500, text: 0x32CD32 }, // Gold theme
+      { glow: 0xFF1493, fill: 0x00FFFF, stroke: 0xFF00FF, text: 0xFFFF00 }, // Cyan/Magenta theme
+      { glow: 0xFF69B4, fill: 0xFF1493, stroke: 0xFF69B4, text: 0xFFFFFF }, // Hot Pink theme
+      { glow: 0x7B68EE, fill: 0x9370DB, stroke: 0x4B0082, text: 0x00FF00 }, // Purple theme
+      { glow: 0xFF6347, fill: 0xFF0000, stroke: 0x8B0000, text: 0xFFD700 }, // Ruby theme
+      { glow: 0x00CED1, fill: 0x48D1CC, stroke: 0x20B2AA, text: 0xFF69B4 }, // Turquoise theme
+    ]
+    const colors = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
+
     // Glow effect
     const glow = new Graphics()
     glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * starScale)
-        .fill({ color: 0xFFD700, alpha: 0.5 })
+        .fill({ color: colors.glow, alpha: 0.5 })
     this.container.addChild(glow)
 
     // Draw a star for the item
@@ -32,8 +43,8 @@ export class MapItem {
       (PIXEL_SIZE / 4.5) * starScale, // inner radius
       0               // rotation
     )
-    .fill(0xFFD700) // Gold color
-    .stroke({ width: 2 * starScale, color: 0xFF4500 }) // Orange-Red outline
+    .fill(colors.fill) // Gold or Silver
+    .stroke({ width: 2 * starScale, color: colors.stroke }) // Orange-Red or Royal Blue outline
 
     this.container.addChild(star)
 
@@ -42,7 +53,7 @@ export class MapItem {
       text: `${points}`,
       style: {
         fontSize: 40 * Math.max(starScale, 1), // Render at a higher font size for crispness
-        fill: 0x32CD32,
+        fill: colors.text,
         align: 'center',
         stroke: { color: 0x000000, width: 2, join: 'round' }, // Add a stroke for better visibility
       },
