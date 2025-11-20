@@ -3,15 +3,7 @@ import { Color, Container, Graphics } from 'pixi.js'
 import { PIXEL_SIZE } from '../utils'
 
 import { BombMap } from './BombMap'
-
-const BOMB_COLORS = [
-  0x333333, // Lighter Dark Grey
-  0x333366, // Lighter Dark Blue
-  0x336633, // Lighter Dark Green
-  0x663366, // Lighter Dark Purple
-  0x666633, // Lighter Dark Yellow (Olive)
-  0x336666  // Lighter Dark Cyan (Teal)
-]
+import { BOMB_COLORS } from './constant'
 
 // const BOMB_COLORS = [
 //   0x333333, // Dark
