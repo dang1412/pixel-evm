@@ -30,6 +30,10 @@ export class WebRTCService {
       console.log('channel created', channel)
       this.setupChannel(channel)
     }
+
+    pc.ontrack = (e) => {
+      console.log('ontrack', e.streams)
+    }
   }
 
   async createOffer() {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FaInfo } from 'react-icons/fa'
+import { useSearchParams } from 'next/navigation'
 
 import { useNotification } from '@/providers/NotificationProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
@@ -24,6 +25,9 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
   const { notify, setLoading } = useNotification()
 
   const [shouldShowInfoButton, setShouldShowInfoButton] = useState(true)
+
+  const searchParams = useSearchParams()
+  const connectToParam = searchParams.get('connectTo')
 
   // receive data from host/client
   const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
@@ -109,6 +113,14 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     offerConnect(addr)
     setIsConnectModalOpen(false)
   }, [offerConnect])
+
+  // Auto-connect if connectTo parameter exists
+  useEffect(() => {
+    if (connectToParam) {
+      setIsGuideModalOpen(false)
+      connect(connectToParam)
+    }
+  }, [connectToParam, connect])
 
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(true)
 
