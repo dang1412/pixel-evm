@@ -6,6 +6,7 @@ import { BombMap } from './BombMap'
 import { useWebSocket } from '@/providers/WebsocketProvider'
 import { BombGameMsg } from '@/providers/bombTypes'
 import { ShareHostQr } from './ShareHostQr'
+import { CountInput } from './CountInput'
 
 interface ScoreboardModalProps {
   // hostName: string;
@@ -224,27 +225,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   ({myWsName}) Highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
                 </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setHighScoreRound(highScoreRound - 1)}
-                    disabled={highScoreRound <= 1}
-                    className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Previous round"
-                  >
-                    ←
-                  </button>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300 text-center">
-                    {highScoreRound}
-                  </span>
-                  <button
-                    onClick={() => setHighScoreRound(highScoreRound + 1)}
-                    disabled={highScoreRound >= 5}
-                    className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Next round"
-                  >
-                    →
-                  </button>
-                </div>
+                <CountInput min={0} max={5} onChange={setHighScoreRound} />
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {highScoreTime}

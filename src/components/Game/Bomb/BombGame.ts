@@ -158,20 +158,19 @@ export class BombGame {
     return newBomb
   }
 
-  buyBomb(playerId: number, bombType: BombType) {
+  buyBomb(playerId: number, bombType: BombType, quantity: number) {
     const playerState = this.playerStateMap.get(playerId)
     if (!playerState) return
 
-    const cost = bombPrices[bombType]
+    const cost = bombPrices[bombType] * quantity
     if (playerState.score < cost) return
 
     playerState.score -= cost
-    playerState.bombs[bombType] += 1
-
+    playerState.bombs[bombType] += quantity
     this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
 
     // notify server about buy bomb
-    this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.gameId, playerId, bombType } } })
+    this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.gameId, playerId, bombType, quantity } } })
   }
 
   /**

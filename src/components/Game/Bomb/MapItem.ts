@@ -5,6 +5,20 @@ import { PIXEL_SIZE } from '../utils'
 const flashAnimationTime = 800
 const appearAnimationTime = 600
 
+// Randomly choose between multiple color schemes
+const colorSchemes = [
+  { glow: 0xFFD700, fill: 0xFFD700, stroke: 0xFF4500, text: 0x32CD32 }, // Gold theme
+  { glow: 0xFF1493, fill: 0x00FFFF, stroke: 0xFF00FF, text: 0xFFFF00 }, // Cyan/Magenta theme
+  { glow: 0xFF69B4, fill: 0xFF1493, stroke: 0xFF69B4, text: 0xFFFFFF }, // Hot Pink theme
+  { glow: 0x7B68EE, fill: 0x9370DB, stroke: 0x4B0082, text: 0x00FF00 }, // Purple theme
+  { glow: 0xFF6347, fill: 0xFF0000, stroke: 0x8B0000, text: 0xFFD700 }, // Ruby theme
+  { glow: 0x00CED1, fill: 0x48D1CC, stroke: 0x20B2AA, text: 0xFF69B4 }, // Turquoise theme
+  { glow: 0xFF8C00, fill: 0xFFA500, stroke: 0xFF4500, text: 0x00FFFF }, // Orange theme
+  { glow: 0x7FFF00, fill: 0x32CD32, stroke: 0x228B22, text: 0xFF00FF }, // Green theme
+  { glow: 0xFFFFE0, fill: 0xC0C0C0, stroke: 0x708090, text: 0xFF1493 }, // Silver theme
+  { glow: 0xFF00FF, fill: 0x8A2BE2, stroke: 0x9400D3, text: 0x00FF7F }, // Violet theme
+]
+
 export class MapItem {
   private container = new Container()
 
@@ -16,15 +30,6 @@ export class MapItem {
     // Determine star size based on points
     const starScale = this.getStarScale(points)
 
-    // Randomly choose between multiple color schemes
-    const colorSchemes = [
-      { glow: 0xFFD700, fill: 0xFFD700, stroke: 0xFF4500, text: 0x32CD32 }, // Gold theme
-      { glow: 0xFF1493, fill: 0x00FFFF, stroke: 0xFF00FF, text: 0xFFFF00 }, // Cyan/Magenta theme
-      { glow: 0xFF69B4, fill: 0xFF1493, stroke: 0xFF69B4, text: 0xFFFFFF }, // Hot Pink theme
-      { glow: 0x7B68EE, fill: 0x9370DB, stroke: 0x4B0082, text: 0x00FF00 }, // Purple theme
-      { glow: 0xFF6347, fill: 0xFF0000, stroke: 0x8B0000, text: 0xFFD700 }, // Ruby theme
-      { glow: 0x00CED1, fill: 0x48D1CC, stroke: 0x20B2AA, text: 0xFF69B4 }, // Turquoise theme
-    ]
     const colors = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
 
     // Glow effect

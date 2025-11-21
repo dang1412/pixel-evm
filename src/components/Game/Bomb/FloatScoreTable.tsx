@@ -76,6 +76,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
                 <div className="flex items-center gap-1">
                   <span className="truncate">{currentPlayerIndex + 1}</span>
                 </div>
+                <div className="font-medium">{currentPlayer.name}</div>
                 <div className="font-medium">{currentPlayer.score || 0}</div>
               </div>
             </>

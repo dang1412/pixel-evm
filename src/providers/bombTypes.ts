@@ -23,7 +23,7 @@ export type BombGameMsg =
   | { type: 'join'; payload: { gameId: number; client: string; playerId: number; name: string } }
   | { type: 'place_bomb'; payload: { gameId: number; round: number; playerId: number; pos: number; bombType: BombType } }
   | { type: 'defuse_bomb'; payload: { gameId: number; round: number; playerId: number; pos: number; } }
-  | { type: 'buy_bomb'; payload: { gameId: number; playerId: number; bombType: BombType } }
+  | { type: 'buy_bomb'; payload: { gameId: number; playerId: number; bombType: BombType; quantity: number } }
   // api
   | { type: 'get_top_rank'; payload: { round: number } }
   | { type: 'get_high_score'; payload: { client: string, round: number } }

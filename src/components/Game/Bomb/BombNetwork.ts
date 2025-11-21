@@ -7,7 +7,7 @@ type GameMessage =
   // client to host
   | { type: 'join', name: string }
   | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
-  | { type: 'buyBomb', bombType: BombType }
+  | { type: 'buyBomb', bombType: BombType, quantity: number }
 
   // host to client
   | { type: 'joinSuccess', players: PlayerState[], playerId: number }
@@ -94,14 +94,14 @@ export class BombNetwork {
     }
   }
 
-  buyBomb(bombType: BombType) {
+  buyBomb(bombType: BombType, quantity: number) {
     if (this.bombGame) {
       // host
       if (!this.bombMap.playerId) return
-      this.bombGame.buyBomb(this.bombMap.playerId, bombType)
+      this.bombGame.buyBomb(this.bombMap.playerId, bombType, quantity)
     } else {
       // send buy bomb request to host
-      this.sendToHost({ type: 'buyBomb', bombType })
+      this.sendToHost({ type: 'buyBomb', bombType, quantity })
     }
   }
 
@@ -191,7 +191,7 @@ export class BombNetwork {
       case 'buyBomb':
         if (this.bombGame) {
           const playerId = this.wsNameToPlayerId[from]
-          this.bombGame.buyBomb(playerId, msg.bombType)
+          this.bombGame.buyBomb(playerId, msg.bombType, msg.quantity)
         }
         break
       // client
