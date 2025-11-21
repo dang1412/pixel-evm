@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useContext, ReactNode } from 'react';
+import React, { createContext, useReducer, useContext, ReactNode, useCallback, useEffect } from 'react';
 
 export enum ConnectionStatus {
   // Offer side
@@ -21,7 +21,7 @@ interface WebRTCState {
   statuses: {
     [addr: string]: ConnectionStatus
   }
-};
+}
 
 type Action = 
   | { type: 'UPDATE_STATUS'; addr: string; status: ConnectionStatus }
@@ -30,7 +30,7 @@ type Action =
 const initialState: WebRTCState = {
   addressList: [],
   statuses: {}
-};
+}
 
 function reducer(state: WebRTCState, action: Action): WebRTCState {
   switch (action.type) {
@@ -42,7 +42,7 @@ function reducer(state: WebRTCState, action: Action): WebRTCState {
           ...state.statuses,
           [addr]: status,
         }
-      };
+      }
     }
     case 'ADD_ADDR': {
       const { addr } = action;
@@ -53,26 +53,61 @@ function reducer(state: WebRTCState, action: Action): WebRTCState {
       }
     }
     default:
-      return state;
+      return state
   }
 }
 
 const WebRTCContext = createContext<{
-  state: WebRTCState;
-  dispatch: React.Dispatch<Action>;
+  state: WebRTCState
+  createOrGetStream: () => Promise<MediaStream | undefined>
+  toggleMicrophone: (enabled: boolean) => void
+  dispatch: React.Dispatch<Action>
 }>({
   state: initialState,
+  createOrGetStream: async () => undefined,
+  toggleMicrophone: () => undefined,
   dispatch: () => undefined,
-});
+})
 
 export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const [stream, setStream] = React.useState<MediaStream | undefined>(undefined)
+
+  const createOrGetStream = useCallback(async () => {
+    if (!stream) {
+      try {
+        console.log('Requesting user media stream for WebRTC')
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        setStream(mediaStream)
+
+        return mediaStream
+      } catch (error) {
+        console.error('Error accessing media devices.', error)
+      }
+    }
+
+    return stream
+  }, [stream])
+
+  const toggleMicrophone = useCallback((enabled: boolean) => {
+    if (stream) {
+      console.log('Setting microphone enabled:', enabled)
+      stream.getAudioTracks().forEach(track => {
+        track.enabled = enabled
+      })
+    }
+  }, [stream])
+
+  useEffect(() => {
+    // Mute microphone by default
+    toggleMicrophone(false)
+  }, [toggleMicrophone])
 
   return (
-    <WebRTCContext.Provider value={{ state, dispatch }}>
+    <WebRTCContext.Provider value={{ state, createOrGetStream, toggleMicrophone, dispatch }}>
       {children}
     </WebRTCContext.Provider>
-  );
-};
+  )
+}
 
-export const useWebRTC = () => useContext(WebRTCContext);
+export const useWebRTC = () => useContext(WebRTCContext)

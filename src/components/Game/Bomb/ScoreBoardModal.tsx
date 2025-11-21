@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { FaQrcode, FaTimes } from 'react-icons/fa'
+import { FaQrcode, FaTimes, FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa'
 
 import { BombType, GameState, PlayerState } from './types'
 import { BombMap } from './BombMap'
@@ -7,6 +7,7 @@ import { useWebSocket } from '@/providers/WebsocketProvider'
 import { BombGameMsg } from '@/providers/bombTypes'
 import { ShareHostQr } from './ShareHostQr'
 import { CountInput } from './CountInput'
+import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 
 interface ScoreboardModalProps {
   // hostName: string;
@@ -55,10 +56,19 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
 
   const { send, subscribe } = useWebSocket()
+  const { toggleMicrophone } = useWebRTC()
 
   const [highScore, setHighScore] = useState(0)
   const [highScoreTime, setHighScoreTime] = useState('')
   const [highScoreRound, setHighScoreRound] = useState(gameState.round)
+  const [isMicOn, setIsMicOn] = useState(false)
+
+  // toggle microphone on/off
+  const toggleMic = useCallback(() => {
+    console.log('Set mic to', !isMicOn)
+    toggleMicrophone(!isMicOn)
+    setIsMicOn(!isMicOn)
+  }, [isMicOn, toggleMicrophone])
 
   // listen to bomb_game channel for high score updates
   useEffect(() => {
@@ -100,20 +110,38 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 
               </h2>
               {gameState && (
-                <p className="text-sm text-gray-500 dark:text-gray-300">
+                <p className="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                  {/* Microphone toggle button */}
+                  <button
+                    onClick={toggleMic}
+                    className={`flex items-center transition-colors ${
+                      isMicOn
+                        ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
+                    }`}
+                    aria-label={isMicOn ? 'Turn microphone off' : 'Turn microphone on'}
+                  >
+                    {isMicOn ? (
+                      <FaMicrophone className="w-4 h-4" />
+                    ) : (
+                      <FaMicrophoneSlash className="w-4 h-4" />
+                    )}
+                  </button>
                   Round: {gameState.round} | ⏱️ {gameState.timeLeft}s
                 </p>
               )}
             </div>
-            {/* add button with FaQr */}
-            <button
-              onClick={() => setShowHostQr(true)}
-              className="ml-3 flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg"
-              aria-label="Show Host QR Code"
-            >
-              <FaQrcode className="w-4 h-4" />
-              <span>Share</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Share button with FaQr */}
+              <button
+                onClick={() => setShowHostQr(true)}
+                className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg"
+                aria-label="Show Host QR Code"
+              >
+                <FaQrcode className="w-4 h-4" />
+                <span>Share</span>
+              </button>
+            </div>
             <button
               onClick={onClose}
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors rounded-full p-1"

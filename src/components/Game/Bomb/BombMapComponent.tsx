@@ -18,6 +18,8 @@ interface Props {
   onBombMapReady: (bombMap: BombMap) => void
 }
 
+const audioStream: {[name: string]: HTMLAudioElement} = {}
+
 const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
   const bombMapRef = useRef<BombMap | undefined>(undefined)
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -42,7 +44,19 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     bombNetwork.receiveMsg(from, data as string)
   }, [])
 
-  const { offerConnect, sendAll, sendTo, wsRandomName } = useWebRTCConnectWs(onMsg)
+  const onTrack = useCallback((from: string, e: RTCTrackEvent) => {
+    console.log('Received track from', from, 'streams:', e.streams)
+    const audio = audioStream[from] || document.createElement('audio')
+    audio.srcObject = e.streams[0]
+
+    if (!audioStream[from]) {
+      audio.autoplay = true
+      audioStream[from] = audio
+      document.body.appendChild(audio)
+    }
+  }, [])
+
+  const { offerConnect, sendAll, sendTo, wsRandomName } = useWebRTCConnectWs({ onMsg, onTrack })
 
   useEffect(() => {
     if (canvas && bombMapRef.current === undefined) {

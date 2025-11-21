@@ -3,6 +3,7 @@ export interface WebRTCServiceOptions {
   onMessage: (data: string | ArrayBuffer) => void
   onConnect?: () => void
   onClose?: () => void
+  onTrack?: (e: RTCTrackEvent) => void
 }
 
 export class WebRTCService {
@@ -10,7 +11,7 @@ export class WebRTCService {
   channel: RTCDataChannel | null = null
   private isClosed = false
 
-  constructor(private options: WebRTCServiceOptions) {
+  constructor(private options: WebRTCServiceOptions, private stream: MediaStream) {
     const pc = this.pc = new RTCPeerConnection()
 
     pc.onicecandidate = (ev) => {
@@ -34,6 +35,7 @@ export class WebRTCService {
 
     pc.ontrack = (e) => {
       console.log('ontrack', e.streams)
+      this.options.onTrack?.(e)
     }
 
     // Monitor connection state changes to detect when peer closes browser
@@ -70,10 +72,13 @@ export class WebRTCService {
   // Call this function before creating offer or answer
   // so it could get the ICECandidate and update the local SDP after setLocalDescription
   private async requestMediaStream() {
-    // Request media stream to trigger permissions dialog (this is just for testing)
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true})
-    // Add the stream to the connection to use it in the offer
-    stream.getTracks().forEach(track => this.pc.addTrack(track, stream))
+    // Only request media stream once and reuse it
+    if (!this.stream) {
+      return
+    }
+
+    // Add the stream to the connection to use it in the offer/answer
+    this.stream.getAudioTracks().forEach(track => this.pc.addTrack(track, this.stream))
   }
 
   /**
@@ -129,6 +134,7 @@ export class WebRTCService {
   private handleClose() {
     if (this.isClosed) return
     this.isClosed = true
+    
     if (this.options.onClose) {
       this.options.onClose()
     }

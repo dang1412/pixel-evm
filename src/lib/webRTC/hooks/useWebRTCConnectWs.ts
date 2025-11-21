@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useAccount } from 'wagmi'
 
 import { WebRTCService } from '../WebRTCService'
 import { ConnectionStatus, useWebRTC } from '../WebRTCProvider'
@@ -18,11 +17,15 @@ function getRandomName() {
   return Math.floor(Math.random() * 10) + Math.random().toString(36).substring(3, 10)
 }
 
-export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuffer) => void) {
+interface UseWebRTCConnectWsProps {
+  onMsg: (from: string, data: string | ArrayBuffer) => void
+  onTrack?: (from: string, track: RTCTrackEvent) => void
+}
 
+export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) {
   const { send } = useWebSocket()
 
-  const { dispatch } = useWebRTC()
+  const { dispatch, createOrGetStream } = useWebRTC()
 
   const [wsRandomName, setRandomName] = useState(localStorage.getItem('webrtc-ws-name') || '')
 
@@ -36,18 +39,21 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
     }
   }, [])
 
-  const createService = useCallback((from: string, to: string, isAnswering = false) => {
-    dispatch({ type: 'ADD_ADDR', addr: to });
+  const createService = useCallback(async (from: string, to: string, isAnswering = false) => {
+    dispatch({ type: 'ADD_ADDR', addr: to })
+
+    const stream = await createOrGetStream()
+    if (!stream) throw new Error('No media stream available')
 
     return new WebRTCService({
       onLocalSDP: async (sdp) => {
-        console.log('Local SDP:', sdp);
+        console.log('Local SDP:', sdp)
         // Here you would typically send the SDP to the other peer
         dispatch({
           type: 'UPDATE_STATUS',
           addr: to,
           status: isAnswering ? ConnectionStatus.ANSWERING : ConnectionStatus.OFFERING,
-        });
+        })
 
         send({
           action: 'send_message',
@@ -62,7 +68,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
           type: 'UPDATE_STATUS',
           addr: to,
           status: isAnswering ? ConnectionStatus.ANSWERED : ConnectionStatus.OFFERED,
-        });
+        })
       },
       onMessage: (data) => {
         console.log('Received message:', data);
@@ -79,7 +85,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
           type: 'UPDATE_STATUS',
           addr: to,
           status: ConnectionStatus.CONNECTED,
-        });
+        })
         console.log('Connected to:', to)
         // Notify the app that we are connected
         // This could be a custom event or a state update
@@ -89,9 +95,13 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
         console.log('Closed connection:', to)
         delete accountConnectServices[to]
         onMsg(to, '_closed_')
+      },
+      onTrack: (e) => {
+        console.log('Received track from:', to, e)
+        onTrack?.(to, e)
       }
-    })
-  }, [send, onMsg, dispatch])
+    }, stream)
+  }, [send, onMsg, onTrack, dispatch])
 
   const onWsMessage = useCallback(async (data: ChannelPayloadMap[`message-to-${string}`]) => {
     if (!wsRandomName) return
@@ -107,7 +117,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
         addr: from,
         status: ConnectionStatus.OFFER_RECEIVED,
       })
-      const service = createService(wsRandomName, from, true)
+      const service = await createService(wsRandomName, from, true)
       service.receiveOfferThenAnswer(sdp)
 
       accountConnectServices[from] = service
@@ -138,7 +148,7 @@ export function useWebRTCConnectWs(onMsg: (from: string, data: string | ArrayBuf
       status: ConnectionStatus.INIT,
     })
 
-    const service = createService(wsRandomName, toAddr)
+    const service = await createService(wsRandomName, toAddr)
 
     service.createChannel(`${toAddr}-chat`)
     service.createOffer()
