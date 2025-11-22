@@ -101,7 +101,7 @@ export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) 
         onTrack?.(to, e)
       }
     }, stream)
-  }, [send, onMsg, onTrack, dispatch])
+  }, [send, onMsg, onTrack, dispatch, createOrGetStream])
 
   const onWsMessage = useCallback(async (data: ChannelPayloadMap[`message-to-${string}`]) => {
     if (!wsRandomName) return

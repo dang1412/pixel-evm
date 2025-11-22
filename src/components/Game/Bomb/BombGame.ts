@@ -90,6 +90,13 @@ export class BombGame {
         id, name, score: 0, r: 2,
         ...getInitPlayerBombs(),
       }
+
+    if (!this.state.pausing) {
+      // game already started, give initial bombs
+      newPlayer.bombs[BombType.Standard] = 30
+      newPlayer.bombs[BombType.Atomic] = 1
+    }
+
     this.playerStateMap.set(id, newPlayer)
 
     // notify all the new player
