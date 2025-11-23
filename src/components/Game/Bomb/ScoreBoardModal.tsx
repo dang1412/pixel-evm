@@ -56,18 +56,16 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
 
   const { send, subscribe } = useWebSocket()
-  const { toggleMicrophone } = useWebRTC()
+  const { toggleMicrophone, isMicOn } = useWebRTC()
 
   const [highScore, setHighScore] = useState(0)
   const [highScoreTime, setHighScoreTime] = useState('')
   const [highScoreRound, setHighScoreRound] = useState(gameState.round)
-  const [isMicOn, setIsMicOn] = useState(false)
 
   // toggle microphone on/off
   const toggleMic = useCallback(() => {
     console.log('Set mic to', !isMicOn)
     toggleMicrophone(!isMicOn)
-    setIsMicOn(!isMicOn)
   }, [isMicOn, toggleMicrophone])
 
   // listen to bomb_game channel for high score updates
@@ -253,7 +251,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   ({myWsName}) Highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
                 </p>
-                <CountInput min={0} max={5} onChange={setHighScoreRound} />
+                <CountInput min={0} max={5} defaultValue={highScoreRound} onChange={setHighScoreRound} />
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {highScoreTime}

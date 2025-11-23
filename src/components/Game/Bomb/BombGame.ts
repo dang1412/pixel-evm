@@ -95,6 +95,7 @@ export class BombGame {
       // game already started, give initial bombs
       newPlayer.bombs[BombType.Standard] = 30
       newPlayer.bombs[BombType.Atomic] = 1
+      newPlayer.r = 2 + this.state.round
     }
 
     this.playerStateMap.set(id, newPlayer)

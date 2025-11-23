@@ -62,16 +62,19 @@ const WebRTCContext = createContext<{
   createOrGetStream: () => Promise<MediaStream | undefined>
   toggleMicrophone: (enabled: boolean) => void
   dispatch: React.Dispatch<Action>
+  isMicOn: boolean
 }>({
   state: initialState,
   createOrGetStream: async () => undefined,
   toggleMicrophone: () => undefined,
   dispatch: () => undefined,
+  isMicOn: false,
 })
 
 export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState)
   const [stream, setStream] = React.useState<MediaStream | undefined>(undefined)
+  const [isMicOn, setIsMicOn] = React.useState(false)
 
   const createOrGetStream = useCallback(async () => {
     if (!stream) {
@@ -95,6 +98,7 @@ export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
       stream.getAudioTracks().forEach(track => {
         track.enabled = enabled
       })
+      setIsMicOn(enabled)
     }
   }, [stream])
 
@@ -104,7 +108,7 @@ export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
   }, [toggleMicrophone])
 
   return (
-    <WebRTCContext.Provider value={{ state, createOrGetStream, toggleMicrophone, dispatch }}>
+    <WebRTCContext.Provider value={{ state, createOrGetStream, toggleMicrophone, isMicOn, dispatch }}>
       {children}
     </WebRTCContext.Provider>
   )

@@ -3,12 +3,12 @@ import { useCallback, useState } from 'react'
 interface CountInputProps {
   min: number
   max: number
+  defaultValue: number
   onChange: (value: number) => void
 }
 
-export const CountInput: React.FC<CountInputProps> = ({ min, max, onChange }) => {
-
-  const [value, setValue] = useState(min)
+export const CountInput: React.FC<CountInputProps> = ({ min, max, defaultValue, onChange }) => {
+  const [value, setValue] = useState(defaultValue)
 
   const decrease = useCallback(() => {
     if (value > min) {

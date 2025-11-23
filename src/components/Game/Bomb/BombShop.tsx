@@ -54,7 +54,7 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
           min="1"
           className="w-14 text-center border border-gray-300 rounded-md p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         /> */}
-        <CountInput min={1} max={5} onChange={setQuantity} />
+        <CountInput min={1} max={5} defaultValue={1} onChange={setQuantity} />
         <button
           onClick={handleBuyClick}
           className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors duration-200"
