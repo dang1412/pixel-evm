@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useContext, ReactNode, useCallback, useEffect } from 'react';
+import React, { createContext, useReducer, useContext, ReactNode, useCallback, useEffect, useRef } from 'react';
 
 export enum ConnectionStatus {
   // Offer side
@@ -73,15 +73,17 @@ const WebRTCContext = createContext<{
 
 export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState)
-  const [stream, setStream] = React.useState<MediaStream | undefined>(undefined)
+  const streamPromiseRef = useRef<Promise<MediaStream>>(undefined)
   const [isMicOn, setIsMicOn] = React.useState(false)
 
   const createOrGetStream = useCallback(async () => {
-    if (!stream) {
+    const streamPromise = streamPromiseRef.current
+    if (!streamPromise) {
       try {
         console.log('Requesting user media stream for WebRTC')
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        setStream(mediaStream)
+        streamPromiseRef.current = navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaStream = await streamPromiseRef.current
+        toggleMicrophone(false)
 
         return mediaStream
       } catch (error) {
@@ -89,23 +91,19 @@ export const WebRTCProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    return stream
-  }, [stream])
+    return streamPromise
+  }, [])
 
-  const toggleMicrophone = useCallback((enabled: boolean) => {
-    if (stream) {
+  const toggleMicrophone = useCallback(async (enabled: boolean) => {
+    if (streamPromiseRef.current) {
       console.log('Setting microphone enabled:', enabled)
+      const stream = await streamPromiseRef.current
       stream.getAudioTracks().forEach(track => {
         track.enabled = enabled
       })
       setIsMicOn(enabled)
     }
-  }, [stream])
-
-  useEffect(() => {
-    // Mute microphone by default
-    toggleMicrophone(false)
-  }, [toggleMicrophone])
+  }, [])
 
   return (
     <WebRTCContext.Provider value={{ state, createOrGetStream, toggleMicrophone, isMicOn, dispatch }}>

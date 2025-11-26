@@ -96,21 +96,20 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
 
   const { send, subscribe } = useWebSocket()
 
-  // subscribe to bomb-game channel
-  useEffect(() => {
-    subscribe('bomb-game', (payload) => {
-      if (payload.type === 'game_created') {
-        bombMapRef.current?.bombNetwork.getBombGame()?.setGameId(payload.gameId)
-      } else if (payload.type === 'top_rank') {
-        console.log('Top Ranks:', payload.players)
-      }
-    })
-  }, [subscribe])
-
   // make host
   const createGame = useCallback(async () => {
     const bombMap = bombMapRef.current
     if (bombMap && !bombMap.bombNetwork.isHost()) {
+      // subscribe to bomb-game channel
+      subscribe('bomb-game', (payload) => {
+        if (payload.type === 'game_created') {
+          bombMapRef.current?.bombNetwork.getBombGame()?.setGameId(payload.gameId)
+        } 
+        // else if (payload.type === 'top_rank') {
+        //   console.log('Top Ranks:', payload.players)
+        // }
+      })
+
       // create game as host
       bombMap.bombNetwork.createGame(send)
 
@@ -119,7 +118,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
       // not show info button
       setShouldShowInfoButton(false)
     }
-  }, [send])
+  }, [send, subscribe])
 
   // connect to a host
   const connect = useCallback(async (addr: string) => {

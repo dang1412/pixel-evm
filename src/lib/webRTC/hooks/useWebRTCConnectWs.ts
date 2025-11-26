@@ -58,7 +58,6 @@ export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) 
         send({
           action: 'send_message',
           payload: {
-            from,
             to,
             content: sdp,
           }
@@ -134,6 +133,17 @@ export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) 
     }
   }, [wsRandomName, createService])
 
+  // signInTemp
+  useEffect(() => {
+    if (wsRandomName) {
+      send({
+        action: 'signInTemp',
+        wsName: wsRandomName,
+      })
+    }
+  }, [wsRandomName, send])
+
+  // subscribe to personal message channel
   useWebSocketSubscription(`message-to-${wsRandomName}`, onWsMessage)
 
   // Start offering connect to toAddr
