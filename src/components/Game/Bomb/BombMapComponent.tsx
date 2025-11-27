@@ -136,7 +136,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     }
   }, [connectToParam, connect])
 
-  const [isGuideModalOpen, setIsGuideModalOpen] = useState(true)
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false)
 
   return (
     <>

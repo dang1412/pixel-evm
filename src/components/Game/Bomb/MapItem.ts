@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from 'pixi.js'
+import { Color, Container, Graphics, Text } from 'pixi.js'
 
 import { BombMap } from './BombMap'
 import { PIXEL_SIZE, positionToXY } from '../utils'
@@ -7,9 +7,11 @@ import { ItemState, ItemType } from './types'
 
 const flashAnimationTime = 800
 const appearAnimationTime = 600
+const fattenAnimationTime = 800
 
 export class MapItem {
   private container = new Container()
+  private star: Graphics | null = null
 
   constructor(private bombMap: BombMap, private state: ItemState) {
     const { pos, points, colorIndex } = state
@@ -31,22 +33,11 @@ export class MapItem {
     // Draw a star for the item
     const star = new Graphics()
     const isExplode = this.state.type === ItemType.StarExplode
-    const outerRadius = (isExplode ? PIXEL_SIZE / 2 : PIXEL_SIZE / 2.2) * starScale
-    const innerRadius = (isExplode ? outerRadius * 0.55 : (PIXEL_SIZE / 4.5) * starScale)
-
-    star
-      .star(
-        PIXEL_SIZE / 2, // x
-        PIXEL_SIZE / 2, // y
-        5,              // number of points
-        outerRadius,    // radius
-        innerRadius,    // inner radius (larger for fat star)
-        0               // rotation
-      )
-      .fill(colors.fill)
-      .stroke({ width: (isExplode ? 2.5 : 2) * starScale, color: colors.stroke })
+    // Initially render all stars as slim; StarExplode becomes fat on activate()
+    const outerRadius = this.drawStar(star, starScale, colors, 0)
 
     this.container.addChild(star)
+    this.star = star
 
     // Add text for the points
     const text = new Text({
@@ -120,9 +111,6 @@ export class MapItem {
           glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * 3 / 4 )
             .fill({ color: colors.glow, alpha: 0.5 })
         } 
-        // else {
-        //   glow.destroy()
-        // }
       }
     }
   }
@@ -130,13 +118,84 @@ export class MapItem {
   remove(point: number) {
     // remove glow
     this.container.removeChildAt(0)
+    // stop animation if any
+    this.stopActivate?.()
     // explode
     this.explode(point)
     // clear star
-    const star = this.container.getChildAt(0) as Graphics
-    star.clear()
+    this.star?.clear()
   }
 
+  private stopActivate: (() => void) | null = null
+
+  activate() {
+    // add some animation later
+    const isExplode = this.state.type === ItemType.StarExplode
+    const spark = isExplode ? this.container.getChildAt(3) as Graphics : null
+    if (isExplode && this.star && spark) {
+      // Animate the star becoming fatter on activation
+      const starScale = this.getStarScale(this.state.points)
+      const colors = starColorSchemes[this.state.colorIndex]
+
+      let fattenElapsedTime = 0
+      const view = this.bombMap.map.getView()
+      const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+        const delta = Math.min(e.detail, 40)
+        
+        // Animate the star getting fatter
+        fattenElapsedTime += delta
+        let progress = Math.min(fattenElapsedTime / fattenAnimationTime, 1)
+        
+        // Ease out cubic for smooth animation
+        const easeOut = 1 - Math.pow(1 - progress, 3)
+        
+        // Redraw star with interpolated fatness (0 = slim, 1 = fat)
+        this.star!.clear()
+        this.drawStar(this.star!, starScale, colors, easeOut)
+        
+        // Make the spark flicker
+        const pulse = Math.abs(Math.sin(Date.now() / 100))
+        spark.alpha = pulse
+        spark.tint = new Color([1, pulse, 0]).toNumber()
+      })
+
+      this.stopActivate = () => {
+        unsub()
+        spark.alpha = 0
+      }
+    }
+  }
+
+  private drawStar(star: Graphics, starScale: number, colors: typeof starColorSchemes[number], fatness: number) {
+    // Fatness: 0 = slim, 1 = fat (interpolate for animation)
+    
+    // Interpolate between slim and fat values
+    const slimOuterRadius = (PIXEL_SIZE / 2.2) * starScale
+    const fatOuterRadius = (PIXEL_SIZE / 2) * starScale
+    const outerRadius = slimOuterRadius + (fatOuterRadius - slimOuterRadius) * fatness
+    
+    const slimInnerRadius = (PIXEL_SIZE / 4.5) * starScale
+    const fatInnerRadius = fatOuterRadius * 0.6
+    const innerRadius = slimInnerRadius + (fatInnerRadius - slimInnerRadius) * fatness
+    
+    const slimStrokeWidth = 2 * starScale
+    const fatStrokeWidth = 2.5 * starScale
+    const strokeWidth = slimStrokeWidth + (fatStrokeWidth - slimStrokeWidth) * fatness
+
+    star
+      .star(
+        PIXEL_SIZE / 2, // x
+        PIXEL_SIZE / 2, // y
+        5,              // number of points
+        outerRadius,    // radius
+        innerRadius,    // inner radius (larger for fat star)
+        0               // rotation
+      )
+      .fill(colors.fill)
+      .stroke({ width: strokeWidth, color: colors.stroke })
+    
+    return outerRadius
+  }
 
   private explode(point: number) {
     const flash = new Graphics()
@@ -159,10 +218,6 @@ export class MapItem {
     const text = this.container.getChildAt(1) as Text
     text.text = `${point}`
 
-    // Check if spark exists (for StarExplode type)
-    const isExplode = this.state.type === ItemType.StarExplode
-    const spark = isExplode ? this.container.getChildAt(2) as Graphics : null
-
     const animateFlash = (delta: number) => {
       flashElapsedTime += delta
       let progress = flashElapsedTime / flashAnimationTime
@@ -175,11 +230,6 @@ export class MapItem {
 
       text.scale.set(0.2 + easeOut * 0.4)
       text.alpha = 1.2 - easeOut
-
-      // Fade out spark if it exists
-      if (spark) {
-        spark.alpha = 1 - easeOut
-      }
 
       if (progress === 1) {
         unsub()

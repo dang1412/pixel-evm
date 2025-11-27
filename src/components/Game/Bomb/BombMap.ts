@@ -115,7 +115,11 @@ export class BombMap {
     for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {
         const { x, y } = positionToXY(pos)
-        this.addBomb(x, y, ownerId, type)
+        if (type === BombType.Star) {
+          this.activateBombStar(pos)
+        } else {
+          this.addBomb(x, y, ownerId, type)
+        }
       } else {
         const bomb = this.removeBomb(pos, ownerId)
         // if (bomb && type === BombType.Atomic) {
@@ -179,6 +183,12 @@ export class BombMap {
         itemOnMap.remove(item.point)
       }
     }
+  }
+
+  private activateBombStar(pos: number) {
+    // activate the star into a bomb, if star type is bomb
+    const item = this.itemMap.get(pos)
+    item?.activate()
   }
 
   private addBomb(x: number, y: number, playerId: number, type: BombType) {

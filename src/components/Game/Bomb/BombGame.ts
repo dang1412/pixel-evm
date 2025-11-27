@@ -191,7 +191,7 @@ export class BombGame {
     this.state.round++
     this.state.pausing = false
     this.state.timeLeft = 100 // seconds
-    this.maxStarsCount = 120 * this.state.round
+    this.maxStarsCount = 150 * this.state.round
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
@@ -260,6 +260,7 @@ export class BombGame {
     const caughtItems: CaughtItem[] = []
     // players that get bonus points
     const playerBonusMap = new Map<number, number>()
+    const activatedStars: ItemState[] = []
     for (const pos of explosions) {
       const item = this.itemMap.get(pos)
       if (item) {
@@ -273,15 +274,21 @@ export class BombGame {
 
         // star explode
         if (item.type === ItemType.StarExplode) {
-          // add a bomb at the position
+          // add an invisible bomb at the position
           // not notify UI, explode quickly
           const blastRadius = Math.ceil(item.points / 20)
-          const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 2, blastRadius, type: BombType.Star }
+          const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 4, blastRadius, type: BombType.Star }
           this.bombStateMap.set(pos, newBomb)
-        }
 
-        caughtItems.push({ pos, point: item.points, playerId })
-        this.itemMap.delete(pos) // Remove item once caught
+          // notify all the new bomb
+          this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [newBomb] })
+          // make the star normal
+          item.type = ItemType.Star
+          activatedStars.push(item)
+        } else {
+          caughtItems.push({ pos, point: item.points, playerId })
+          this.itemMap.delete(pos) // Remove item once caught
+        }
       }
     }
 
@@ -303,6 +310,16 @@ export class BombGame {
         }
       }
       this.bombNetwork.gameUpdate({ type: 'removeItems', items: caughtItems })
+    }
+
+    // update bonus points for activated stars
+    for (const item of activatedStars) {
+      const e = this.explosionMap.get(item.pos)
+      if (!e) continue
+      const bonus = playerBonusMap.get(e.playerId)
+      if (bonus) {
+        item.points = Math.ceil(item.points * (1 + 0.2 * bonus))
+      }
     }
 
     this.generateItems()
