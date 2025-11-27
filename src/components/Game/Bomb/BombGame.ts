@@ -12,6 +12,7 @@ function getInitPlayerBombs(): Pick<PlayerState, 'bombs'> {
     bombs: {
       [BombType.Standard]: 0,
       [BombType.Atomic]: 0,
+      [BombType.Star]: 0,
     },
   }
 }
@@ -258,24 +259,24 @@ export class BombGame {
     // remove caught items
     const caughtItems: CaughtItem[] = []
     // players that get bonus points
-    const bonusPlayerIds = new Set<number>()
+    const playerBonusMap = new Map<number, number>()
     for (const pos of explosions) {
       const item = this.itemMap.get(pos)
       if (item) {
         const playerId = this.explosionMap.get(pos)!.playerId
-        
+
         // star bonus
         if (item.type === ItemType.StarBonus) {
-          bonusPlayerIds.add(playerId)
+          const currentBonus = playerBonusMap.get(playerId) || 0
+          playerBonusMap.set(playerId, currentBonus + 1)
         }
 
         // star explode
         if (item.type === ItemType.StarExplode) {
-          const { x, y } = positionToXY(pos)
           // add a bomb at the position
           // not notify UI, explode quickly
           const blastRadius = Math.ceil(item.points / 20)
-          const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 2, blastRadius, type: BombType.Atomic }
+          const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 2, blastRadius, type: BombType.Star }
           this.bombStateMap.set(pos, newBomb)
         }
 
@@ -288,10 +289,11 @@ export class BombGame {
     if (caughtItems.length > 0) {
       // update player scores
       for (const ci of caughtItems) {
-        if (bonusPlayerIds.has(ci.playerId)) {
-          // add 20% bonus points if bomb standard explosion caught the item
+        const bonus = playerBonusMap.get(ci.playerId)
+        if (bonus) {
+          // add 20% points per bonus, if bomb standard explosion caught the item
           if (this.explosionMap.get(ci.pos)?.type === BombType.Standard) {
-            ci.point = Math.ceil(ci.point * 1.2)
+            ci.point = Math.ceil(ci.point * (1 + 0.2 * bonus))
           }
         }
         const playerState = this.playerStateMap.get(ci.playerId)
@@ -391,12 +393,14 @@ export class BombGame {
     const { ownerId, blastRadius: r, type } = bombState
     const bombs = [bombState]
     this.bombStateMap.delete(pos)
-    
+
     // check items caught
     const { x, y } = positionToXY(pos)
     const { affectedPositions, affedtedBombPositions } = type === BombType.Standard
       ? this.calculateStandardExplodePositions(x, y, r)
-      : this.calculateAtomicExplodePositions(x, y, r)
+      : type === BombType.Atomic
+        ? this.calculateAtomicExplodePositions(x, y, r)
+        : this.calculateStarExplodePositions(x, y, r)
 
     // explode
     for (const pos of affectedPositions) {
@@ -464,6 +468,29 @@ export class BombGame {
           } else if (!this.explosionMap.has(affectedPos)) {
             affectedPositions.push(affectedPos)
           }
+        }
+      }
+    }
+
+    return { affectedPositions, affedtedBombPositions }
+  }
+
+  private calculateStarExplodePositions(x: number, y: number, r: number) {
+    if (r > 2) {
+      return this.calculateAtomicExplodePositions(x, y, r)
+    }
+
+    const affectedPositions = [xyToPosition(x, y)]
+    const affedtedBombPositions: number[] = []
+
+    // Atomic bomb affects all positions in a square area
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        const affectedPos = xyToPosition(x + dx, y + dy)
+        if (this.bombStateMap.has(affectedPos)) {
+          affedtedBombPositions.push(affectedPos)
+        } else if (!this.explosionMap.has(affectedPos)) {
+          affectedPositions.push(affectedPos)
         }
       }
     }

@@ -5,6 +5,7 @@ export const GameLoop = 200
 export const bombPrices: { [type in BombType]: number } = {
   [BombType.Standard]: 100,
   [BombType.Atomic]: 500,
+  [BombType.Star]: 0,
 }
 
 // Fisher-Yates shuffle algorithm
@@ -50,4 +51,7 @@ export const starColorSchemes = [
   { glow: 0x7FFF00, fill: 0x32CD32, stroke: 0x228B22, text: 0xFF00FF }, // Green theme
   { glow: 0xFFFFE0, fill: 0xC0C0C0, stroke: 0x708090, text: 0xFF1493 }, // Silver theme
   { glow: 0xFF00FF, fill: 0x8A2BE2, stroke: 0x9400D3, text: 0x00FF7F }, // Violet theme
+  { glow: 0x00FFFF, fill: 0x00CED1, stroke: 0x008B8B, text: 0xFFD700 }, // Cyan theme
+  { glow: 0xFFC0CB, fill: 0xFFB6C1, stroke: 0xFF1493, text: 0x9370DB }, // Pink theme
+  { glow: 0x87CEEB, fill: 0x4169E1, stroke: 0x000080, text: 0xFFFF00 }, // Sky Blue theme
 ]

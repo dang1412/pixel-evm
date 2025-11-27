@@ -7,6 +7,7 @@ export interface GameState {
 export enum BombType {
   Standard,
   Atomic,
+  Star,
 }
 
 export interface BombState {

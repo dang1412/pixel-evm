@@ -1,6 +1,7 @@
 export enum BombType {
   Standard,
   Atomic,
+  Star,
 }
 
 export type BombGameCreatePayload = {
