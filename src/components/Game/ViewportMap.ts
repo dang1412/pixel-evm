@@ -5,7 +5,6 @@ import { Minimap } from './Minimap'
 import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
 import { ViewportScene } from './ViewportScene'
 import { PixelArea } from './types'
-import { initialize } from 'next/dist/server/lib/render-server'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
@@ -13,6 +12,7 @@ const WORLD_WIDTH = PIXEL_SIZE * MAP_W
 export interface ViewportMapOptions {
   selectable?: boolean
   onDrop?: (data: DataTransfer, px: number, py: number) => void
+  backgroundColor?: number
 }
 
 export interface DragOptions {
@@ -125,8 +125,9 @@ export class ViewportMap {
 
   async init(w: number, h: number) {
     const canvas = this.canvas
+    const backgroundColor = this.options.backgroundColor ?? 0xffffff
 
-    await this.renderer.init({ canvas, width: w, height: h, antialias: true, backgroundColor: 0xffffff })
+    await this.renderer.init({ canvas, width: w, height: h, antialias: true, backgroundColor })
 
     const viewport = this.viewport = new Viewport({
       screenWidth: w,

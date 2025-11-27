@@ -63,7 +63,8 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
       // pixel map
       const map = new PixelMap(canvas, {
         // not open scene when click on image
-        preOpenImageHook: (curScene, pixel, image) => false
+        preOpenImageHook: (curScene, pixel, image) => false,
+        backgroundColor: 0x000000,
       })
       map.addMainImages(mockImages)
 

@@ -10,6 +10,7 @@ import { getAreaOperatable, getSceneImages, getSubSceneName } from './funcs'
 
 export interface PixelMapOptions {
   preOpenImageHook?: (curScene: string, pixel: number, image: PixelImage) => boolean
+  backgroundColor?: number
 }
 
 type PixelAreaWithOwner = PixelArea & { owner: string }
@@ -40,7 +41,7 @@ export class PixelMap {
       mintedPixelToGraphic: new Map<number, Graphics>(),
     }
 
-    const { view, disconnect } = createViewportMap(c)
+    const { view, disconnect } = createViewportMap(c, options.backgroundColor)
     this.view = view
 
     this.destroy = () => {
