@@ -1,9 +1,9 @@
 import { ClientMessage } from '@/providers/types'
 import { positionToXY, xyToPosition } from '../utils'
 import { BombNetwork } from './BombNetwork'
-import { bombPrices, GameLoop } from './constant'
+import { bombPrices, GameLoop, starColorSchemes } from './constant'
 
-import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, CaughtItem, GameState, ItemState, ItemType, PlayerState } from './types'
 
 let playerId = 1
 
@@ -77,10 +77,10 @@ export class BombGame {
   }
 
   addPlayer(host: string, name: string, _id?: number) {
-    if (!this.gameId) {
-      console.warn('Game ID not set yet')
-      return
-    }
+    // if (!this.gameId) {
+    //   console.warn('Game ID not set yet')
+    //   return
+    // }
 
     console.log('Adding player', host, name, _id)
 
@@ -122,7 +122,7 @@ export class BombGame {
   }
 
   addBomb(playerId: number, x: number, y: number, bombType = BombType.Standard) {
-    if (!this.gameId || this.state.pausing) return
+    if (this.state.pausing) return
 
     const pos = xyToPosition(x, y)
 
@@ -256,41 +256,43 @@ export class BombGame {
     }
 
     // remove caught items
-    const caughtItems: number[] = []
+    const caughtItems: CaughtItem[] = []
+    // players that get bonus points
+    const bonusPlayerIds = new Set<number>()
     for (const pos of explosions) {
       const item = this.itemMap.get(pos)
       if (item) {
         const playerId = this.explosionMap.get(pos)!.playerId
-        const playerState = this.playerStateMap.get(playerId)
-        if (playerState) {
-          playerState.score += item.points
-          this.updatedPlayerIds.add(playerId)
+        
+        if (item.type === ItemType.StarBonus) {
+          bonusPlayerIds.add(playerId)
         }
-        caughtItems.push(pos)
+
+        caughtItems.push({ pos, point: item.points, playerId })
         this.itemMap.delete(pos) // Remove item once caught
       }
     }
-    if (caughtItems.length > 0) {
-      this.bombNetwork.gameUpdate({ type: 'removeItems', positions: caughtItems })
-    }
 
-    // generate items
-    const newItems: ItemState[] = []
-    if (this.itemMap.size < this.maxStarsCount) {
-      const count = Math.random() * 10 + 1
-      for (let i = 0; i < count; i++) {
-        const pos = Math.floor(Math.random() * 10000)
-        if (!this.itemMap.has(pos)) {
-          const item: ItemState = { pos, type: 0, points: Math.floor(Math.random() * 99) + 1 }
-          this.itemMap.set(pos, item)
-          newItems.push(item)
+    // apply caught items
+    if (caughtItems.length > 0) {
+      // update player scores
+      for (const ci of caughtItems) {
+        if (bonusPlayerIds.has(ci.playerId)) {
+          // add 20% bonus points if bomb standard explosion caught the item
+          if (this.explosionMap.get(ci.pos)?.type === BombType.Standard) {
+            ci.point = Math.ceil(ci.point * 1.2)
+          }
+        }
+        const playerState = this.playerStateMap.get(ci.playerId)
+        if (playerState) {
+          playerState.score += ci.point
+          this.updatedPlayerIds.add(ci.playerId)
         }
       }
+      this.bombNetwork.gameUpdate({ type: 'removeItems', items: caughtItems })
     }
 
-    if (newItems.length > 0) {
-      this.bombNetwork.gameUpdate({ type: 'addItems', items: newItems })
-    }
+    this.generateItems()
 
     // score
     this.sendPlayerUpdates()
@@ -326,6 +328,33 @@ export class BombGame {
       // send time update every second
       update.timeLeft = this.state.timeLeft
       this.bombNetwork.gameUpdate({ type: 'gameState', state: update })
+    }
+  }
+
+  private generateItems() {
+    // generate items
+    const newItems: ItemState[] = []
+    if (this.itemMap.size < this.maxStarsCount) {
+      const count = Math.random() * 10 + 1
+      for (let i = 0; i < count; i++) {
+        const pos = Math.floor(Math.random() * 10000)
+        // random item type
+        const type = Math.floor(Math.random() * 5) as ItemState['type']
+        if (!this.itemMap.has(pos)) {
+          const item: ItemState = {
+            pos,
+            type,
+            points: Math.floor(Math.random() * 99) + 1,
+            colorIndex: Math.floor(Math.random() * starColorSchemes.length),
+          }
+          this.itemMap.set(pos, item)
+          newItems.push(item)
+        }
+      }
+    }
+
+    if (newItems.length > 0) {
+      this.bombNetwork.gameUpdate({ type: 'addItems', items: newItems })
     }
   }
 

@@ -7,7 +7,7 @@ import { Bomb } from './Bomb'
 import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, CaughtItem, GameState, ItemState, PlayerState } from './types'
 import { AtomicBomb } from './AtomicBomb'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
@@ -163,8 +163,7 @@ export class BombMap {
 
   // Called from Network
   addItem(pos: number, item: ItemState) {
-    const { x, y } = positionToXY(pos)
-    this.itemMap.set(pos, new MapItem(this, x, y, item.points))
+    this.itemMap.set(pos, new MapItem(this, item))
 
     // update minimap
     const view = this.map.getView()
@@ -172,12 +171,12 @@ export class BombMap {
   }
 
   // Called from Network
-  removeItems(positions: number[]) {
-    for (const pos of positions) {
-      const item = this.itemMap.get(pos)
-      if (item) {
-        this.itemMap.delete(pos)
-        item.remove()
+  removeItems(items: CaughtItem[]) {
+    for (const item of items) {
+      const itemOnMap = this.itemMap.get(item.pos)
+      if (itemOnMap) {
+        this.itemMap.delete(item.pos)
+        itemOnMap.remove(item.point)
       }
     }
   }

@@ -1,7 +1,7 @@
 import { ClientMessage } from '@/providers/types'
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
-import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, CaughtItem, GameState, ItemState, PlayerState } from './types'
 
 type GameMessage = 
   // client to host
@@ -14,7 +14,7 @@ type GameMessage =
   | { type: 'bombs', bombs: BombState[] }
   | { type: 'explosions', explosions: number[] }
   | { type: 'addItems', items: ItemState[] }
-  | { type: 'removeItems', positions: number[] }
+  | { type: 'removeItems', items: CaughtItem[] }
   | { type: 'players', players: PlayerState[] }
 
   | { type: 'gameState', state: Partial<GameState> }
@@ -223,7 +223,7 @@ export class BombNetwork {
         }
         break
       case 'removeItems':
-        this.bombMap.removeItems(msg.positions)
+        this.bombMap.removeItems(msg.items)
         break
       case 'gameState':
         this.bombMap.updateGameState(msg.state)

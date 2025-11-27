@@ -1,28 +1,18 @@
 import { Container, Graphics, Text } from 'pixi.js'
+
 import { BombMap } from './BombMap'
-import { PIXEL_SIZE } from '../utils'
+import { PIXEL_SIZE, positionToXY } from '../utils'
+import { starColorSchemes } from './constant'
+import { ItemState, ItemType } from './types'
 
 const flashAnimationTime = 800
 const appearAnimationTime = 600
 
-// Randomly choose between multiple color schemes
-const colorSchemes = [
-  { glow: 0xFFD700, fill: 0xFFD700, stroke: 0xFF4500, text: 0x32CD32 }, // Gold theme
-  { glow: 0xFF1493, fill: 0x00FFFF, stroke: 0xFF00FF, text: 0xFFFF00 }, // Cyan/Magenta theme
-  { glow: 0xFF69B4, fill: 0xFF1493, stroke: 0xFF69B4, text: 0xFFFFFF }, // Hot Pink theme
-  { glow: 0x7B68EE, fill: 0x9370DB, stroke: 0x4B0082, text: 0x00FF00 }, // Purple theme
-  { glow: 0xFF6347, fill: 0xFF0000, stroke: 0x8B0000, text: 0xFFD700 }, // Ruby theme
-  { glow: 0x00CED1, fill: 0x48D1CC, stroke: 0x20B2AA, text: 0xFF69B4 }, // Turquoise theme
-  { glow: 0xFF8C00, fill: 0xFFA500, stroke: 0xFF4500, text: 0x00FFFF }, // Orange theme
-  { glow: 0x7FFF00, fill: 0x32CD32, stroke: 0x228B22, text: 0xFF00FF }, // Green theme
-  { glow: 0xFFFFE0, fill: 0xC0C0C0, stroke: 0x708090, text: 0xFF1493 }, // Silver theme
-  { glow: 0xFF00FF, fill: 0x8A2BE2, stroke: 0x9400D3, text: 0x00FF7F }, // Violet theme
-]
-
 export class MapItem {
   private container = new Container()
 
-  constructor(private bombMap: BombMap, private x: number, private y: number, private points: number) {
+  constructor(private bombMap: BombMap, private state: ItemState) {
+    const { pos, points, colorIndex } = state
     const view = bombMap.map.getView()
     const mainScene = view.getScene('main')
     if (!mainScene) throw new Error('Main scene not loaded yet!')
@@ -30,7 +20,7 @@ export class MapItem {
     // Determine star size based on points
     const starScale = this.getStarScale(points)
 
-    const colors = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
+    const colors = starColorSchemes[colorIndex]
 
     // Glow effect
     const glow = new Graphics()
@@ -68,18 +58,46 @@ export class MapItem {
     text.position.set(PIXEL_SIZE / 2, PIXEL_SIZE / 2)
     this.container.addChild(text)
 
+    // If this is a StarPlus, add a small badge to indicate +20% points
+    // if (type === ItemType.StarPlus) {
+    //   const badgeSize = PIXEL_SIZE * 0.36
+
+    //   const badgeBg = new Graphics()
+    //   badgeBg.beginFill(colors.stroke, 0.9)
+    //   badgeBg.drawRoundedRect(PIXEL_SIZE - badgeSize - 4, 4, badgeSize, badgeSize, badgeSize * 0.22)
+    //   badgeBg.endFill()
+    //   this.container.addChild(badgeBg)
+
+    //   const badgeText = new Text({
+    //     text: '+20%',
+    //     style: {
+    //       fontSize: 14,
+    //       fill: 0xFFFFFF,
+    //       align: 'center',
+    //       stroke: { color: 0x000000, width: 2 },
+    //     },
+    //   })
+    //   badgeText.anchor.set(0.5)
+    //   badgeText.position.set(PIXEL_SIZE - badgeSize / 2 - 4, 4 + badgeSize / 2)
+    //   badgeText.scale.set(0.9)
+    //   this.container.addChild(badgeText)
+    // }
+
+    const { x, y } = positionToXY(pos)
     mainScene.addContainer(this.container, x, y)
 
     this.container.scale.set(0)
     this.appear()
   }
 
-  appear() {
+  private appear() {
     const view = this.bombMap.map.getView()
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
       const delta = Math.min(e.detail, 40)
       animateAppear(delta)
     })
+
+    const colors = starColorSchemes[this.state.colorIndex]
 
     let appearElapsedTime = 0
     const glow = this.container.getChildAt(0) as Graphics
@@ -101,20 +119,31 @@ export class MapItem {
 
       if (progress === 1) {
         unsub()
-        glow.destroy()
+        if (this.state.type === ItemType.StarBonus) {
+          glow.alpha = 0.5
+          glow.clear()
+          glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * 3 / 4 )
+            .fill({ color: colors.glow, alpha: 0.5 })
+        } 
+        // else {
+        //   glow.destroy()
+        // }
       }
     }
   }
 
-  remove() {
-    // this.container.destroy()
-    this.explode()
+  remove(point: number) {
+    // remove glow
+    this.container.removeChildAt(0)
+    // explode
+    this.explode(point)
+    // clear star
     const star = this.container.getChildAt(0) as Graphics
     star.clear()
   }
 
 
-  explode() {
+  private explode(point: number) {
     const flash = new Graphics()
     flash.circle(0, 0, PIXEL_SIZE / 3)
       .fill({ color: 0xFF0000, alpha: 0.9})
@@ -133,6 +162,7 @@ export class MapItem {
     let flashElapsedTime = 0
 
     const text = this.container.getChildAt(1) as Text
+    text.text = `${point}`
 
     const animateFlash = (delta: number) => {
       flashElapsedTime += delta

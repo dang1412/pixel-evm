@@ -18,13 +18,19 @@ export interface BombState {
 }
 
 export enum ItemType {
-  Star
+  Star,
+  StarPlus,
+  StarMinus,
+  StarBonus,
+  StarBomb,
 }
+
 
 export interface ItemState {
   pos: number
   type: ItemType
   points: number
+  colorIndex: number
 }
 
 export interface PlayerState {
@@ -33,4 +39,10 @@ export interface PlayerState {
   score: number
   bombs: {[type in BombType]: number}
   r: number
+}
+
+export interface CaughtItem {
+  pos: number
+  point: number
+  playerId: number
 }

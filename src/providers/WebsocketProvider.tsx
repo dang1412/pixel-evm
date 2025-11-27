@@ -39,6 +39,19 @@ interface WebSocketProviderProps {
   children: ReactNode;
 }
 
+// Check if running on localhost - only runs once per component instance
+let isLocalhost: boolean | null = null;
+
+const checkIsLocalhost = (): boolean => {
+  if (isLocalhost === null) {
+    isLocalhost = typeof window !== 'undefined' && 
+                  (window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1' ||
+                   window.location.hostname.includes('.local'));
+  }
+  return isLocalhost;
+};
+
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   url,
   children,
@@ -106,7 +119,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   // Hàm gửi tin nhắn, dùng useCallback để tối ưu
   const send = useCallback((message: any) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(message));
+      // not send if running on localhost
+      console.log('Sending message:', message, isLocalhost);
+      if (!checkIsLocalhost()) {
+        ws.current.send(JSON.stringify(message));
+      }
     } else {
       console.warn('WebSocket not connected. Message not sent:', message);
     }
