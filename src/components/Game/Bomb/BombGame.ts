@@ -264,8 +264,19 @@ export class BombGame {
       if (item) {
         const playerId = this.explosionMap.get(pos)!.playerId
         
+        // star bonus
         if (item.type === ItemType.StarBonus) {
           bonusPlayerIds.add(playerId)
+        }
+
+        // star explode
+        if (item.type === ItemType.StarExplode) {
+          const { x, y } = positionToXY(pos)
+          // add a bomb at the position
+          // not notify UI, explode quickly
+          const blastRadius = Math.ceil(item.points / 20)
+          const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 2, blastRadius, type: BombType.Atomic }
+          this.bombStateMap.set(pos, newBomb)
         }
 
         caughtItems.push({ pos, point: item.points, playerId })

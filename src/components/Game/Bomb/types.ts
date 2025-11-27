@@ -22,7 +22,7 @@ export enum ItemType {
   StarPlus,
   StarMinus,
   StarBonus,
-  StarBomb,
+  StarExplode,
 }
 
 

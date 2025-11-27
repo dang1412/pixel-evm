@@ -117,11 +117,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [url]); // Chỉ chạy lại khi URL thay đổi
 
   // Hàm gửi tin nhắn, dùng useCallback để tối ưu
-  const send = useCallback((message: any) => {
+  const send = useCallback((message: ClientMessage) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       // not send if running on localhost
       console.log('Sending message:', message, isLocalhost);
-      if (!checkIsLocalhost()) {
+      if (!checkIsLocalhost() || message.action !== 'bomb_game') {
         ws.current.send(JSON.stringify(message));
       }
     } else {

@@ -111,23 +111,23 @@ export class BombMap {
 
   // Called from Network
   updateBombs(bombStates: BombState[]) {
-    let atomicBombExploded = 0
+    // let atomicBombExploded = 0
     for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {
         const { x, y } = positionToXY(pos)
         this.addBomb(x, y, ownerId, type)
       } else {
         const bomb = this.removeBomb(pos, ownerId)
-        if (bomb && type === BombType.Atomic) {
-          atomicBombExploded++
-        }
+        // if (bomb && type === BombType.Atomic) {
+        //   atomicBombExploded++
+        // }
       }
     }
 
     // atomic bomb explosion sound
-    if (atomicBombExploded) {
-      sound.play('laser', { volume: 0.1 * atomicBombExploded })
-    }
+    // if (atomicBombExploded) {
+    //   sound.play('laser', { volume: 0.1 * atomicBombExploded })
+    // }
 
     // ticking sound
     if (this.bombMap.size > 0) {

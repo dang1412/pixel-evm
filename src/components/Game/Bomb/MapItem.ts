@@ -30,16 +30,21 @@ export class MapItem {
 
     // Draw a star for the item
     const star = new Graphics()
-    star.star(
-      PIXEL_SIZE / 2, // x
-      PIXEL_SIZE / 2, // y
-      5,              // number of points
-      (PIXEL_SIZE / 2.2) * starScale, // radius
-      (PIXEL_SIZE / 4.5) * starScale, // inner radius
-      0               // rotation
-    )
-    .fill(colors.fill) // Gold or Silver
-    .stroke({ width: 2 * starScale, color: colors.stroke }) // Orange-Red or Royal Blue outline
+    const isExplode = this.state.type === ItemType.StarExplode
+    const outerRadius = (isExplode ? PIXEL_SIZE / 2 : PIXEL_SIZE / 2.2) * starScale
+    const innerRadius = (isExplode ? outerRadius * 0.55 : (PIXEL_SIZE / 4.5) * starScale)
+
+    star
+      .star(
+        PIXEL_SIZE / 2, // x
+        PIXEL_SIZE / 2, // y
+        5,              // number of points
+        outerRadius,    // radius
+        innerRadius,    // inner radius (larger for fat star)
+        0               // rotation
+      )
+      .fill(colors.fill)
+      .stroke({ width: (isExplode ? 2.5 : 2) * starScale, color: colors.stroke })
 
     this.container.addChild(star)
 
@@ -58,30 +63,20 @@ export class MapItem {
     text.position.set(PIXEL_SIZE / 2, PIXEL_SIZE / 2)
     this.container.addChild(text)
 
-    // If this is a StarPlus, add a small badge to indicate +20% points
-    // if (type === ItemType.StarPlus) {
-    //   const badgeSize = PIXEL_SIZE * 0.36
+    // If StarExplode, add a fuse like a bomb
+    if (isExplode) {
+      // spark sits exactly at the top tip of the star
+      const centerX = PIXEL_SIZE / 2
+      const centerY = PIXEL_SIZE / 2
+      const sparkX = centerX
+      const sparkY = centerY - outerRadius - 3
 
-    //   const badgeBg = new Graphics()
-    //   badgeBg.beginFill(colors.stroke, 0.9)
-    //   badgeBg.drawRoundedRect(PIXEL_SIZE - badgeSize - 4, 4, badgeSize, badgeSize, badgeSize * 0.22)
-    //   badgeBg.endFill()
-    //   this.container.addChild(badgeBg)
-
-    //   const badgeText = new Text({
-    //     text: '+20%',
-    //     style: {
-    //       fontSize: 14,
-    //       fill: 0xFFFFFF,
-    //       align: 'center',
-    //       stroke: { color: 0x000000, width: 2 },
-    //     },
-    //   })
-    //   badgeText.anchor.set(0.5)
-    //   badgeText.position.set(PIXEL_SIZE - badgeSize / 2 - 4, 4 + badgeSize / 2)
-    //   badgeText.scale.set(0.9)
-    //   this.container.addChild(badgeText)
-    // }
+      const spark = new Graphics()
+        .circle(sparkX, sparkY, 4)
+        .fill(0xFF0000)
+      // add spark last so it renders on top
+      this.container.addChild(spark)
+    }
 
     const { x, y } = positionToXY(pos)
     mainScene.addContainer(this.container, x, y)
@@ -164,6 +159,10 @@ export class MapItem {
     const text = this.container.getChildAt(1) as Text
     text.text = `${point}`
 
+    // Check if spark exists (for StarExplode type)
+    const isExplode = this.state.type === ItemType.StarExplode
+    const spark = isExplode ? this.container.getChildAt(2) as Graphics : null
+
     const animateFlash = (delta: number) => {
       flashElapsedTime += delta
       let progress = flashElapsedTime / flashAnimationTime
@@ -176,6 +175,11 @@ export class MapItem {
 
       text.scale.set(0.2 + easeOut * 0.4)
       text.alpha = 1.2 - easeOut
+
+      // Fade out spark if it exists
+      if (spark) {
+        spark.alpha = 1 - easeOut
+      }
 
       if (progress === 1) {
         unsub()
