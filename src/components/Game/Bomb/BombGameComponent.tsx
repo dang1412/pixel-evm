@@ -1,15 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaSpinner } from 'react-icons/fa'
+import { useSearchParams } from 'next/navigation'
 
 import { useNotification } from '@/providers/NotificationProvider'
+import { IPFSService } from '@/lib/webRTC/IPFSService'
 
 import { BombMap } from './BombMap'
 import { ScoreboardModal } from './ScoreBoardModal'
-import { GameState, PlayerState } from './types'
+import { GameState, PlayerState, RecordedGame } from './types'
 import { FloatScoreTable } from './FloatScoreTable'
 import BombSelect from './BombSelect'
 import { BombShop } from './BombShop'
 import BombMapComponent from './BombMapComponent'
+
+async function loadGameData(hash: string): Promise<RecordedGame> {
+  // load from ipfs
+  const ipfsService = IPFSService.getInstance()
+  const gameData = await ipfsService.fetch<RecordedGame>(hash)
+  return gameData
+}
 
 interface Props {}
 
@@ -20,11 +29,14 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const [ players, setPlayers ] = useState<PlayerState[]>([])
   const [ gameState, setGameState ] = useState<GameState>()
+  const [ isBombMapReady, setIsBombMapReady ] = useState(false)
+  const [ isReplayMode, setIsReplayMode ] = useState(false)
 
   const onBombMapReady = useCallback((bombMap: BombMap) => {
     bombMapRef.current = bombMap
     bombMap.onGameStateUpdated = (state) => setGameState(state)
     bombMap.onPlayersUpdated = (players) => setPlayers(players)
+    setIsBombMapReady(true)
   }, [])
 
   const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState(true)
@@ -46,6 +58,28 @@ const BombGameComponent: React.FC<Props> = (props) => {
   }, [gameState?.pausing, playerId])
 
   const [isBombShopOpen, setIsBombShopOpen] = useState(false)
+
+  const searchParams = useSearchParams()
+  const replayGameId = searchParams.get('replayGameId')
+
+  // Game replay
+  useEffect(() => {
+    if (replayGameId && isBombMapReady) {
+      const bombMap = bombMapRef.current
+      if (bombMap) {
+        const gameReplay = bombMap.bombNetwork.createGameReplay()
+        setIsScoreboardModalOpen(false)
+        setIsReplayMode(true)
+        // load data from json
+        loadGameData(replayGameId).then((data) => {
+          console.log('Loaded game data:', data)
+          gameReplay.setRecordedGame(data)
+          gameReplay.jumpToRound(1)
+          gameReplay.setPause(false)
+        })
+      }
+    }
+  }, [replayGameId, isBombMapReady])
 
   return (
     <>

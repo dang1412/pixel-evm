@@ -77,13 +77,16 @@ export class BombMap {
     })
   }
 
+  // Called from Network
   updateGameState(state: Partial<GameState>) {
     this.gameState = {...this.gameState, ...state}
     this.onGameStateUpdated?.(this.gameState)
   }
 
+  // Called from Network
   // Update or remove players
   updatePlayers(players: PlayerState[]) {
+    console.log('Updating players', players)
     for (const player of players) {
       if (player.score < 0) {
         // remove player
@@ -109,8 +112,26 @@ export class BombMap {
     this.bombType = type
   }
 
+  // Reset game state
+  resetGame() {
+    // remove all bombs
+    for (const bomb of this.bombMap.values()) {
+      bomb.remove()
+    }
+    this.bombMap.clear()
+
+    // remove all items
+    for (const item of this.itemMap.values()) {
+      item.remove(0)
+    }
+    this.itemMap.clear()
+
+    this.players.clear()
+  }
+
   // Called from Network
   updateBombs(bombStates: BombState[]) {
+    console.log('Updating bombs', bombStates)
     // let atomicBombExploded = 0
     for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {

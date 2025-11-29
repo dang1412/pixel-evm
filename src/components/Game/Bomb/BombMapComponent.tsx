@@ -30,6 +30,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
 
   const searchParams = useSearchParams()
   const connectToParam = searchParams.get('connectTo')
+  const replayGameId = searchParams.get('replayGameId')
 
   // receive data from host/client
   const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
@@ -135,6 +136,13 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
       connect(connectToParam)
     }
   }, [connectToParam, connect])
+
+  useEffect(() => {
+    if (replayGameId) {
+      setIsGuideModalOpen(false)
+      setIsConnectModalOpen(false)
+    }
+  }, [replayGameId, connect])
 
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false)
 

@@ -1,23 +1,9 @@
 import { ClientMessage } from '@/providers/types'
+
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
-import { BombState, BombType, CaughtItem, GameState, ItemState, PlayerState } from './types'
-
-type GameMessage = 
-  // client to host
-  | { type: 'join', name: string }
-  | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
-  | { type: 'buyBomb', bombType: BombType, quantity: number }
-
-  // host to client
-  | { type: 'joinSuccess', players: PlayerState[], playerId: number }
-  | { type: 'bombs', bombs: BombState[] }
-  | { type: 'explosions', explosions: number[] }
-  | { type: 'addItems', items: ItemState[] }
-  | { type: 'removeItems', items: CaughtItem[] }
-  | { type: 'players', players: PlayerState[] }
-
-  | { type: 'gameState', state: Partial<GameState> }
+import { BombType, GameMessage } from './types'
+import { BombGameReplay } from './BombGameReplay'
 
 export class BombNetwork {
 
@@ -31,6 +17,8 @@ export class BombNetwork {
 
   // for host
   private wsNameToPlayerId: { [wsName: string]: number } = {}
+
+  private gameReplay?: BombGameReplay
 
   constructor(private bombMap: BombMap) {
     // This is a mock network layer. In a real application,
@@ -46,6 +34,13 @@ export class BombNetwork {
   createGame(sendServer: (msg: ClientMessage) => void) {
     this.hostWsName = this.myWsName
     this.bombGame = new BombGame(this, this.myWsName || '', sendServer)
+  }
+
+  createGameReplay() {
+    const gameReplay = new BombGameReplay(this)
+    this.gameReplay = gameReplay
+
+    return gameReplay
   }
 
   getBombGame() {
@@ -227,6 +222,10 @@ export class BombNetwork {
         break
       case 'gameState':
         this.bombMap.updateGameState(msg.state)
+        break
+
+      case 'reset':
+        this.bombMap.resetGame()
         break
     }
   }

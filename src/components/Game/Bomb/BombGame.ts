@@ -1,9 +1,12 @@
 import { ClientMessage } from '@/providers/types'
+
 import { positionToXY, xyToPosition } from '../utils'
 import { BombNetwork } from './BombNetwork'
 import { bombPrices, GameLoop, starColorSchemes } from './constant'
 
-import { BombState, BombType, CaughtItem, GameState, ItemState, ItemType, PlayerState } from './types'
+import { BombState, BombType, CaughtItem, GameMessage, GameState, ItemState, ItemType, PlayerState, RecordedGame } from './types'
+import { clonePlayerState } from './utils'
+import { IPFSService } from '@/lib/webRTC/IPFSService'
 
 let playerId = 1
 
@@ -41,6 +44,13 @@ export class BombGame {
 
   private maxStarsCount = 100
 
+  private roundFrameCount = 0
+
+  private recordedGame: RecordedGame = {
+    gameId: 0,
+    data: {}
+  }
+
   constructor(
     private bombNetwork: BombNetwork,
     private host: string,
@@ -66,6 +76,12 @@ export class BombGame {
         msg: { type: 'connect', payload: { gameId: this.gameId, client: this.bombNetwork.myWsName || '' } }
       })
     }
+
+    // reset recorded game
+    this.recordedGame = {
+      gameId: this.gameId,
+      data: {}
+    }
   }
 
   getPlayerStates() {
@@ -78,12 +94,8 @@ export class BombGame {
   }
 
   addPlayer(host: string, name: string, _id?: number) {
-    // if (!this.gameId) {
-    //   console.warn('Game ID not set yet')
-    //   return
-    // }
-
     console.log('Adding player', host, name, _id)
+    const ts = Date.now()
 
     const id = _id || playerId++
     const newPlayer = this.playerStoreMap.get(id)
@@ -102,7 +114,7 @@ export class BombGame {
     this.playerStateMap.set(id, newPlayer)
 
     // notify all the new player
-    this.bombNetwork.gameUpdate({ type: 'players', players: [newPlayer] })
+    this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(newPlayer)] })
 
     // notify server about new player
     this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.gameId, client: host || this.host, playerId: id, name } } })
@@ -119,7 +131,7 @@ export class BombGame {
 
     // notify all the removed player by sending negative score
     const removed = { ...player, score: -1 }
-    this.bombNetwork.gameUpdate({ type: 'players', players: [removed] })
+    this.gameUpdateAt(Date.now(), { type: 'players', players: [clonePlayerState(removed)] })
   }
 
   addBomb(playerId: number, x: number, y: number, bombType = BombType.Standard) {
@@ -130,6 +142,8 @@ export class BombGame {
     const playerState = this.playerStateMap.get(playerId)
     if (!playerState) return
 
+    const ts = Date.now()
+
     // already bomb
     const bomb = this.bombStateMap.get(pos)
     if (bomb) {
@@ -137,11 +151,11 @@ export class BombGame {
       if (bomb.ownerId === playerId) {
         this.bombStateMap.delete(pos)
         console.log('Defuse bomb', pos, x, y, bombType)
-        this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [{ ...bomb, live: 0 }] })
+        this.gameUpdateAt(ts, { type: 'bombs', bombs: [{ ...bomb, live: 0 }] })
 
         // increase back the bomb count
         playerState.bombs[bomb.type]++
-        this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+        this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
       }
 
       return
@@ -157,9 +171,9 @@ export class BombGame {
     this.bombStateMap.set(pos, newBomb)
 
     // notify all the new bomb
-    this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [newBomb] })
+    this.gameUpdateAt(ts, { type: 'bombs', bombs: [{...newBomb}] })
 
-    this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
+    this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
 
     // notify server about new bomb
     this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.gameId, round: this.state.round, playerId, pos, bombType } } })
@@ -174,10 +188,11 @@ export class BombGame {
     const cost = bombPrices[bombType] * quantity
     if (playerState.score < cost) return
 
+    const ts = Date.now()
+
     playerState.score -= cost
     playerState.bombs[bombType] += quantity
-    this.bombNetwork.gameUpdate({ type: 'players', players: [{...playerState}] })
-
+    this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
     // notify server about buy bomb
     this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.gameId, playerId, bombType, quantity } } })
   }
@@ -190,8 +205,9 @@ export class BombGame {
     if (this.state.round >= 5) return // max 5 rounds
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 100 // seconds
+    this.state.timeLeft = 20 // seconds
     this.maxStarsCount = 150 * this.state.round
+    this.roundFrameCount = 0
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
@@ -200,11 +216,26 @@ export class BombGame {
       playerState.r = 2 + this.state.round
     }
 
+    const ts = Date.now()
+
     // send game state
-    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+    this.gameUpdateAt(ts, { type: 'gameState', state: this.state })
 
     // send player states
-    this.bombNetwork.gameUpdate({ type: 'players', players: this.getPlayerStates() })
+    const players = this.getPlayerStates()
+    this.bombNetwork.gameUpdate({ type: 'players', players })
+
+    // update recorded init states
+    const round = this.state.round
+    this.recordedGame.data[round] = { maxFrame: 0 }
+    // set frame 0 state
+    
+    this.recordedGame.data[round][0] = [
+      // players
+      { ts, msg: { type: 'players', players: players.map(clonePlayerState) } },
+      // items
+      { ts, msg: { type: 'addItems', items: Array.from(this.itemMap.values()) } },
+    ]
   }
 
   restart() {
@@ -232,6 +263,7 @@ export class BombGame {
 
   private update() {
     if (this.state.pausing && this.bombStateMap.size === 0) return
+    this.roundFrameCount++
     this.explosionMap.clear()
     // this.caughtItems = []
     const explodedBombs: BombState[] = []
@@ -249,11 +281,12 @@ export class BombGame {
     const standardExplosions = explosions
       // .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
 
+    const ts = Date.now()
     if (explodedBombs.length) {
-      this.bombNetwork.gameUpdate({ type: 'bombs', bombs: explodedBombs })
+      this.gameUpdateAt(ts, { type: 'bombs', bombs: explodedBombs })
     }
     if (standardExplosions.length) {
-      this.bombNetwork.gameUpdate({ type: 'explosions', explosions: standardExplosions })
+      this.gameUpdateAt(ts, { type: 'explosions', explosions: standardExplosions })
     }
 
     // remove caught items
@@ -274,14 +307,13 @@ export class BombGame {
 
         // star explode
         if (item.type === ItemType.StarExplode) {
-          // add an invisible bomb at the position
-          // not notify UI, explode quickly
+          // add an invisible bomb at the position, explode quickly
           const blastRadius = Math.ceil(item.points / 20)
           const newBomb: BombState = { ownerId: playerId, pos, live: GameLoop * 4, blastRadius, type: BombType.Star }
           this.bombStateMap.set(pos, newBomb)
 
           // notify all the new bomb
-          this.bombNetwork.gameUpdate({ type: 'bombs', bombs: [newBomb] })
+          this.gameUpdateAt(ts, { type: 'bombs', bombs: [{...newBomb}] })
           // make the star normal
           item.type = ItemType.Star
           activatedStars.push(item)
@@ -309,7 +341,7 @@ export class BombGame {
           this.updatedPlayerIds.add(ci.playerId)
         }
       }
-      this.bombNetwork.gameUpdate({ type: 'removeItems', items: caughtItems })
+      this.gameUpdateAt(ts, { type: 'removeItems', items: caughtItems })
     }
 
     // update bonus points for activated stars
@@ -350,6 +382,17 @@ export class BombGame {
             }
           }
         })
+
+        console.log('Round ended', this.state.round)
+        console.log(this.recordedGame.data[this.state.round])
+
+        // upload recorded game data to IPFS
+        const ipfsService = IPFSService.getInstance()
+        ipfsService.add(JSON.stringify(this.recordedGame)).then((cid) => {
+          // QmXiQxsYMVZJVThBMWcuac7R5qH1K5aXyipqcHHkspGRMH
+          // QmZnbEjjYPCuJofWPiE6kajixN89VGnDSoZbStXx5vZhH2
+          console.log('Recorded game data uploaded to IPFS with CID:', cid)
+        })
       }
     }
 
@@ -357,7 +400,7 @@ export class BombGame {
     if (Number.isInteger(this.state.timeLeft)) {
       // send time update every second
       update.timeLeft = this.state.timeLeft
-      this.bombNetwork.gameUpdate({ type: 'gameState', state: update })
+      this.gameUpdateAt(ts, { type: 'gameState', state: update })
     }
   }
 
@@ -378,25 +421,27 @@ export class BombGame {
             colorIndex: Math.floor(Math.random() * starColorSchemes.length),
           }
           this.itemMap.set(pos, item)
-          newItems.push(item)
+          newItems.push({...item})
         }
       }
     }
 
     if (newItems.length > 0) {
-      this.bombNetwork.gameUpdate({ type: 'addItems', items: newItems })
+      this.gameUpdateAt(0, { type: 'addItems', items: newItems })
     }
+
+    return newItems
   }
 
   private sendPlayerUpdates() {
     if (this.updatedPlayerIds.size === 0) return
 
     const players = Array.from(this.updatedPlayerIds)
-      .map(id => ({...this.playerStateMap.get(id)} as PlayerState))
+      .map(id => (clonePlayerState(this.playerStateMap.get(id) as PlayerState)))
       .filter(p => p !== undefined)
 
     this.updatedPlayerIds.clear()
-    this.bombNetwork.gameUpdate({ type: 'players', players })
+    this.gameUpdateAt(0, { type: 'players', players })
   }
 
   getCurrentStates() {
@@ -513,5 +558,20 @@ export class BombGame {
     }
 
     return { affectedPositions, affedtedBombPositions }
+  }
+
+  private gameUpdateAt(ts: number, msg: GameMessage) {
+    const round = this.state.round
+    this.bombNetwork.gameUpdate(msg)
+
+    // update recorded game
+    if (!this.recordedGame.data[round]) {
+      this.recordedGame.data[round] = { maxFrame: 0}
+    }
+    if (!this.recordedGame.data[round][this.roundFrameCount]) {
+      this.recordedGame.data[round][this.roundFrameCount] = []
+    }
+    this.recordedGame.data[round][this.roundFrameCount].push({ ts, msg })
+    this.recordedGame.data[round].maxFrame = this.roundFrameCount
   }
 }

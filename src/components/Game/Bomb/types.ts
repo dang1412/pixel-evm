@@ -47,3 +47,34 @@ export interface CaughtItem {
   point: number
   playerId: number
 }
+
+export type GameMessage = 
+  // client to host
+  | { type: 'join', name: string }
+  | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
+  | { type: 'buyBomb', bombType: BombType, quantity: number }
+
+  // host to client
+  | { type: 'joinSuccess', players: PlayerState[], playerId: number }
+  | { type: 'bombs', bombs: BombState[] }
+  | { type: 'explosions', explosions: number[] }
+  | { type: 'addItems', items: ItemState[] }
+  | { type: 'removeItems', items: CaughtItem[] }
+  | { type: 'players', players: PlayerState[] }
+
+  | { type: 'gameState', state: Partial<GameState> }
+  | { type: 'reset' }
+
+export type RecordedGame = {
+  gameId: number
+  data: {
+    [round: number]: {
+      [roundFrame: number]: {
+        ts: number
+        msg: GameMessage
+      }[]
+      maxFrame: number
+    }
+  }
+}
+
