@@ -19,6 +19,7 @@ export type BombGameMsg =
       round: number; 
       players: { playerId: number; score: number; }[] 
     }}
+  | { type: 'add_recorded_game'; payload: { gameId: number; gameDataCid: string; } }
   // client
   | { type: 'connect'; payload: { gameId: number; client: string; } }
   | { type: 'join'; payload: { gameId: number; client: string; playerId: number; name: string } }

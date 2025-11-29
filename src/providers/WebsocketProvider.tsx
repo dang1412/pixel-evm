@@ -121,9 +121,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       // not send if running on localhost
       console.log('Sending message:', message, isLocalhost);
-      if (!checkIsLocalhost() || message.action !== 'bomb_game') {
+      // if (!checkIsLocalhost() || message.action !== 'bomb_game') {
         ws.current.send(JSON.stringify(message));
-      }
+      // }
     } else {
       console.warn('WebSocket not connected. Message not sent:', message);
     }

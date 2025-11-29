@@ -205,7 +205,7 @@ export class BombGame {
     if (this.state.round >= 5) return // max 5 rounds
     this.state.round++
     this.state.pausing = false
-    this.state.timeLeft = 20 // seconds
+    this.state.timeLeft = 100 // seconds
     this.maxStarsCount = 150 * this.state.round
     this.roundFrameCount = 0
 
@@ -392,6 +392,16 @@ export class BombGame {
           // QmXiQxsYMVZJVThBMWcuac7R5qH1K5aXyipqcHHkspGRMH
           // QmZnbEjjYPCuJofWPiE6kajixN89VGnDSoZbStXx5vZhH2
           console.log('Recorded game data uploaded to IPFS with CID:', cid)
+          this.sendServer({
+            action: 'bomb_game',
+            msg: {
+              type: 'add_recorded_game',
+              payload: {
+                gameId: this.gameId,
+                gameDataCid: cid,
+              }
+            }
+          })
         })
       }
     }
