@@ -176,7 +176,7 @@ export class BombGame {
     this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
 
     // notify server about new bomb
-    this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.gameId, round: this.state.round, playerId, pos, bombType } } })
+    // this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.gameId, round: this.state.round, playerId, pos, bombType } } })
 
     return newBomb
   }
