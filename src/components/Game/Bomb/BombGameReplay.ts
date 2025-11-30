@@ -46,6 +46,41 @@ export class BombGameReplay {
     this.replayUpdate()
   }
 
+  jumpToFrame(frame: number) {
+    const roundData = this.recordedGame.data[this.replayingRound]
+    if (!roundData) return
+
+    // Reset to start of round
+    this.replayFrameCount = 0
+    this.bombNetwork.gameUpdate({ type: 'reset' })
+    
+    // Play up to the target frame
+    while (this.replayFrameCount <= frame && this.replayFrameCount <= roundData.maxFrame) {
+      const msgs = roundData[this.replayFrameCount] || []
+      for (const { msg } of msgs) {
+        this.bombNetwork.gameUpdate(msg)
+      }
+      this.replayFrameCount++
+    }
+  }
+
+  getCurrentRound(): number {
+    return this.replayingRound
+  }
+
+  getCurrentFrame(): number {
+    return this.replayFrameCount
+  }
+
+  getMaxFrame(): number {
+    const roundData = this.recordedGame.data[this.replayingRound]
+    return roundData?.maxFrame || 0
+  }
+
+  isPaused(): boolean {
+    return this.isPausing
+  }
+
   private replayUpdate() {
     const roundData = this.recordedGame.data[this.replayingRound]
     if (!roundData || this.replayFrameCount > roundData.maxFrame) {

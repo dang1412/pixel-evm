@@ -141,6 +141,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     if (replayGameId) {
       setIsGuideModalOpen(false)
       setIsConnectModalOpen(false)
+      setShouldShowInfoButton(false)
     }
   }, [replayGameId, connect])
 

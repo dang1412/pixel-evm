@@ -26,7 +26,7 @@ interface ScoreboardModalProps {
  * @param {Array<object>} props.players - Array of player state objects.
  */
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
-  { 
+  {
     bombMapRef, players, playerId, gameState, onClose,
   }
 ) => {

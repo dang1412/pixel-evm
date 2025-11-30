@@ -12,6 +12,8 @@ import { FloatScoreTable } from './FloatScoreTable'
 import BombSelect from './BombSelect'
 import { BombShop } from './BombShop'
 import BombMapComponent from './BombMapComponent'
+import { ReplayControl } from './ReplayControl'
+import { BombGameReplay } from './BombGameReplay'
 
 async function loadGameData(hash: string): Promise<RecordedGame> {
   // load from ipfs
@@ -30,7 +32,6 @@ const BombGameComponent: React.FC<Props> = (props) => {
   const [ players, setPlayers ] = useState<PlayerState[]>([])
   const [ gameState, setGameState ] = useState<GameState>()
   const [ isBombMapReady, setIsBombMapReady ] = useState(false)
-  const [ isReplayMode, setIsReplayMode ] = useState(false)
 
   const onBombMapReady = useCallback((bombMap: BombMap) => {
     bombMapRef.current = bombMap
@@ -61,6 +62,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   const searchParams = useSearchParams()
   const replayGameId = searchParams.get('replayGameId')
+  const replayGameRound = searchParams.get('round')
+
+  const [gameReplay, setGameReplay] = useState<BombGameReplay | null>(null)
 
   // Game replay
   useEffect(() => {
@@ -68,18 +72,18 @@ const BombGameComponent: React.FC<Props> = (props) => {
       const bombMap = bombMapRef.current
       if (bombMap) {
         const gameReplay = bombMap.bombNetwork.createGameReplay()
+        setGameReplay(gameReplay)
         setIsScoreboardModalOpen(false)
-        setIsReplayMode(true)
         // load data from json
         loadGameData(replayGameId).then((data) => {
           console.log('Loaded game data:', data)
           gameReplay.setRecordedGame(data)
-          gameReplay.jumpToRound(1)
+          gameReplay.jumpToRound(Number(replayGameRound) || 1)
           gameReplay.setPause(false)
         })
       }
     }
-  }, [replayGameId, isBombMapReady])
+  }, [replayGameId, replayGameRound, isBombMapReady])
 
   return (
     <>
@@ -124,6 +128,12 @@ const BombGameComponent: React.FC<Props> = (props) => {
           playerState={playerState}
           onClose={() => setIsBombShopOpen(false)}
           />
+      )}
+
+      {gameReplay && (
+        <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg'>
+          <ReplayControl gameReplay={gameReplay} maxRound={5} />
+        </div>
       )}
     </>
   )

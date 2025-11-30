@@ -206,7 +206,7 @@ export class BombGame {
     this.state.round++
     this.state.pausing = false
     this.state.timeLeft = 100 // seconds
-    this.maxStarsCount = 150 * this.state.round
+    this.maxStarsCount = 120 * this.state.round
     this.roundFrameCount = 0
 
     // reset player's standard bombs
