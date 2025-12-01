@@ -216,7 +216,7 @@ export class MapItem {
     let flashElapsedTime = 0
 
     const text = this.container.getChildAt(1) as Text
-    text.text = `${point}`
+    text.text = point > 0 ? `${point}` : ''
 
     const animateFlash = (delta: number) => {
       flashElapsedTime += delta
