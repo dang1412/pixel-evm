@@ -1,3 +1,5 @@
+import { PixelArea } from "../types"
+
 export interface GameState {
   timeLeft: number
   round: number
@@ -53,7 +55,7 @@ export type GameMessage =
   | { type: 'join', name: string }
   | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
   | { type: 'buyBomb', bombType: BombType, quantity: number }
-
+  | { type: 'myViewChange', area: PixelArea }
   // host to client
   | { type: 'joinSuccess', players: PlayerState[], playerId: number }
   | { type: 'bombs', bombs: BombState[] }
@@ -61,6 +63,7 @@ export type GameMessage =
   | { type: 'addItems', items: ItemState[] }
   | { type: 'removeItems', items: CaughtItem[] }
   | { type: 'players', players: PlayerState[] }
+  | { type: 'viewChange', playerId: number, area: PixelArea }
 
   | { type: 'gameState', state: Partial<GameState> }
   | { type: 'reset' }

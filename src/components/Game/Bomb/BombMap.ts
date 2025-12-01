@@ -1,7 +1,9 @@
 import { IMediaInstance, sound } from '@pixi/sound'
+import { Container, Graphics, Text } from 'pixi.js'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { positionToXY, xyToPosition } from '../utils'
+import { PixelArea } from '../types'
 
 import { Bomb } from './Bomb'
 import { BombNetwork } from './BombNetwork'
@@ -9,6 +11,7 @@ import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
 import { BombState, BombType, CaughtItem, GameState, ItemState, PlayerState } from './types'
 import { AtomicBomb } from './AtomicBomb'
+import { BOMB_COLORS } from './constant'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
 sound.add('explosion2', '/sounds/bomb/explosion2.mp3')
@@ -75,6 +78,30 @@ export class BombMap {
 
       view.markDirty()
     })
+
+    view.subscribe('viewchanged', (e: CustomEvent<{x: number, y: number, w: number, h: number}>) => {
+      if (!this.playerId) return
+
+      const { x, y, w, h } = e.detail
+      this.bombNetwork.myViewChange({
+        x: Math.round(x),
+        y: Math.round(y),
+        w: Math.round(w),
+        h: Math.round(h),
+      })
+      // draw rectangle on map
+      // const mainScene = view.getScene('main')!
+      // mainScene.container.addChild(screenBorder)
+      // screenBorder.x = x
+      // screenBorder.y = y
+
+      // console.log('Draw screen border', x, y, w, h)
+      // screenBorder.clear()
+      // screenBorder
+      //   .rect(0, 0, w, h)
+      //   // .fill({ color: 0x00ff00, alpha: 0.1 })
+      //   .stroke({ width: 2, color: BOMB_COLORS[ (this.playerId - 1) % BOMB_COLORS.length ]})
+    })
   }
 
   // Called from Network
@@ -88,12 +115,31 @@ export class BombMap {
   updatePlayers(players: PlayerState[]) {
     console.log('Updating players', players)
     for (const player of players) {
+      const playerViewContainer = this.playersViewGraphics.get(player.id)
       if (player.score < 0) {
         // remove player
         this.players.delete(player.id)
+        // clear view graphics
+        if (playerViewContainer) {
+          playerViewContainer.destroy()
+          this.playersViewGraphics.delete(player.id)
+        }
       } else {
         // add or update player
         this.players.set(player.id, player)
+        // create view graphics if not exist
+        if (!playerViewContainer) {
+          const mainScene = this.map.getView()?.getScene('main')
+          if (!mainScene) continue
+          const c = new Container()
+          const g = new Graphics()
+          const t = new Text({ text: player.name, style: { fontSize: 40, fill: 0xffffff } })
+          t.x = 5
+          c.addChild(g)
+          c.addChild(t)
+          mainScene.container.addChild(c)
+          this.playersViewGraphics.set(player.id, c)
+        }
       }
     }
     this.onPlayersUpdated?.(this.playersArray)
@@ -127,6 +173,29 @@ export class BombMap {
     this.itemMap.clear()
 
     this.players.clear()
+  }
+
+  private playersViewGraphics: Map<number, Container> = new Map()
+
+  // Called from Network, draw view change
+  viewChange(playerId: number, area: PixelArea) {
+    const color = BOMB_COLORS[(playerId - 1) % BOMB_COLORS.length]
+    const c = this.playersViewGraphics.get(playerId)
+    if (!c) return
+
+    c.x = area.x
+    c.y = area.y
+
+    const g = c.getChildAt(0) as Graphics
+
+    g.clear()
+    g
+      .rect(0, 0, area.w, area.h)
+      .stroke({ width: 4, color })
+
+    // inform minimap
+    const view = this.map.getView()
+    view.eventTarget.dispatchEvent(new Event('updated'))
   }
 
   // Called from Network

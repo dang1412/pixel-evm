@@ -7,6 +7,7 @@ import { bombPrices, GameLoop, starColorSchemes } from './constant'
 import { BombState, BombType, CaughtItem, GameMessage, GameState, ItemState, ItemType, PlayerState, RecordedGame } from './types'
 import { clonePlayerState } from './utils'
 import { IPFSService } from '@/lib/webRTC/IPFSService'
+import { PixelArea } from '../types'
 
 let playerId = 1
 
@@ -407,11 +408,16 @@ export class BombGame {
     }
 
     // check if timeLeft is integer value
-    if (Number.isInteger(this.state.timeLeft)) {
-      // send time update every second
+    if (Number.isInteger(this.state.timeLeft / 10)) {
+      // send time update every 10 second
       update.timeLeft = this.state.timeLeft
       this.gameUpdateAt(ts, { type: 'gameState', state: update })
     }
+  }
+
+  recordViewChange(msg: GameMessage) {
+    if (msg.type !== 'viewChange' || this.state.pausing) return
+    this.recordMessage(msg)
   }
 
   private generateItems() {
@@ -571,9 +577,12 @@ export class BombGame {
   }
 
   private gameUpdateAt(ts: number, msg: GameMessage) {
-    const round = this.state.round
     this.bombNetwork.gameUpdate(msg)
+    this.recordMessage(msg)
+  }
 
+  private recordMessage(msg: GameMessage) {
+    const round = this.state.round
     // update recorded game
     if (!this.recordedGame.data[round]) {
       this.recordedGame.data[round] = { maxFrame: 0}
@@ -581,7 +590,7 @@ export class BombGame {
     if (!this.recordedGame.data[round][this.roundFrameCount]) {
       this.recordedGame.data[round][this.roundFrameCount] = []
     }
-    this.recordedGame.data[round][this.roundFrameCount].push({ ts, msg })
+    this.recordedGame.data[round][this.roundFrameCount].push({ ts: 0, msg })
     this.recordedGame.data[round].maxFrame = this.roundFrameCount
   }
 }

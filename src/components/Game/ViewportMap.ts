@@ -1,4 +1,4 @@
-import { Container, Graphics, type Renderer, Sprite, Texture, WebGLRenderer } from 'pixi.js'
+import { Container, type Renderer, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
 import { Minimap } from './Minimap'
@@ -231,6 +231,22 @@ export class ViewportMap {
 
     this.addScene('main', 100, 100)
     this.moveCenter()
+
+    let viewChanged = false
+    const onViewChanged = () => {
+      if (!viewChanged) return
+
+      viewChanged = false
+      const { top, left, worldScreenWidth, worldScreenHeight } = viewport
+      this.eventTarget.dispatchEvent(new CustomEvent('viewchanged', { detail: { 
+        x: left, y: top, w: worldScreenWidth, h: worldScreenHeight 
+      } }))
+    }
+
+    setInterval(onViewChanged, 800)
+
+    viewport.on('zoomed', () => viewChanged = true)
+    viewport.on('moved', () => viewChanged = true)
 
     this.resolveInitialize()
 

@@ -170,9 +170,10 @@ export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) 
   const { state: { addressList } } = useWebRTC()
 
   // send data to all addresses
-  const sendAll = useCallback((data: string) => {
+  const sendAll = useCallback((data: string ,except?: string) => {
     console.log('sendAll', addressList, data)
     for (const addr of addressList) {
+      if (addr === except) continue
       getAccountConnectService(addr)?.sendMessage(data)
     }
   }, [addressList, getAccountConnectService])
