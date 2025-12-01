@@ -23,7 +23,7 @@ interface UseWebRTCConnectWsProps {
 }
 
 export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) {
-  const { send } = useWebSocket()
+  const { send, isConnected } = useWebSocket()
 
   const { dispatch, createOrGetStream } = useWebRTC()
 
@@ -135,13 +135,13 @@ export function useWebRTCConnectWs({ onMsg, onTrack }: UseWebRTCConnectWsProps) 
 
   // signInTemp
   useEffect(() => {
-    if (wsRandomName) {
+    if (wsRandomName && isConnected) {
       send({
         action: 'signInTemp',
         wsName: wsRandomName,
       })
     }
-  }, [wsRandomName, send])
+  }, [wsRandomName, send, isConnected])
 
   // subscribe to personal message channel
   useWebSocketSubscription(`message-to-${wsRandomName}`, onWsMessage)
