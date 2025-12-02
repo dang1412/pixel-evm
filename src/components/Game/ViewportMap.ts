@@ -123,6 +123,21 @@ export class ViewportMap {
     // this.updateMinimap()
   }
 
+  isPixelInView(px: number, py: number): boolean {
+    if (!this.viewport) return false
+
+    const worldX = px * PIXEL_SIZE
+    const worldY = py * PIXEL_SIZE
+
+    const { left, top, worldScreenWidth, worldScreenHeight } = this.viewport
+
+    // the pixel is at worldX ~ worldX + PIXEL_SIZE, worldY ~ worldY + PIXEL_SIZE
+    const inX = worldX + 2 * PIXEL_SIZE >= left && worldX - PIXEL_SIZE <= left + worldScreenWidth
+    const inY = worldY + 2 * PIXEL_SIZE >= top && worldY - PIXEL_SIZE <= top + worldScreenHeight
+
+    return inX && inY
+  }
+
   async init(w: number, h: number) {
     const canvas = this.canvas
     const backgroundColor = this.options.backgroundColor ?? 0xffffff

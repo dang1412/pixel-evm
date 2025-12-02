@@ -32,11 +32,12 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
   useEffect(() => {
     if (recordedHash) {
       setLoading(true)
-      loadGameData(recordedHash.toString()).then((data) => {
+      loadGameData(recordedHash).then((data) => {
         console.log('Loaded game data for replay:', data)
         gameReplay.setRecordedGame(data)
         setMaxRound(Math.max(...Object.keys(data.data).map(k => Number(k))))
         gameReplay.jumpToRound(1)
+        gameReplay.setPause(false)
         setLoading(false)
       })
     }

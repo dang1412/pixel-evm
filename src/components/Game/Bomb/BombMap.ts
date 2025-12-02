@@ -93,18 +93,6 @@ export class BombMap {
         w: Math.round(w),
         h: Math.round(h),
       })
-      // draw rectangle on map
-      // const mainScene = view.getScene('main')!
-      // mainScene.container.addChild(screenBorder)
-      // screenBorder.x = x
-      // screenBorder.y = y
-
-      // console.log('Draw screen border', x, y, w, h)
-      // screenBorder.clear()
-      // screenBorder
-      //   .rect(0, 0, w, h)
-      //   // .fill({ color: 0x00ff00, alpha: 0.1 })
-      //   .stroke({ width: 2, color: BOMB_COLORS[ (this.playerId - 1) % BOMB_COLORS.length ]})
     })
   }
 
@@ -197,7 +185,7 @@ export class BombMap {
     g
       .rect(0, 0, area.w, area.h)
       .fill({ color, alpha: 0.1 })
-      .stroke({ width: 2, color })
+      .stroke({ width: 1, color })
 
     // inform minimap
     const view = this.map.getView()
@@ -249,8 +237,12 @@ export class BombMap {
 
   // Called from Network
   addExplosions(explosions: number[]) {
+    const view = this.map.getView()
     for (const pos of explosions) {
       const { x, y } = positionToXY(pos)
+      // not rendering explosion out of view
+      if (!view.isPixelInView(x, y)) continue
+
       const old = this.explosionMap.get(pos)
       if (old) {
         // erase old explosion

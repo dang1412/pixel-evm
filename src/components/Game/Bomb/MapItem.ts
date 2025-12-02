@@ -81,7 +81,12 @@ export class MapItem {
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
       // if (this.bombMap.pausing) return
       const delta = Math.min(e.detail, 40)
-      animateAppear(delta)
+      try {
+        animateAppear(delta)
+      } catch (error) {
+        console.error('Error during appear animation:', error)
+        unsub()
+      }
     })
 
     const colors = starColorSchemes[this.state.colorIndex]
@@ -222,7 +227,12 @@ export class MapItem {
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
       if (this.bombMap.pausing) return
       const delta = Math.min(e.detail, 40)
-      animateFlash(delta)
+      try {
+        animateFlash(delta)
+      } catch (error) {
+        console.error('Error during flash animation:', error)
+        unsub()
+      }
     })
 
     let flashElapsedTime = 0
