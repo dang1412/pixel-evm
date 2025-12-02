@@ -40,6 +40,10 @@ export class BombMap {
   onPlayersUpdated?: (players: PlayerState[]) => void
   onGameStateUpdated?: (state: GameState) => void
 
+  get pausing() {
+    return this.gameState.pausing
+  }
+
   constructor(
     public map: PixelMap,
   ) {
@@ -127,13 +131,14 @@ export class BombMap {
       } else {
         // add or update player
         this.players.set(player.id, player)
+        const color = BOMB_COLORS[(player.id - 1) % BOMB_COLORS.length]
         // create view graphics if not exist
         if (!playerViewContainer) {
           const mainScene = this.map.getView()?.getScene('main')
           if (!mainScene) continue
           const c = new Container()
           const g = new Graphics()
-          const t = new Text({ text: player.name, style: { fontSize: 40, fill: 0xffffff } })
+          const t = new Text({ text: player.name, style: { fontSize: 40, fill: color } })
           t.x = 5
           c.addChild(g)
           c.addChild(t)
@@ -191,7 +196,8 @@ export class BombMap {
     g.clear()
     g
       .rect(0, 0, area.w, area.h)
-      .stroke({ width: 4, color })
+      .fill({ color, alpha: 0.1 })
+      .stroke({ width: 2, color })
 
     // inform minimap
     const view = this.map.getView()

@@ -315,8 +315,6 @@ export class BombGame {
 
           // notify all the new bomb
           this.gameUpdateAt(ts, { type: 'bombs', bombs: [{...newBomb}] })
-          // make the star normal
-          item.type = ItemType.Star
           activatedStars.push(item)
         } else {
           caughtItems.push({ pos, point: item.points, playerId })
@@ -349,10 +347,14 @@ export class BombGame {
     for (const item of activatedStars) {
       const e = this.explosionMap.get(item.pos)
       if (!e) continue
+      // make the star normal
+      const updatedItem = { ...item, type: ItemType.Star }
+      // bonus points
       const bonus = playerBonusMap.get(e.playerId)
       if (bonus) {
-        item.points = Math.ceil(item.points * (1 + 0.2 * bonus))
+        updatedItem.points = Math.ceil(item.points * (1 + 0.2 * bonus))
       }
+      this.itemMap.set(item.pos, updatedItem)
     }
 
     this.generateItems()

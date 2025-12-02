@@ -79,6 +79,7 @@ export class MapItem {
   private appear() {
     const view = this.bombMap.map.getView()
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+      // if (this.bombMap.pausing) return
       const delta = Math.min(e.detail, 40)
       animateAppear(delta)
     })
@@ -140,6 +141,7 @@ export class MapItem {
       let fattenElapsedTime = 0
       const view = this.bombMap.map.getView()
       const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+        if (this.bombMap.pausing) return
         const delta = Math.min(e.detail, 40)
         
         // Animate the star getting fatter
@@ -198,6 +200,15 @@ export class MapItem {
   }
 
   private explode(point: number) {
+    const view = this.bombMap.map.getView()
+    if (point <= 0) {
+      // just destroy the next tick, no animation
+      view.subscribeOnce('tick', () => {
+        this.container.destroy()
+      })
+      return
+    }
+
     const flash = new Graphics()
     flash.circle(0, 0, PIXEL_SIZE / 3)
       .fill({ color: 0xFF0000, alpha: 0.9})
@@ -207,8 +218,9 @@ export class MapItem {
     flash.scale.set(1)
     this.container.addChild(flash)
 
-    const view = this.bombMap.map.getView()
+    
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+      if (this.bombMap.pausing) return
       const delta = Math.min(e.detail, 40)
       animateFlash(delta)
     })
@@ -216,7 +228,7 @@ export class MapItem {
     let flashElapsedTime = 0
 
     const text = this.container.getChildAt(1) as Text
-    text.text = point > 0 ? `${point}` : ''
+    text.text = `${point}`
 
     const animateFlash = (delta: number) => {
       flashElapsedTime += delta

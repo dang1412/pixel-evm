@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 
 import { useNotification } from '@/providers/NotificationProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
+import { useWebSocket } from '@/providers/WebsocketProvider'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { mockImages } from '../mock/images'
@@ -12,7 +13,6 @@ import { MenuModal } from '../MenuModal'
 import { GuideModal } from '../GuideModal'
 import { BombMap } from './BombMap'
 import { GuideSteps } from './GuideSteps'
-import { useWebSocket } from '@/providers/WebsocketProvider'
 
 interface Props {
   onBombMapReady: (bombMap: BombMap) => void
@@ -65,7 +65,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
       const map = new PixelMap(canvas, {
         // not open scene when click on image
         preOpenImageHook: (curScene, pixel, image) => false,
-        backgroundColor: 0x000000,
+        // backgroundColor: 0x000000,
       })
       map.addMainImages(mockImages)
 

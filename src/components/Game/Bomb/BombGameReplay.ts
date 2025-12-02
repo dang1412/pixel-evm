@@ -27,7 +27,7 @@ export class BombGameReplay {
 
   setPause(pausing: boolean) {
     this.isPausing = pausing
-    // this.bombNetwork.gameUpdate({ type: 'gameState', state: { pausing } })
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: { pausing } })
   }
 
   setRecordedGame(recordedGame: RecordedGame) {
@@ -42,6 +42,8 @@ export class BombGameReplay {
     this.setPause(true)
     // reset game map
     this.bombNetwork.gameUpdate({ type: 'reset' })
+    // set game state
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: { round, timeLeft: 100 } })
     // play first frame to setup the round
     this.replayUpdate()
   }

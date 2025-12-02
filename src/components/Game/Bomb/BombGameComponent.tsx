@@ -3,24 +3,16 @@ import { FaSpinner } from 'react-icons/fa'
 import { useSearchParams } from 'next/navigation'
 
 import { useNotification } from '@/providers/NotificationProvider'
-import { IPFSService } from '@/lib/webRTC/IPFSService'
 
 import { BombMap } from './BombMap'
 import { ScoreboardModal } from './ScoreBoardModal'
-import { GameState, PlayerState, RecordedGame } from './types'
+import { GameState, PlayerState } from './types'
 import { FloatScoreTable } from './FloatScoreTable'
 import BombSelect from './BombSelect'
 import { BombShop } from './BombShop'
 import BombMapComponent from './BombMapComponent'
 import { ReplayControl } from './ReplayControl'
 import { BombGameReplay } from './BombGameReplay'
-
-async function loadGameData(hash: string): Promise<RecordedGame> {
-  // load from ipfs
-  const ipfsService = IPFSService.getInstance()
-  const gameData = await ipfsService.fetch<RecordedGame>(hash)
-  return gameData
-}
 
 interface Props {}
 
@@ -74,13 +66,6 @@ const BombGameComponent: React.FC<Props> = (props) => {
         const gameReplay = bombMap.bombNetwork.createGameReplay()
         setGameReplay(gameReplay)
         setIsScoreboardModalOpen(false)
-        // load data from json
-        loadGameData(replayGameId).then((data) => {
-          console.log('Loaded game data:', data)
-          gameReplay.setRecordedGame(data)
-          gameReplay.jumpToRound(Number(replayGameRound) || 1)
-          gameReplay.setPause(false)
-        })
       }
     }
   }, [replayGameId, replayGameRound, isBombMapReady])
@@ -130,10 +115,8 @@ const BombGameComponent: React.FC<Props> = (props) => {
           />
       )}
 
-      {gameReplay && (
-        <div>
-          <ReplayControl gameReplay={gameReplay} maxRound={5} />
-        </div>
+      {gameReplay && replayGameId && (
+        <ReplayControl gameReplay={gameReplay} recordedHash={replayGameId} />
       )}
     </>
   )
