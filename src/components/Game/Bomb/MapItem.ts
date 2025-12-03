@@ -12,6 +12,8 @@ const fattenAnimationTime = 800
 export class MapItem {
   private container = new Container()
   private star: Graphics | null = null
+  private x: number
+  private y: number
 
   constructor(private bombMap: BombMap, private state: ItemState) {
     const { pos, points, colorIndex } = state
@@ -51,16 +53,16 @@ export class MapItem {
     })
     text.scale.set(0.2) // Scale it down to an appropriate size
     text.anchor.set(0.5)
-    text.position.set(PIXEL_SIZE / 2, PIXEL_SIZE / 2)
+    const centerX = PIXEL_SIZE / 2
+    const centerY = PIXEL_SIZE / 2
+    text.position.set(centerX, centerY)
     this.container.addChild(text)
 
     // If StarExplode, add a fuse like a bomb
     if (isExplode) {
       // spark sits exactly at the top tip of the star
-      const centerX = PIXEL_SIZE / 2
-      const centerY = PIXEL_SIZE / 2
       const sparkX = centerX
-      const sparkY = centerY - outerRadius - 3
+      const sparkY = centerY - outerRadius - 2
 
       const spark = new Graphics()
         .circle(sparkX, sparkY, 4)
@@ -71,6 +73,8 @@ export class MapItem {
 
     const { x, y } = positionToXY(pos)
     mainScene.addContainer(this.container, x, y)
+    this.x = x
+    this.y = y
 
     this.container.scale.set(0)
     this.appear()
@@ -145,30 +149,39 @@ export class MapItem {
 
       let fattenElapsedTime = 0
       const view = this.bombMap.map.getView()
-      const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
-        if (this.bombMap.pausing) return
-        const delta = Math.min(e.detail, 40)
-        
-        // Animate the star getting fatter
-        fattenElapsedTime += delta
-        let progress = Math.min(fattenElapsedTime / fattenAnimationTime, 1)
-        
-        // Ease out cubic for smooth animation
-        const easeOut = 1 - Math.pow(1 - progress, 3)
-        
-        // Redraw star with interpolated fatness (0 = slim, 1 = fat)
-        this.star!.clear()
-        this.drawStar(this.star!, starScale, colors, easeOut)
-        
-        // Make the spark flicker
-        const pulse = Math.abs(Math.sin(Date.now() / 100))
-        spark.alpha = pulse
-        spark.tint = new Color([1, pulse, 0]).toNumber()
-      })
+      if (view.isPixelInView(this.x, this.y)) {
+        const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
+          if (this.bombMap.pausing) return
+          const delta = Math.min(e.detail, 40)
 
-      this.stopActivate = () => {
-        unsub()
-        spark.alpha = 0
+          // Animate the star getting fatter
+          fattenElapsedTime += delta
+          let progress = Math.min(fattenElapsedTime / fattenAnimationTime, 1)
+
+          // Ease out cubic for smooth animation
+          const easeOut = 1 - Math.pow(1 - progress, 3)
+
+          // Redraw star with interpolated fatness (0 = slim, 1 = fat)
+          this.star!.clear()
+          this.drawStar(this.star!, starScale, colors, easeOut)
+
+          // Make the spark flicker
+          const pulse = Math.abs(Math.sin(Date.now() / 100))
+          spark.alpha = pulse
+          spark.tint = new Color([1, pulse, 0]).toNumber()
+
+          if (progress === 1) {
+            this.stopActivate?.()
+          }
+        })
+
+        this.stopActivate = () => {
+          unsub()
+          spark.alpha = 0
+        }
+      } else {
+        this.drawStar(this.star!, starScale, colors, 1)
+        spark.alpha = 0.4
       }
     }
   }
@@ -223,7 +236,6 @@ export class MapItem {
     flash.scale.set(1)
     this.container.addChild(flash)
 
-    
     const unsub = view.subscribe('tick', (e: CustomEvent<number>) => {
       if (this.bombMap.pausing) return
       const delta = Math.min(e.detail, 40)
