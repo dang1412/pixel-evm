@@ -12,7 +12,18 @@ export class WebRTCService {
   private isClosed = false
 
   constructor(private options: WebRTCServiceOptions, private stream: MediaStream) {
-    const pc = this.pc = new RTCPeerConnection()
+    const pc = this.pc = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: 'stun:relay1.expressturn.com:3480'
+        },
+        {
+          urls: 'turn:relay1.expressturn.com:3480',
+          username: '000000002080108438',
+          credential: 'VA9EnnDbPrfP2Psi0HYMtx/QujA=',
+        }
+      ],
+    })
 
     pc.onicecandidate = (ev) => {
       if (ev.candidate) {
