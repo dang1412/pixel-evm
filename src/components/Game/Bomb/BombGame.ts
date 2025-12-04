@@ -26,6 +26,7 @@ export class BombGame {
     timeLeft: 0,
     round: 0,
     pausing: true,
+    roundEnded: true,
   }
 
   private bombStateMap = new Map<number, BombState>()
@@ -65,6 +66,9 @@ export class BombGame {
 
     // notify server about game creation
     sendServer({ action: 'bomb_game', msg: { type: 'create_game', payload: { host } } })
+
+    // Go to round 1
+    this.nextRound()
   }
 
   // receive gameId from server
@@ -105,12 +109,10 @@ export class BombGame {
         ...getInitPlayerBombs(),
       }
 
-    if (!this.state.pausing) {
-      // game already started, give initial bombs
-      newPlayer.bombs[BombType.Standard] = 30
-      newPlayer.bombs[BombType.Atomic] = 1
-      newPlayer.r = 2 + this.state.round
-    }
+    // initial bombs
+    newPlayer.bombs[BombType.Standard] = 30
+    newPlayer.bombs[BombType.Atomic] = 1
+    newPlayer.r = 2 + this.state.round
 
     this.playerStateMap.set(id, newPlayer)
 
@@ -136,13 +138,12 @@ export class BombGame {
   }
 
   addBomb(playerId: number, x: number, y: number, bombType = BombType.Standard) {
-    if (this.state.pausing) return
-
-    const pos = xyToPosition(x, y)
+    if (this.state.timeLeft === 0 || this.state.pausing) return
 
     const playerState = this.playerStateMap.get(playerId)
     if (!playerState) return
-
+    
+    const pos = xyToPosition(x, y)
     const ts = Date.now()
 
     // already bomb
@@ -202,19 +203,32 @@ export class BombGame {
    * Admin(host)'s functions
    */
 
-  startRound() {
-    if (this.state.round >= 5) return // max 5 rounds
-    this.state.round++
-    this.state.pausing = false
-    this.state.timeLeft = 100 // seconds
-    this.maxStarsCount = 120 * this.state.round
+  canGoNextRound(): boolean {
+    // max 5 rounds
+    // only next round when paused
+    if (this.state.round >= 5 || !this.state.pausing) return false
+    // cannot next round if timeLeft = 0 & not roundEnded
+    if (this.state.timeLeft === 0 && !this.state.roundEnded) return false
+    return true
+  }
+
+  nextRound() {
+    if (!this.canGoNextRound()) return
+    const round = this.state.round + 1
+    this.state = {
+      round,
+      pausing: true,
+      timeLeft: 100,
+      roundEnded: false,
+    }
+    this.maxStarsCount = 120 * round
     this.roundFrameCount = 0
 
     // reset player's standard bombs
     for (const playerState of this.playerStateMap.values()) {
       playerState.bombs[BombType.Standard] += 30
       playerState.bombs[BombType.Atomic] += 1
-      playerState.r = 2 + this.state.round
+      playerState.r = 2 + round
     }
 
     const ts = Date.now()
@@ -227,7 +241,6 @@ export class BombGame {
     this.bombNetwork.gameUpdate({ type: 'players', players })
 
     // update recorded init states
-    const round = this.state.round
     this.recordedGame.data[round] = { maxFrame: 0 }
     // set frame 0 state
     
@@ -239,14 +252,26 @@ export class BombGame {
     ]
   }
 
+  playPause() {
+    // Cannot unpause if timeLeft = 0
+    if (this.state.pausing && this.state.timeLeft === 0) return
+    this.state.pausing = !this.state.pausing
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+  }
+
   restart() {
+    if (!this.state.pausing) return
+    // reset bombs, items
+    this.bombStateMap.clear()
+    this.itemMap.clear()
     // game state
     this.state = {
       timeLeft: 0,
       round: 0,
       pausing: true,
+      roundEnded: true,
     }
-    this.bombNetwork.gameUpdate({ type: 'gameState', state: this.state })
+    this.bombNetwork.gameUpdate({ type: 'reset' })
 
     // players
     const players = this.getPlayerStates()
@@ -254,19 +279,19 @@ export class BombGame {
       player.score = 0
       Object.assign(player, getInitPlayerBombs())
     }
-    this.bombNetwork.gameUpdate({ type: 'players', players })
 
-    // notify server to reset
+    // notify server to reset, create new game
     if (!this.originalGameId) this.originalGameId = this.gameId
     this.gameId = 0
     this.sendServer({ action: 'bomb_game', msg: { type: 'create_game', payload: { host: this.host, originalGameId: this.originalGameId } } })
+
+    this.nextRound()
   }
 
   private update() {
-    if (this.state.pausing && this.bombStateMap.size === 0) return
+    if (this.state.pausing) return
     this.roundFrameCount++
     this.explosionMap.clear()
-    // this.caughtItems = []
     const explodedBombs: BombState[] = []
 
     for (const [pos, bombState] of this.bombStateMap) {
@@ -279,15 +304,13 @@ export class BombGame {
 
     // only get standard bomb explosion positions
     const explosions = Array.from(this.explosionMap.keys())
-    const standardExplosions = explosions
-      // .filter(p => this.explosionMap.get(p)?.type === BombType.Standard)
 
     const ts = Date.now()
     if (explodedBombs.length) {
       this.gameUpdateAt(ts, { type: 'bombs', bombs: explodedBombs })
     }
-    if (standardExplosions.length) {
-      this.gameUpdateAt(ts, { type: 'explosions', explosions: standardExplosions })
+    if (explosions.length) {
+      this.gameUpdateAt(ts, { type: 'explosions', explosions })
     }
 
     // remove caught items
@@ -368,8 +391,8 @@ export class BombGame {
     // round end
     const update: Partial<GameState> = {}
     if (this.state.timeLeft === 0) {
-      this.state.pausing = true
-      update.pausing = true
+      // this.state.pausing = true
+      // update.pausing = true
       // round ends if no bombs left, notify scores to server
       if (this.bombStateMap.size === 0) {
         const playerScores = this.getPlayerStates().map(p => ({ playerId: p.id, score: p.score }))
@@ -388,6 +411,12 @@ export class BombGame {
 
         console.log('Round ended', this.state.round)
         console.log(this.recordedGame.data[this.state.round])
+        this.state.roundEnded = true
+        this.state.pausing = true
+        update.roundEnded = true
+        update.pausing = true
+
+        // finalize recorded game data for the round
 
         // upload recorded game data to IPFS
         const ipfsService = IPFSService.getInstance()

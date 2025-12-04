@@ -8,10 +8,11 @@ import { BombGameMsg } from '@/providers/bombTypes'
 import { ShareHostQr } from './ShareHostQr'
 import { CountInput } from './CountInput'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
+import { HostControlBar } from './HostControlBar'
 
 interface ScoreboardModalProps {
   // hostName: string;
-  bombMapRef: React.RefObject<BombMap | undefined>
+  bombMap: BombMap
   players: PlayerState[];
   playerId?: number;
   gameState: GameState;
@@ -27,32 +28,23 @@ interface ScoreboardModalProps {
  */
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   {
-    bombMapRef, players, playerId, gameState, onClose,
+    bombMap, players, playerId, gameState, onClose,
   }
 ) => {
   const [playerName, setPlayerName] = useState('')
 
-  const isHost = bombMapRef.current?.bombNetwork.isHost() || false
+  const isHost = bombMap?.bombNetwork.isHost() || false
 
   // join game
   const handleJoinGame = useCallback(() => {
     const name = playerName.trim()
     if (name) {
-      bombMapRef.current?.bombNetwork.joinGame(name)
+      bombMap.bombNetwork.joinGame(name)
     }
-  }, [playerName, bombMapRef])
+  }, [playerName, bombMap])
 
-  // start round
-  const startRoundOrRestart = useCallback(() => {
-    if (gameState.round < 5) {
-      bombMapRef.current?.bombNetwork.getBombGame()?.startRound()
-    } else {
-      bombMapRef.current?.bombNetwork.getBombGame()?.restart()
-    }
-  }, [bombMapRef, gameState])
-
-  const hostWsName = bombMapRef.current?.bombNetwork.hostWsName
-  const myWsName = bombMapRef.current?.bombNetwork.myWsName
+  const hostWsName = bombMap.bombNetwork.hostWsName
+  const myWsName = bombMap.bombNetwork.myWsName
   const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
 
   const { send, subscribe } = useWebSocket()
@@ -88,6 +80,8 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   }, [send, highScoreRound])
 
   const [showHostQr, setShowHostQr] = useState(false)
+
+  const game = bombMap.bombNetwork.getBombGame()
 
   return (
     // <!-- Modal Overlay -->
@@ -260,22 +254,8 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           </div>
 
           {/* <!-- Modal Footer --> */}
-          <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700">
-            <div>
-              {isHost && gameState.pausing && (
-                <>
-                  <button
-                    onClick={startRoundOrRestart}
-                    className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none transition-colors"
-                  >
-                    {gameState.round === 0 ? 'Start' : gameState.round < 5 ? 'Next' : 'Restart'}
-                  </button>
-                </>
-                
-              )}
-            </div>
-
-            {!playerId && <div className="flex items-center gap-2">
+          {/* <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700"> */}
+            {!playerId && <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
               <input
                 type="text"
                 value={playerName}
@@ -296,7 +276,10 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 Join
               </button>
             </div>}
-          </div>
+          {/* </div> */}
+
+          {/* Add host control bar */}
+          {game && <HostControlBar game={game} />}
         </div>
       </div>
       {showHostQr && <ShareHostQr url={shareHostUrl} onClose={() => setShowHostQr(false)} />}

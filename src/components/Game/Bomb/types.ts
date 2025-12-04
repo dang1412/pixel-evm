@@ -4,6 +4,7 @@ export interface GameState {
   timeLeft: number
   round: number
   pausing: boolean
+  roundEnded: boolean
 }
 
 export enum BombType {

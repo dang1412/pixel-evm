@@ -25,8 +25,6 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
 
   // Hàm xử lý khi nhấn nút Mua
   const handleBuyClick = useCallback(() => {
-    // Logic xử lý mua hàng (ví dụ: gọi API, cập nhật state global)
-    // Bạn có thể thêm logic đóng modal hoặc hiển thị thông báo tại đây
     onBuyClick?.(quantity)
   }, [onBuyClick, quantity])
 
@@ -47,13 +45,6 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
 
       {/* Phần hành động (số lượng, nút mua) */}
       <div className="flex items-center space-x-2 flex-shrink-0">
-        {/* <input
-          type="number"
-          value={quantity}
-          onChange={handleQuantityChange}
-          min="1"
-          className="w-14 text-center border border-gray-300 rounded-md p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        /> */}
         <CountInput min={1} max={5} defaultValue={1} onChange={setQuantity} />
         <button
           onClick={handleBuyClick}
@@ -74,12 +65,12 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
  */
 
 interface ShopModalProps {
-  bombMapRef: React.RefObject<BombMap | undefined>
+  bombMap: BombMap
   playerState: PlayerState
   onClose: () => void
 }
 
-export const BombShop: React.FC<ShopModalProps> = ({ bombMapRef, playerState, onClose }) => {
+export const BombShop: React.FC<ShopModalProps> = ({ bombMap, playerState, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
     { id: BombType.Standard, name: "Normal", price: bombPrices[BombType.Standard], icon: FaBomb },
@@ -89,8 +80,8 @@ export const BombShop: React.FC<ShopModalProps> = ({ bombMapRef, playerState, on
   const doBuyItem = useCallback((type: BombType, quantity: number) => {
     // Logic xử lý sau khi mua hàng (ví dụ: cập nhật số dư vàng, thông báo thành công, v.v.)
     console.log('Đã bấm mua vật phẩm!', type, quantity)
-    bombMapRef.current?.bombNetwork.buyBomb(type, quantity)
-  }, [onClose])
+    bombMap.bombNetwork.buyBomb(type, quantity)
+  }, [bombMap])
 
   return (
     // Lớp phủ nền (overlay)

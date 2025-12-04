@@ -17,24 +17,23 @@ import { BombGameReplay } from './BombGameReplay'
 interface Props {}
 
 const BombGameComponent: React.FC<Props> = (props) => {
-  const bombMapRef = useRef<BombMap | undefined>(undefined)
+  // const bombMapRef = useRef<BombMap | undefined>(undefined)
 
   const { notify, loading } = useNotification()
 
   const [ players, setPlayers ] = useState<PlayerState[]>([])
   const [ gameState, setGameState ] = useState<GameState>()
-  const [ isBombMapReady, setIsBombMapReady ] = useState(false)
+  const [ bombMap, setBombMap ] = useState<BombMap | null>(null)
 
   const onBombMapReady = useCallback((bombMap: BombMap) => {
-    bombMapRef.current = bombMap
+    setBombMap(bombMap)
     bombMap.onGameStateUpdated = (state) => setGameState(state)
     bombMap.onPlayersUpdated = (players) => setPlayers(players)
-    setIsBombMapReady(true)
   }, [])
 
   const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState(true)
 
-  const playerId = bombMapRef.current?.playerId
+  const playerId = bombMap?.playerId
   const playerState = useMemo(() => players.find(p => p.id === playerId), [players])
 
   useEffect(() => {
@@ -42,11 +41,15 @@ const BombGameComponent: React.FC<Props> = (props) => {
     if (gameState.pausing) {
       setIsScoreboardModalOpen(true)
       if (gameState.round > 0) {
-        notify('Round ended. Wait for the new round.', 'info')
+        if (gameState.roundEnded) {
+          notify('Round ended. Wait for the new round.', 'info')
+        } else {
+          notify('Round paused.', 'info')
+        }
       }
     } else {
       setIsScoreboardModalOpen(false)
-      notify('Round started! Place your bombs!', 'info')
+      notify('Round is going! Place your bombs!', 'info')
     }
   }, [gameState?.pausing, playerId])
 
@@ -60,15 +63,12 @@ const BombGameComponent: React.FC<Props> = (props) => {
 
   // Game replay
   useEffect(() => {
-    if (replayGameId && isBombMapReady) {
-      const bombMap = bombMapRef.current
-      if (bombMap) {
-        const gameReplay = bombMap.bombNetwork.createGameReplay()
-        setGameReplay(gameReplay)
-        setIsScoreboardModalOpen(false)
-      }
+    if (replayGameId && bombMap) {
+      const gameReplay = bombMap.bombNetwork.createGameReplay()
+      setGameReplay(gameReplay)
+      setIsScoreboardModalOpen(false)
     }
-  }, [replayGameId, replayGameRound, isBombMapReady])
+  }, [replayGameId, replayGameRound, bombMap])
 
   return (
     <>
@@ -88,7 +88,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
             { loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1' /> }
             {playerId && playerState && (
               <BombSelect
-                onSelect={(type) => bombMapRef.current?.setBombType(type)}
+                onSelect={(type) => bombMap?.setBombType(type)}
                 playerState={playerState}
                 onOpenShop={() => setIsBombShopOpen(true)}
               />
@@ -97,9 +97,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
         </div>
       </div>
 
-      {gameState && isScoreboardModalOpen && (
+      {gameState && isScoreboardModalOpen && bombMap && (
         <ScoreboardModal
-          bombMapRef={bombMapRef}
+          bombMap={bombMap}
           players={players}
           playerId={playerId}
           gameState={gameState}
@@ -107,9 +107,9 @@ const BombGameComponent: React.FC<Props> = (props) => {
         />
       )}
 
-      {isBombShopOpen && playerState && (
+      {isBombShopOpen && playerState && bombMap &&(
         <BombShop
-          bombMapRef={bombMapRef}
+          bombMap={bombMap}
           playerState={playerState}
           onClose={() => setIsBombShopOpen(false)}
           />

@@ -33,7 +33,7 @@ export class BombMap {
 
   private bombTicking: Promise<IMediaInstance> | undefined
 
-  private gameState: GameState = { timeLeft: 0, round: 0, pausing: true }
+  private gameState: GameState = { timeLeft: 0, round: 0, pausing: true, roundEnded: true }
 
   private bombType = BombType.Standard
 
