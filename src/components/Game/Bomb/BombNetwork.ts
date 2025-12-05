@@ -15,6 +15,8 @@ export class BombNetwork {
   hostWsName?: string
   myWsName?: string
 
+  gameId = 0
+
   // for host
   private wsNameToPlayerId: { [wsName: string]: number } = {}
 

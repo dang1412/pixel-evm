@@ -9,6 +9,7 @@ import { ShareHostQr } from './ShareHostQr'
 import { CountInput } from './CountInput'
 import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { HostControlBar } from './HostControlBar'
+import { ShareSocialModal } from './ShareSocial'
 
 interface ScoreboardModalProps {
   // hostName: string;
@@ -32,8 +33,6 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   }
 ) => {
   const [playerName, setPlayerName] = useState('')
-
-  const isHost = bombMap?.bombNetwork.isHost() || false
 
   // join game
   const handleJoinGame = useCallback(() => {
@@ -80,6 +79,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   }, [send, highScoreRound])
 
   const [showHostQr, setShowHostQr] = useState(false)
+  const [showShareSocial, setShowShareSocial] = useState(false)
 
   const game = bombMap.bombNetwork.getBombGame()
 
@@ -280,9 +280,29 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
 
           {/* Add host control bar */}
           {game && <HostControlBar game={game} />}
+
+          {/* button show ShareSocialModal */}
+          <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowShareSocial(true)}
+              className="px-4 py-2 text-sm bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-colors whitespace-nowrap"
+            >
+              Share Results
+            </button>
+          </div>
+
         </div>
       </div>
       {showHostQr && <ShareHostQr url={shareHostUrl} onClose={() => setShowHostQr(false)} />}
+      {showShareSocial && (
+        <ShareSocialModal
+          players={players}
+          playerId={playerId || 1}
+          round={gameState.round}
+          gameId={gameState.gameId}
+          onClose={() => setShowShareSocial(false)}
+        />
+      )}
     </>
   )
 }

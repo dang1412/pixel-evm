@@ -23,6 +23,7 @@ function getInitPlayerBombs(): Pick<PlayerState, 'bombs'> {
 
 export class BombGame {
   state: GameState = {
+    gameId: 0,
     timeLeft: 0,
     round: 0,
     pausing: true,
@@ -41,7 +42,6 @@ export class BombGame {
 
   private updatedPlayerIds = new Set<number>()
 
-  private gameId = 0
   private originalGameId = 0
 
   private maxStarsCount = 100
@@ -73,18 +73,18 @@ export class BombGame {
 
   // receive gameId from server
   setGameId(id: number) {
-    this.gameId = id
+    this.state.gameId = id
     // self connect in case this is original game (no restart yet)
     if (!this.originalGameId) {
       this.sendServer({
         action: 'bomb_game',
-        msg: { type: 'connect', payload: { gameId: this.gameId, client: this.bombNetwork.myWsName || '' } }
+        msg: { type: 'connect', payload: { gameId: this.state.gameId, client: this.bombNetwork.myWsName || '' } }
       })
     }
 
     // reset recorded game
     this.recordedGame = {
-      gameId: this.gameId,
+      gameId: this.state.gameId,
       data: {}
     }
   }
@@ -95,7 +95,7 @@ export class BombGame {
 
   connected(from: string) {
     // notify server about new connection
-    this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.gameId, client: from } } })
+    this.sendServer({ action: 'bomb_game', msg: { type: 'connect', payload: { gameId: this.state.gameId, client: from } } })
   }
 
   addPlayer(host: string, name: string, _id?: number) {
@@ -120,7 +120,7 @@ export class BombGame {
     this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(newPlayer)] })
 
     // notify server about new player
-    this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.gameId, client: host || this.host, playerId: id, name } } })
+    this.sendServer({ action: 'bomb_game', msg: { type: 'join', payload: { gameId: this.state.gameId, client: host || this.host, playerId: id, name } } })
 
     return newPlayer
   }
@@ -178,7 +178,7 @@ export class BombGame {
     this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
 
     // notify server about new bomb
-    // this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.gameId, round: this.state.round, playerId, pos, bombType } } })
+    // this.sendServer({ action: 'bomb_game', msg: { type: 'place_bomb', payload: { gameId: this.state.gameId, round: this.state.round, playerId, pos, bombType } } })
 
     return newBomb
   }
@@ -196,7 +196,7 @@ export class BombGame {
     playerState.bombs[bombType] += quantity
     this.gameUpdateAt(ts, { type: 'players', players: [clonePlayerState(playerState)] })
     // notify server about buy bomb
-    this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.gameId, playerId, bombType, quantity } } })
+    this.sendServer({ action: 'bomb_game', msg: { type: 'buy_bomb', payload: { gameId: this.state.gameId, playerId, bombType, quantity } } })
   }
 
   /**
@@ -216,6 +216,7 @@ export class BombGame {
     if (!this.canGoNextRound()) return
     const round = this.state.round + 1
     this.state = {
+      gameId: this.state.gameId,
       round,
       pausing: true,
       timeLeft: 100,
@@ -266,6 +267,7 @@ export class BombGame {
     this.itemMap.clear()
     // game state
     this.state = {
+      gameId: this.state.gameId,
       timeLeft: 0,
       round: 0,
       pausing: true,
@@ -281,8 +283,8 @@ export class BombGame {
     }
 
     // notify server to reset, create new game
-    if (!this.originalGameId) this.originalGameId = this.gameId
-    this.gameId = 0
+    if (!this.originalGameId) this.originalGameId = this.state.gameId
+    this.state.gameId = 0
     this.sendServer({ action: 'bomb_game', msg: { type: 'create_game', payload: { host: this.host, originalGameId: this.originalGameId } } })
 
     this.nextRound()
@@ -402,7 +404,7 @@ export class BombGame {
           msg: {
             type: 'scores',
             payload: {
-              gameId: this.gameId,
+              gameId: this.state.gameId,
               round: this.state.round,
               players: playerScores,
             }
@@ -429,7 +431,7 @@ export class BombGame {
             msg: {
               type: 'add_recorded_game',
               payload: {
-                gameId: this.gameId,
+                gameId: this.state.gameId,
                 gameDataCid: cid,
               }
             }

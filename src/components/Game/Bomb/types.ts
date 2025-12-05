@@ -1,6 +1,7 @@
 import { PixelArea } from "../types"
 
 export interface GameState {
+  gameId: number
   timeLeft: number
   round: number
   pausing: boolean
