@@ -1,21 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FaTimes, FaCopy, FaCheck } from 'react-icons/fa'
 import QRCode from 'qrcode'
 
 interface HostQrProps {
-  url: string
+  host: string
   onClose: () => void
 }
 
 /**
  * Renders a modal displaying a QR code for a given URL with copy functionality.
  * @param {object} props
- * @param {string} props.url - The URL to generate QR code for
+ * @param {string} props.host - The URL to generate QR code for
  * @param {function} props.onClose - Function to call when the modal should be closed
  */
-export const ShareHostQr: React.FC<HostQrProps> = ({ url, onClose }) => {
+export const ShareHostQr: React.FC<HostQrProps> = ({ host, onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [copied, setCopied] = useState(false)
+
+  const url = useMemo(() => `https://pixelonbase.com/bomb?connectTo=${host}`, [host])
 
   useEffect(() => {
     if (canvasRef.current && url) {
@@ -61,7 +63,7 @@ export const ShareHostQr: React.FC<HostQrProps> = ({ url, onClose }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Join Game
+            Share - {host}
           </h2>
           <button
             onClick={onClose}

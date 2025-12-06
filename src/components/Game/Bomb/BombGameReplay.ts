@@ -1,6 +1,6 @@
 import { BombNetwork } from './BombNetwork'
 import { GameLoop } from './constant'
-import { BombState, ItemState, RecordedGame } from './types'
+import { BombState, GameState, ItemState, RecordedGame } from './types'
 
 export class BombGameReplay {
 
@@ -34,6 +34,7 @@ export class BombGameReplay {
     this.recordedGame = recordedGame
     this.replayFrameCount = 0
     this.replayingRound = 0
+    this.bombNetwork.gameUpdate({ type: 'gameState', state: { gameId: this.recordedGame.gameId } })
   }
 
   jumpToRound(round: number) {
@@ -56,9 +57,10 @@ export class BombGameReplay {
     this.bombNetwork.gameUpdate({ type: 'reset' })
 
     // set state at target frame
-    const { items, bombs } = this.stateAtFrame(frame) || { items: [], bombs: [] }
+    const { items, bombs, state } = this.stateAtFrame(frame) || { items: [], bombs: [], state: {} }
     this.bombNetwork.gameUpdate({ type: 'addItems', items })
     this.bombNetwork.gameUpdate({ type: 'bombs', bombs })
+    this.bombNetwork.gameUpdate({ type: 'gameState', state })
 
     // continue replay from target frame
     this.replayFrameCount = frame
@@ -101,6 +103,8 @@ export class BombGameReplay {
     if (!roundData) return null
 
     // calculate items from beginning to target frame
+    // gameState
+    const state: Partial<GameState> = {}
     const itemsMap: {[pos: number]: ItemState} = {}
     for (let f = 0; f < frame; f++) {
       const msgs = roundData[f] || []
@@ -112,6 +116,8 @@ export class BombGameReplay {
           for (const caughtItem of msg.items) {
             delete itemsMap[caughtItem.pos]
           }
+        } else if (msg.type === 'gameState') {
+          Object.assign(state, msg.state)
         }
       }
     }
@@ -135,6 +141,6 @@ export class BombGameReplay {
       }
     }
 
-    return { items: Object.values(itemsMap), bombs: Object.values(bombsMap) }
+    return { items: Object.values(itemsMap), bombs: Object.values(bombsMap), state }
   }
 }

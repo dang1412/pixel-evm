@@ -29,7 +29,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
         <div className="flex text-sm justify-between items-center mb-2 border-b pb-2">
           <span className='font-semibold'>Round {gameState.round}</span>
           {/* <div className='font-semibold'>⏱️ {gameState.timeLeft}s</div> */}
-          <CountDown time={gameState.timeLeft} isPaused={gameState.pausing} />
+          <span className='font-semibold'><CountDown time={gameState.timeLeft} isPaused={gameState.pausing} /></span>
           {onExpandClick && (
             <button 
               onClick={onExpandClick}

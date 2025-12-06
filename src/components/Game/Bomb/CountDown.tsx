@@ -36,9 +36,8 @@ export const CountDown: React.FC<Props> = ({ time, isPaused }) => {
   useInterval(doLoop, 1000)
 
   return (
-    <span className='text-gray-800 font-semibold flex items-center'>
-      <FaClock className='mr-1' />
-      {count}s
+    <span className='text-gray-800 flex items-center'>
+      {count}s ⏱️
     </span>
   )
 }

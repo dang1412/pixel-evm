@@ -23,6 +23,7 @@ async function loadGameData(hash: string): Promise<RecordedGame> {
 export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => {
   const [round, setRound] = useState(1)
   const [maxRound, setMaxRound] = useState(1)
+  const [minRound, setMinRound] = useState(1)
   const [currentFrame, setCurrentFrame] = useState(0)
   const [maxFrame, setMaxFrame] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -35,8 +36,15 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
       loadGameData(recordedHash).then((data) => {
         console.log('Loaded game data for replay:', data)
         gameReplay.setRecordedGame(data)
-        setMaxRound(Math.max(...Object.keys(data.data).map(k => Number(k))))
-        gameReplay.jumpToRound(1)
+
+        const rounds = Object.keys(data.data).map(Number)
+          // filter round that has maxFrame > 0
+          .filter(r => data.data[r].maxFrame > 0)
+        setMaxRound(Math.max(...rounds))
+        const minR = Math.min(...rounds)
+        setMinRound(minR)
+
+        gameReplay.jumpToRound(minR)
         gameReplay.setPause(false)
         setLoading(false)
       })
@@ -44,12 +52,12 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
   }, [recordedHash, gameReplay])
 
   const handlePrevRound = useCallback(() => {
-    if (round > 1) {
+    if (round > minRound) {
       const newRound = round - 1
       setRound(newRound)
       gameReplay.jumpToRound(newRound)
     }
-  }, [round, gameReplay])
+  }, [round, minRound, gameReplay])
 
   const handleNextRound = useCallback(() => {
     if (round < maxRound) {
@@ -63,7 +71,7 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
     const isAtEnd = currentFrame >= maxFrame && maxFrame > 0
     if (isAtEnd) {
       // Replay current round from beginning
-      gameReplay.jumpToRound(round)
+      gameReplay.jumpToRound(round + 1)
       gameReplay.setPause(false)
       setIsPlaying(true)
     } else {
@@ -102,7 +110,7 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <button
             onClick={handlePrevRound}
-            disabled={loading || round <= 1}
+            disabled={loading || round <= minRound}
             className="group rounded-md bg-gray-800/40 p-1.5 transition-all hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40 sm:rounded-lg sm:bg-gray-800/50 sm:p-2.5 md:p-3"
             aria-label="Previous round"
           >

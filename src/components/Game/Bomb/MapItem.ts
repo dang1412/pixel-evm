@@ -120,7 +120,7 @@ export class MapItem {
           glow.clear()
           glow.circle(PIXEL_SIZE / 2, PIXEL_SIZE / 2, PIXEL_SIZE * 3 / 4 )
             .fill({ color: colors.glow, alpha: 0.5 })
-        } 
+        }
       }
     }
   }

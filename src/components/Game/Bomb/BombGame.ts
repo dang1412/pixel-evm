@@ -7,7 +7,6 @@ import { bombPrices, GameLoop, starColorSchemes } from './constant'
 import { BombState, BombType, CaughtItem, GameMessage, GameState, ItemState, ItemType, PlayerState, RecordedGame } from './types'
 import { clonePlayerState } from './utils'
 import { IPFSService } from '@/lib/webRTC/IPFSService'
-import { PixelArea } from '../types'
 
 let playerId = 1
 
@@ -81,6 +80,8 @@ export class BombGame {
         msg: { type: 'connect', payload: { gameId: this.state.gameId, client: this.bombNetwork.myWsName || '' } }
       })
     }
+
+    this.gameUpdateAt(0, { type: 'gameState', state: { gameId: id } })
 
     // reset recorded game
     this.recordedGame = {
@@ -215,10 +216,11 @@ export class BombGame {
   nextRound() {
     if (!this.canGoNextRound()) return
     const round = this.state.round + 1
+    const prevTimeLeft = this.state.timeLeft
     this.state = {
       gameId: this.state.gameId,
       round,
-      pausing: true,
+      pausing: prevTimeLeft > 0 ? true : false,
       timeLeft: 100,
       roundEnded: false,
     }

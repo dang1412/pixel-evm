@@ -5,11 +5,12 @@ import { BombType, GameState, PlayerState } from './types'
 import { BombMap } from './BombMap'
 import { useWebSocket } from '@/providers/WebsocketProvider'
 import { BombGameMsg } from '@/providers/bombTypes'
+import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { ShareHostQr } from './ShareHostQr'
 import { CountInput } from './CountInput'
-import { useWebRTC } from '@/lib/webRTC/WebRTCProvider'
 import { HostControlBar } from './HostControlBar'
 import { ShareSocialModal } from './ShareSocial'
+import { CountDown } from './CountDown'
 
 interface ScoreboardModalProps {
   // hostName: string;
@@ -44,7 +45,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
 
   const hostWsName = bombMap.bombNetwork.hostWsName
   const myWsName = bombMap.bombNetwork.myWsName
-  const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
+  // const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
 
   const { send, subscribe } = useWebSocket()
   const { toggleMicrophone, isMicOn } = useWebRTC()
@@ -98,8 +99,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           <div className="flex relative justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                Scoreboard ({hostWsName})
-                
+                Scoreboard (#{gameState.gameId})
               </h2>
               {gameState && (
                 <p className="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
@@ -119,7 +119,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                       <FaMicrophoneSlash className="w-4 h-4" />
                     )}
                   </button>
-                  Round: {gameState.round} | ⏱️ {gameState.timeLeft}s
+                  Round: {gameState.round} | <CountDown time={gameState.timeLeft} />
                 </p>
               )}
             </div>
@@ -131,7 +131,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 aria-label="Show Host QR Code"
               >
                 <FaQrcode className="w-4 h-4" />
-                <span>Share</span>
+                <span>Join</span>
               </button>
             </div>
             <button
@@ -243,7 +243,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  ({myWsName}) Highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
+                  My highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
                 </p>
                 <CountInput min={0} max={5} defaultValue={highScoreRound} onChange={setHighScoreRound} />
               </div>
@@ -282,18 +282,20 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           {game && <HostControlBar game={game} />}
 
           {/* button show ShareSocialModal */}
-          <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setShowShareSocial(true)}
-              className="px-4 py-2 text-sm bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-colors whitespace-nowrap"
-            >
-              Share Results
-            </button>
-          </div>
+          {gameState.gameId > 0 && gameState.timeLeft === 0 && (
+            <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowShareSocial(true)}
+                className="px-4 py-2 text-sm bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-colors whitespace-nowrap"
+              >
+                Share Results
+              </button>
+            </div>
+          )}
 
         </div>
       </div>
-      {showHostQr && <ShareHostQr url={shareHostUrl} onClose={() => setShowHostQr(false)} />}
+      {showHostQr && <ShareHostQr host={hostWsName || ''} onClose={() => setShowHostQr(false)} />}
       {showShareSocial && (
         <ShareSocialModal
           players={players}
