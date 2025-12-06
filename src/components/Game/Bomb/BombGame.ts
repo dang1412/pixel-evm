@@ -292,6 +292,58 @@ export class BombGame {
     this.nextRound()
   }
 
+  private processChainBombs(bombs: BombState[]) {
+    // check if 4 bombs form a square
+    console.log('Processing chain bombs', bombs)
+    const positions = bombs.map(b => b.pos)
+    const posSet = new Set(positions)
+
+    // check if 4 positions form a square
+    for (const b1 of bombs) {
+      const { x: x1, y: y1 } = positionToXY(b1.pos)
+      for (const b2 of bombs) {
+        if (b1 === b2) continue
+        const { x: x2, y: y2 } = positionToXY(b2.pos)
+        if (x1 === x2 || y1 === y2) continue
+        const dx = x2 - x1
+        const dy = y2 - y1
+        if (Math.abs(dx) !== Math.abs(dy)) continue
+        const p3 = xyToPosition(x1 + dx, y1)
+        const p4 = xyToPosition(x1, y1 + dy)
+        if (posSet.has(p3) && posSet.has(p4)) {
+          // form a square
+
+          // loop through all positions inside the square area (not on edges)
+          const minX = Math.min(x1, x2)
+          const maxX = Math.max(x1, x2)
+          const minY = Math.min(y1, y2)
+          const maxY = Math.max(y1, y2)
+          for (let x = minX + 1; x < maxX; x++) {
+            for (let y = minY + 1; y < maxY; y++) {
+              const pos = xyToPosition(x, y)
+              const bombAtPos = this.bombStateMap.get(pos)
+              if (bombAtPos) {
+                this.explode(pos, bombAtPos)
+              } else {
+                // add to explosion map
+                const d = (x - minX) ** 2 + (y - minY) ** 2
+                const p = this.explosionMap.get(pos)
+                if (!p || p.d > d) {
+                  // update explosion map
+                  this.explosionMap.set(pos, { playerId: b1.ownerId, d, type: BombType.Standard })
+                }
+              }
+            }
+          }
+
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
   private update() {
     if (this.state.pausing) return
     this.roundFrameCount++
@@ -301,8 +353,12 @@ export class BombGame {
     for (const [pos, bombState] of this.bombStateMap) {
       bombState.live -= GameLoop
       if (bombState.live <= 0) {
-        const bombs = this.explode(pos, bombState)
-        explodedBombs.push(...bombs)
+        const chainBombs = this.explode(pos, bombState)
+        explodedBombs.push(...chainBombs)
+
+        const ownerId = bombState.ownerId
+        const playerChainBombs = chainBombs.filter(b => b.ownerId === ownerId)
+        this.processChainBombs(playerChainBombs)
       }
     }
 
