@@ -220,7 +220,7 @@ export class BombGame {
     this.state = {
       gameId: this.state.gameId,
       round,
-      pausing: prevTimeLeft > 0 ? true : false,
+      pausing: round === 1 || prevTimeLeft > 0 ? true : false,
       timeLeft: 100,
       roundEnded: false,
     }

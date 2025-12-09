@@ -1,7 +1,7 @@
 import { PlayerState } from '../types'
 
 const bgImgSrc = '/bomb/bomb-share-bg.png'
-export function createShareImage(players: PlayerState[], onImageReady: (dataUrl: string) => void) {
+export function createShareImage(players: PlayerState[], round: number, onImageReady: (dataUrl: string) => void) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
@@ -18,14 +18,14 @@ export function createShareImage(players: PlayerState[], onImageReady: (dataUrl:
     ctx.drawImage(bgImg, 0, 0, width, height)
 
     // Add dark overlay for better text contrast
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)'
     ctx.fillRect(0, 0, width, height)
 
     // Draw title
     ctx.fillStyle = '#2C3E50'
     ctx.font = 'bold 56px Arial'
     ctx.textAlign = 'center'
-    ctx.fillText('🏆 Bomb Game Results 🏆', width / 2, 80)
+    ctx.fillText(`🏆 Bomb Results (Round ${round}) 🏆`, width / 2, 80)
 
     // Sort players by score (descending)
     const sortedPlayers = [...players].sort((a, b) => b.score - a.score)
@@ -64,7 +64,7 @@ export function createShareImage(players: PlayerState[], onImageReady: (dataUrl:
     ctx.font = 'bold 28px Arial'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    
+
     const headerY = tableY + headerHeight / 2
     ctx.fillText('Rank', tableX + rankWidth / 2, headerY)
     ctx.fillText('Player', tableX + rankWidth + nameWidth / 2, headerY)

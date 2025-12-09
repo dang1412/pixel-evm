@@ -14,19 +14,19 @@ interface Prop {
   onClose: () => void
 }
 
-export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playerId, onClose }) => {
+export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playerId = 1, onClose }) => {
   const [imageDataUrl, setImageDataUrl] = useState<string>('')
   const [shareContent, setShareContent] = useState<string>('🎮 Check out my Bomb Game results! 💣')
 
   useEffect(() => {
     // Generate the share image when modal opens
     console.log('Generating share image for players:', players)
-    createShareImage(players, (dataUrl) => {
+    createShareImage(players, round, (dataUrl) => {
       setImageDataUrl(dataUrl)
     })
-  }, [players])
+  }, [players, round])
 
-  const uploadImage = useCallback(async (img: string) => {
+  const uploadImage = useCallback(async () => {
     // if (!imageDataUrl) return
     // const link = document.createElement('a')
     // link.href = imageDataUrl
@@ -37,7 +37,9 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     if (!imageDataUrl) return
 
-    const uploadUrl = await generateUploadUrl(img, 'image/png')
+    const name = `${gameId}-${round}-${playerId}-${Date.now()}.png`
+
+    const uploadUrl = await generateUploadUrl(name, 'image/png')
     console.log('Generated upload URL:', uploadUrl)
 
     // Convert data URL to blob directly
@@ -58,14 +60,14 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     if (response.ok) {
       const publicUrl = uploadUrl.split('?')[0] // Remove query params to get public URL
       console.log('Image uploaded successfully. Public URL:', publicUrl)
-      return publicUrl
+      return name
     } else {
       const errorText = await response.text()
       console.error('Failed to upload image to S3. Status:', response.status)
       console.error('Error Body:', errorText)
     }
 
-  }, [imageDataUrl])
+  }, [imageDataUrl, gameId, round, playerId])
 
   const handleShareFacebook = async () => {
     if (!imageDataUrl) {
@@ -75,7 +77,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     // Facebook doesn't support direct image upload via URL parameters
     // Download the image and prompt user to upload manually
-    const img = uploadImage('')
+    const img = uploadImage()
     const url = encodeURIComponent(window.location.href)
     const text = encodeURIComponent(shareContent)
     
@@ -92,8 +94,8 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     // X (Twitter) doesn't support direct image upload via URL
     // Download the image first, then open Twitter share
-    const name = `${gameId}-${round}-${playerId}.png`
-    const img = await uploadImage(name)
+    // const name = `${gameId}-${round}-${playerId}.png`
+    const name = await uploadImage()
     const shareUrl = `https://api.pixelonbase.com/bombshare/${gameId}?img=${name}&round=${round}&playerId=${playerId}`
     const text = encodeURIComponent(shareContent + '\n\n' + shareUrl)
     
@@ -110,7 +112,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     // Telegram doesn't support direct image upload via URL
     // Download the image first
-    uploadImage('')
+    uploadImage()
     const url = encodeURIComponent(window.location.href)
     const text = encodeURIComponent(shareContent)
     
@@ -133,7 +135,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
         {/* Modal Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Share Game Results {`- Game #${gameId}`}
+            Game #{`${gameId} (round ${round})`}
           </h2>
           <button
             onClick={onClose}
@@ -163,14 +165,11 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
           {/* Share Content Textarea */}
           <div className="w-full mb-4">
-            <label htmlFor="shareContent" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Share Content
-            </label>
             <textarea
               id="shareContent"
               value={shareContent}
               onChange={(e) => setShareContent(e.target.value)}
-              rows={3}
+              rows={2}
               className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your share message..."
             />
@@ -183,21 +182,21 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
               className="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Facebook"
             >
-              <FaFacebook /> Facebook
+              <FaFacebook />
             </button>
             <button
               onClick={handleShareX}
               className="flex-1 px-4 py-2 bg-black text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on X"
             >
-              <FaXTwitter /> X
+              <FaXTwitter />
             </button>
             <button
               onClick={handleShareTelegram}
               className="flex-1 px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Telegram"
             >
-              <FaTelegram /> Telegram
+              <FaTelegram />
             </button>
           </div>
 

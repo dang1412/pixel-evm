@@ -1,6 +1,6 @@
 import { BombNetwork } from './BombNetwork'
 import { GameLoop } from './constant'
-import { BombState, GameState, ItemState, RecordedGame } from './types'
+import { BombState, GameState, ItemState, PlayerState, RecordedGame } from './types'
 
 export class BombGameReplay {
 
@@ -57,10 +57,11 @@ export class BombGameReplay {
     this.bombNetwork.gameUpdate({ type: 'reset' })
 
     // set state at target frame
-    const { items, bombs, state } = this.stateAtFrame(frame) || { items: [], bombs: [], state: {} }
+    const { items, bombs, state, players } = this.stateAtFrame(frame) || { items: [], bombs: [], state: {}, players: [] }
     this.bombNetwork.gameUpdate({ type: 'addItems', items })
     this.bombNetwork.gameUpdate({ type: 'bombs', bombs })
     this.bombNetwork.gameUpdate({ type: 'gameState', state })
+    this.bombNetwork.gameUpdate({ type: 'players', players })
 
     // continue replay from target frame
     this.replayFrameCount = frame
@@ -106,6 +107,7 @@ export class BombGameReplay {
     // gameState
     const state: Partial<GameState> = {}
     const itemsMap: {[pos: number]: ItemState} = {}
+    const playersMap: {[id: number]: PlayerState} = {}
     for (let f = 0; f < frame; f++) {
       const msgs = roundData[f] || []
       for (const { msg } of msgs) {
@@ -118,6 +120,8 @@ export class BombGameReplay {
           }
         } else if (msg.type === 'gameState') {
           Object.assign(state, msg.state)
+        } else if (msg.type === 'players') {
+          msg.players.forEach(p => { playersMap[p.id] = p })
         }
       }
     }
@@ -141,6 +145,13 @@ export class BombGameReplay {
       }
     }
 
-    return { items: Object.values(itemsMap), bombs: Object.values(bombsMap), state }
+    state.timeLeft = Math.round(100 - frame / 5)
+
+    return {
+      items: Object.values(itemsMap),
+      bombs: Object.values(bombsMap),
+      state,
+      players: Object.values(playersMap),
+    }
   }
 }

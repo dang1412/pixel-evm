@@ -119,7 +119,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                       <FaMicrophoneSlash className="w-4 h-4" />
                     )}
                   </button>
-                  Round: {gameState.round} | <CountDown time={gameState.timeLeft} />
+                  Round: {gameState.round} | <CountDown isPaused={gameState.pausing} time={gameState.timeLeft} />
                 </p>
               )}
             </div>
@@ -282,7 +282,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
           {game && <HostControlBar game={game} />}
 
           {/* button show ShareSocialModal */}
-          {gameState.gameId > 0 && gameState.timeLeft === 0 && (
+          {gameState.timeLeft === 0 && (
             <div className="flex justify-end p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowShareSocial(true)}

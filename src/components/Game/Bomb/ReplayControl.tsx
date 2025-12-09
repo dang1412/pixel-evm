@@ -1,5 +1,5 @@
 import { FaPause, FaPlay, FaStepBackward, FaStepForward } from 'react-icons/fa'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { IPFSService } from '@/lib/webRTC/IPFSService'
 import { useNotification } from '@/providers/NotificationProvider'
@@ -103,8 +103,11 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
   const progressPercentage = maxFrame > 0 ? (currentFrame / maxFrame) * 100 : 0
   const isAtEnd = currentFrame >= maxFrame && maxFrame > 0
 
+  const curTime = useMemo(() => Math.floor(currentFrame / 5), [currentFrame])
+  const totalTime = useMemo(() => Math.floor(maxFrame / 5), [maxFrame])
+
   return (
-    <div className="absolute bottom-2 left-1/2 w-[98%] -translate-x-1/2 rounded-lg border border-gray-700/30 bg-gray-900/40 p-2 text-white shadow-lg sm:bottom-4 sm:w-[95%] sm:rounded-xl sm:border-gray-700/50 sm:bg-gradient-to-b sm:from-gray-900/70 sm:to-gray-950/75 sm:p-3 sm:shadow-2xl sm:backdrop-blur-md md:w-auto md:min-w-[650px] md:border-gray-700/20 md:bg-gray-900/20 md:p-2 md:backdrop-blur-none lg:min-w-[750px]">
+    <div className="absolute bottom-2 left-1/2 w-[98%] -translate-x-1/2 rounded-lg border border-gray-700/30 bg-gray-900/45 p-2 text-white shadow-lg sm:bottom-4 sm:w-[95%] sm:rounded-xl sm:border-gray-700/50 sm:bg-gradient-to-b sm:from-gray-900/40 sm:to-gray-950/75 sm:p-3 sm:shadow-2xl md:w-auto md:min-w-[650px] md:border-gray-700/20 md:bg-gray-900/20 md:p-2 md:backdrop-blur-none lg:min-w-[750px]">
       <div className={`flex items-center gap-1.5 sm:gap-3 transition-opacity ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* Round Controls */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -119,7 +122,7 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
           <div className="flex min-w-[60px] flex-col items-center justify-center rounded-md bg-gray-800/40 px-1.5 py-1 sm:min-w-[85px] sm:rounded-lg sm:bg-gray-800/50 sm:px-3 sm:py-2 md:min-w-[100px]">
             <span className="text-[9px] text-gray-400 sm:text-xs">ROUND</span>
             <span className="text-xs font-bold sm:text-base md:text-lg">
-              {loading ? '-' : round}<span className="text-gray-500">/{loading ? '-' : maxRound}</span>
+              {loading ? '-' : round}<span className="text-gray-400">/{loading ? '-' : maxRound}</span>
             </span>
           </div>
           <button
@@ -149,8 +152,8 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
 
         {/* Progress Bar */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
-          <span className="min-w-[32px] shrink-0 text-right text-[10px] font-medium text-gray-400 sm:min-w-[40px] sm:text-xs">
-            {loading ? '-' : currentFrame}
+          <span className="min-w-[28px] shrink-0 text-right text-[12px] font-medium text-gray-200 sm:text-xs">
+            {loading ? '-' : curTime}
           </span>
           <div className="relative h-1.5 min-w-0 flex-1 sm:h-2.5 md:h-3">
             {/* Background track */}
@@ -172,8 +175,8 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
               aria-label="Seek timeline"
             />
           </div>
-          <span className="min-w-[32px] shrink-0 text-left text-[10px] font-medium text-gray-400 sm:min-w-[40px] sm:text-xs">
-            {loading ? '-' : maxFrame}
+          <span className="min-w-[28px] shrink-0 text-left text-[12px] font-medium text-gray-200 sm:text-xs">
+            {loading ? '-' : totalTime}
           </span>
         </div>
       </div>
