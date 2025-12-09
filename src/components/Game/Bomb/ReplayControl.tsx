@@ -153,7 +153,7 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
         {/* Progress Bar */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
           <span className="min-w-[28px] shrink-0 text-right text-[12px] font-medium text-gray-200 sm:text-xs">
-            {loading ? '-' : curTime}
+            {loading ? '-' : curTime}s
           </span>
           <div className="relative h-1.5 min-w-0 flex-1 sm:h-2.5 md:h-3">
             {/* Background track */}
@@ -176,7 +176,7 @@ export const ReplayControl: React.FC<Props> = ({ gameReplay, recordedHash }) => 
             />
           </div>
           <span className="min-w-[28px] shrink-0 text-left text-[12px] font-medium text-gray-200 sm:text-xs">
-            {loading ? '-' : totalTime}
+            {loading ? '-' : totalTime}s
           </span>
         </div>
       </div>

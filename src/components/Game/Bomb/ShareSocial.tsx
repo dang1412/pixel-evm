@@ -5,6 +5,7 @@ import { FaXTwitter } from 'react-icons/fa6'
 import { PlayerState } from './types'
 import { createShareImage } from './utils/createShareImage'
 import { generateUploadUrl } from './api/generateUploadUrl'
+import { useNotification } from '@/providers/NotificationProvider'
 
 interface Prop {
   players: PlayerState[]
@@ -14,9 +15,14 @@ interface Prop {
   onClose: () => void
 }
 
+const shareImageMemo: { [key: string]: string } = {}
+
 export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playerId = 1, onClose }) => {
   const [imageDataUrl, setImageDataUrl] = useState<string>('')
   const [shareContent, setShareContent] = useState<string>('🎮 Check out my Bomb Game results! 💣')
+
+  // useNotification to show loading state
+  const { loading, setLoading } = useNotification()
 
   useEffect(() => {
     // Generate the share image when modal opens
@@ -26,18 +32,18 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     })
   }, [players, round])
 
-  const uploadImage = useCallback(async () => {
-    // if (!imageDataUrl) return
-    // const link = document.createElement('a')
-    // link.href = imageDataUrl
-    // link.download = `bomb-game-results-${Date.now()}.png`
-    // document.body.appendChild(link)
-    // link.click()
-    // document.body.removeChild(link)
+  const getOrUploadImage = useCallback(async () => {
+    const key = `${gameId}-${round}-${playerId}`
+    if (shareImageMemo[key]) {
+      console.log('Using cached upload for key:', key)
+      return shareImageMemo[key]
+    }
 
     if (!imageDataUrl) return
 
-    const name = `${gameId}-${round}-${playerId}-${Date.now()}.png`
+    setLoading(true)
+    console.log('Uploading image for key:', key)
+    const name = `${key}-${Date.now()}.png`
 
     const uploadUrl = await generateUploadUrl(name, 'image/png')
     console.log('Generated upload URL:', uploadUrl)
@@ -57,9 +63,12 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
       body: blob,
     })
 
+    setLoading(false)
+
     if (response.ok) {
       const publicUrl = uploadUrl.split('?')[0] // Remove query params to get public URL
       console.log('Image uploaded successfully. Public URL:', publicUrl)
+      shareImageMemo[key] = name
       return name
     } else {
       const errorText = await response.text()
@@ -69,6 +78,10 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
   }, [imageDataUrl, gameId, round, playerId])
 
+  const getShareUrl = useCallback((name: string) => {
+    return `https://api.pixelonbase.com/bombshare/${gameId}?img=${name}&round=${round}&playerId=${playerId}`
+  }, [gameId, round, playerId])
+
   const handleShareFacebook = async () => {
     if (!imageDataUrl) {
       alert('Please wait for the image to generate')
@@ -77,9 +90,13 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     // Facebook doesn't support direct image upload via URL parameters
     // Download the image and prompt user to upload manually
-    const img = uploadImage()
-    const url = encodeURIComponent(window.location.href)
+    const name = await getOrUploadImage()
+    if (!name) return
+    const shareUrl = getShareUrl(name)
+    const url = encodeURIComponent(shareUrl)
     const text = encodeURIComponent(shareContent)
+
+    console.log('Opening Facebook share dialog with URL:', shareUrl)
     
     setTimeout(() => {
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank')
@@ -95,14 +112,15 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     // X (Twitter) doesn't support direct image upload via URL
     // Download the image first, then open Twitter share
     // const name = `${gameId}-${round}-${playerId}.png`
-    const name = await uploadImage()
-    const shareUrl = `https://api.pixelonbase.com/bombshare/${gameId}?img=${name}&round=${round}&playerId=${playerId}`
+    const name = await getOrUploadImage()
+    if (!name) return
+    const shareUrl = getShareUrl(name)
     const text = encodeURIComponent(shareContent + '\n\n' + shareUrl)
     
     setTimeout(() => {
       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
     }, 500)
-  }, [imageDataUrl, shareContent, uploadImage])
+  }, [imageDataUrl, shareContent, getOrUploadImage])
 
   const handleShareTelegram = async () => {
     if (!imageDataUrl) {
@@ -112,7 +130,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     // Telegram doesn't support direct image upload via URL
     // Download the image first
-    uploadImage()
+    getOrUploadImage()
     const url = encodeURIComponent(window.location.href)
     const text = encodeURIComponent(shareContent)
     
@@ -179,6 +197,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
           <div className="flex gap-3 w-full">
             <button
               onClick={handleShareFacebook}
+              disabled={loading}
               className="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Facebook"
             >
@@ -186,6 +205,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
             </button>
             <button
               onClick={handleShareX}
+              disabled={loading}
               className="flex-1 px-4 py-2 bg-black text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on X"
             >
@@ -193,6 +213,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
             </button>
             <button
               onClick={handleShareTelegram}
+              disabled={loading}
               className="flex-1 px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Telegram"
             >
