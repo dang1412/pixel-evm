@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { FaTimes, FaFacebook, FaTelegram } from 'react-icons/fa'
+import React, { useCallback, useEffect, useState } from 'react'
+import { FaTimes, FaFacebook, FaTelegram, FaCopy, FaSpinner } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 
 import { PlayerState } from './types'
@@ -18,6 +18,11 @@ interface Prop {
 const shareImageMemo: { [key: string]: string } = {}
 
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+function getLocalTimeString(): string {
+  const now = new Date()
+  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`
+}
 
 function generateShareContent(players: PlayerState[], round: number, playerId = 1): string {
   const timeStr = new Date().toLocaleString('en-US')
@@ -58,7 +63,9 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
     setLoading(true)
     console.log('Uploading image for key:', key)
-    const name = `${key}-${Date.now()}.png`
+    // Get time string: YYYYMMDDTHHMMSS
+    const timeStr = getLocalTimeString()
+    const name = `${key}-${timeStr}.png`
 
     const uploadUrl = await generateUploadUrl(name, 'image/png')
     console.log('Generated upload URL:', uploadUrl)
@@ -103,32 +110,25 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
       return
     }
 
-    // Facebook doesn't support direct image upload via URL parameters
-    // Download the image and prompt user to upload manually
     const name = await getOrUploadImage()
     if (!name) return
     const shareUrl = getShareUrl(name)
     setShareUrl(shareUrl)
     const url = encodeURIComponent(shareUrl)
 
-    if (isMobile) {
-      const appUrl = `fb://share?u=${url}&quote=${encodeURIComponent(shareContent)}`
-      window.location.href = appUrl
-    } else {
-      // Copy text to clipboard since Facebook doesn't support pre-filling quote anymore
-      try {
-        await navigator.clipboard.writeText(shareContent)
-        notify('Message copied! Paste it on Facebook.', 'success')
-      } catch (err) {
-        console.error('Failed to copy text: ', err)
-      }
-      
-      console.log('Opening Facebook share dialog with URL:', shareUrl)
-      
-      setTimeout(() => {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
-      }, 500)
+    // Copy text to clipboard since Facebook doesn't support pre-filling quote anymore
+    try {
+      await navigator.clipboard.writeText(shareContent)
+      notify('Message copied! Paste it on Facebook.', 'success')
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
     }
+
+    console.log('Opening Facebook share dialog with URL:', shareUrl)
+    
+    setTimeout(() => {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
+    }, 500)
   }, [imageDataUrl, shareContent, getOrUploadImage, getShareUrl])
 
   const handleShareX = useCallback(async () => {
@@ -168,6 +168,17 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     }, 500)
   }
 
+  const handleCopyUrl = useCallback(async () => {
+    if (!shareUrl) return
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      notify('URL copied to clipboard!', 'success')
+    } catch (err) {
+      console.error('Failed to copy URL: ', err)
+      notify('Failed to copy URL', 'error')
+    }
+  }, [shareUrl, notify])
+
   return (
     // Modal Overlay
     <div
@@ -183,6 +194,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             Game #{`${gameId} (Round ${round})`}
+            {loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1 inline' /> }
           </h2>
           <button
             onClick={onClose}
@@ -250,12 +262,19 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
             </button>
           </div>
 
-          {/* Instructions */}
+          {/* Display shareUrl */}
           {shareUrl && (
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700 w-full">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700 w-full flex items-center justify-between gap-2">
+              <p className="text-sm text-blue-800 dark:text-blue-200 flex-1">
                 {shareUrl}
               </p>
+              <button
+                onClick={handleCopyUrl}
+                className="p-2 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-colors"
+                title="Copy URL"
+              >
+                <FaCopy />
+              </button>
             </div>
           )}
         </div>
