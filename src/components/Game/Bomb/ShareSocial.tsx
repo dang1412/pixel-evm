@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { FaTimes, FaFacebook, FaTelegram } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 
@@ -17,12 +17,27 @@ interface Prop {
 
 const shareImageMemo: { [key: string]: string } = {}
 
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+function generateShareContent(players: PlayerState[], round: number, playerId = 1): string {
+  const timeStr = new Date().toLocaleString('en-US')
+  const player = players.find(p => p.id === playerId)
+  const names = players.filter(p => p.id !== playerId).map(p => p.name || `Player ${p.id}`).join(', ')
+  if (player) {
+    const { name, score } = player
+    return `🎮 ${name} scored ${score} (round ${round}), in a Bomb game with ${names} 💣\n (${timeStr}) Watch the full recorded game here!`
+  }
+
+  return `🎮 (${timeStr}) Bomb Game Results ${names}- round ${round} 💣\n Watch the full recorded game here!`
+}
+
 export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playerId = 1, onClose }) => {
   const [imageDataUrl, setImageDataUrl] = useState<string>('')
-  const [shareContent, setShareContent] = useState<string>('🎮 Check out my Bomb Game results! 💣')
+  const [shareContent, setShareContent] = useState<string>(generateShareContent(players, round, playerId))
+  const [shareUrl, setShareUrl] = useState<string>('')
 
   // useNotification to show loading state
-  const { loading, setLoading } = useNotification()
+  const { loading, setLoading, notify } = useNotification()
 
   useEffect(() => {
     // Generate the share image when modal opens
@@ -82,9 +97,9 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     return `https://api.pixelonbase.com/bombshare/${gameId}?img=${name}&round=${round}&playerId=${playerId}`
   }, [gameId, round, playerId])
 
-  const handleShareFacebook = async () => {
+  const handleShareFacebook = useCallback(async () => {
     if (!imageDataUrl) {
-      alert('Please wait for the image to generate')
+      notify('Please wait for the image to generate', 'error')
       return
     }
 
@@ -93,19 +108,32 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     const name = await getOrUploadImage()
     if (!name) return
     const shareUrl = getShareUrl(name)
+    setShareUrl(shareUrl)
     const url = encodeURIComponent(shareUrl)
-    const text = encodeURIComponent(shareContent)
 
-    console.log('Opening Facebook share dialog with URL:', shareUrl)
-    
-    setTimeout(() => {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank')
-    }, 500)
-  }
+    if (isMobile) {
+      const appUrl = `fb://share?u=${url}&quote=${encodeURIComponent(shareContent)}`
+      window.location.href = appUrl
+    } else {
+      // Copy text to clipboard since Facebook doesn't support pre-filling quote anymore
+      try {
+        await navigator.clipboard.writeText(shareContent)
+        notify('Message copied! Paste it on Facebook.', 'success')
+      } catch (err) {
+        console.error('Failed to copy text: ', err)
+      }
+      
+      console.log('Opening Facebook share dialog with URL:', shareUrl)
+      
+      setTimeout(() => {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
+      }, 500)
+    }
+  }, [imageDataUrl, shareContent, getOrUploadImage, getShareUrl])
 
   const handleShareX = useCallback(async () => {
     if (!imageDataUrl) {
-      alert('Please wait for the image to generate')
+      notify('Please wait for the image to generate', 'error')
       return
     }
 
@@ -115,16 +143,17 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     const name = await getOrUploadImage()
     if (!name) return
     const shareUrl = getShareUrl(name)
+    setShareUrl(shareUrl)
     const text = encodeURIComponent(shareContent + '\n\n' + shareUrl)
     
     setTimeout(() => {
       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
     }, 500)
-  }, [imageDataUrl, shareContent, getOrUploadImage])
+  }, [imageDataUrl, shareContent, getOrUploadImage, getShareUrl])
 
   const handleShareTelegram = async () => {
     if (!imageDataUrl) {
-      alert('Please wait for the image to generate')
+      notify('Please wait for the image to generate', 'error')
       return
     }
 
@@ -153,7 +182,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
         {/* Modal Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Game #{`${gameId} (round ${round})`}
+            Game #{`${gameId} (Round ${round})`}
           </h2>
           <button
             onClick={onClose}
@@ -187,7 +216,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
               id="shareContent"
               value={shareContent}
               onChange={(e) => setShareContent(e.target.value)}
-              rows={2}
+              rows={3}
               className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your share message..."
             />
@@ -222,11 +251,13 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
           </div>
 
           {/* Instructions */}
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700 w-full">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              💡 The image will be downloaded automatically. You can then upload it manually when sharing on social media along with your text!
-            </p>
-          </div>
+          {shareUrl && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700 w-full">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                {shareUrl}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
