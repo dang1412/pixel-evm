@@ -137,7 +137,7 @@ const PixelArenaComponent: React.FC<Props> = () => {
     }
   }, [])
 
-  const { offerConnect } = useWebRTCConnectWs(onMsg)
+  const { offerConnect } = useWebRTCConnectWs({ onMsg })
 
   // connect to server
   const connect = useCallback(async (addr: string) => {

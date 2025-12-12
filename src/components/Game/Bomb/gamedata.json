@@ -1,0 +1,6818 @@
+{
+  "gameId": 0,
+  "data": {
+    "0": {
+      "0": [
+        {
+          "ts": 1764407476157,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 0,
+                "r": 2,
+                "bombs": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "maxFrame": 0
+    },
+    "1": {
+      "0": [
+        {
+          "ts": 1764407477249,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 0,
+                "r": 3,
+                "bombs": {
+                  "0": 30,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407477249,
+          "msg": {
+            "type": "addItems",
+            "items": []
+          }
+        }
+      ],
+      "1": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6196,
+                "type": 2,
+                "points": 54,
+                "colorIndex": 0
+              },
+              {
+                "pos": 9371,
+                "type": 2,
+                "points": 15,
+                "colorIndex": 5
+              },
+              {
+                "pos": 2855,
+                "type": 3,
+                "points": 12,
+                "colorIndex": 10
+              },
+              {
+                "pos": 8153,
+                "type": 1,
+                "points": 13,
+                "colorIndex": 6
+              },
+              {
+                "pos": 6553,
+                "type": 3,
+                "points": 37,
+                "colorIndex": 9
+              },
+              {
+                "pos": 7001,
+                "type": 4,
+                "points": 43,
+                "colorIndex": 1
+              },
+              {
+                "pos": 4719,
+                "type": 0,
+                "points": 71,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5127,
+                "type": 3,
+                "points": 52,
+                "colorIndex": 10
+              },
+              {
+                "pos": 4603,
+                "type": 3,
+                "points": 81,
+                "colorIndex": 4
+              }
+            ]
+          }
+        }
+      ],
+      "2": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7835,
+                "type": 3,
+                "points": 94,
+                "colorIndex": 7
+              },
+              {
+                "pos": 272,
+                "type": 2,
+                "points": 17,
+                "colorIndex": 1
+              }
+            ]
+          }
+        }
+      ],
+      "3": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6379,
+                "type": 4,
+                "points": 22,
+                "colorIndex": 3
+              },
+              {
+                "pos": 743,
+                "type": 0,
+                "points": 84,
+                "colorIndex": 4
+              }
+            ]
+          }
+        }
+      ],
+      "4": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 5582,
+                "type": 3,
+                "points": 3,
+                "colorIndex": 11
+              },
+              {
+                "pos": 3880,
+                "type": 4,
+                "points": 48,
+                "colorIndex": 6
+              },
+              {
+                "pos": 6366,
+                "type": 3,
+                "points": 70,
+                "colorIndex": 8
+              },
+              {
+                "pos": 3746,
+                "type": 4,
+                "points": 70,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "5": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 193,
+                "type": 4,
+                "points": 82,
+                "colorIndex": 1
+              },
+              {
+                "pos": 6803,
+                "type": 0,
+                "points": 9,
+                "colorIndex": 5
+              },
+              {
+                "pos": 4078,
+                "type": 2,
+                "points": 68,
+                "colorIndex": 7
+              },
+              {
+                "pos": 3365,
+                "type": 2,
+                "points": 6,
+                "colorIndex": 4
+              },
+              {
+                "pos": 4356,
+                "type": 4,
+                "points": 45,
+                "colorIndex": 6
+              },
+              {
+                "pos": 4370,
+                "type": 3,
+                "points": 78,
+                "colorIndex": 0
+              },
+              {
+                "pos": 5269,
+                "type": 1,
+                "points": 75,
+                "colorIndex": 9
+              },
+              {
+                "pos": 8861,
+                "type": 2,
+                "points": 91,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4840,
+                "type": 3,
+                "points": 56,
+                "colorIndex": 4
+              },
+              {
+                "pos": 3205,
+                "type": 2,
+                "points": 64,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7226,
+                "type": 1,
+                "points": 71,
+                "colorIndex": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407478093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 19
+            }
+          }
+        }
+      ],
+      "6": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9102,
+                "type": 1,
+                "points": 90,
+                "colorIndex": 11
+              },
+              {
+                "pos": 8985,
+                "type": 2,
+                "points": 48,
+                "colorIndex": 10
+              },
+              {
+                "pos": 8042,
+                "type": 4,
+                "points": 76,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3679,
+                "type": 2,
+                "points": 86,
+                "colorIndex": 8
+              },
+              {
+                "pos": 8331,
+                "type": 3,
+                "points": 88,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2085,
+                "type": 1,
+                "points": 59,
+                "colorIndex": 9
+              }
+            ]
+          }
+        }
+      ],
+      "7": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 399,
+                "type": 3,
+                "points": 13,
+                "colorIndex": 7
+              },
+              {
+                "pos": 9288,
+                "type": 2,
+                "points": 65,
+                "colorIndex": 11
+              },
+              {
+                "pos": 5101,
+                "type": 4,
+                "points": 96,
+                "colorIndex": 2
+              }
+            ]
+          }
+        }
+      ],
+      "8": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3831,
+                "type": 1,
+                "points": 23,
+                "colorIndex": 0
+              },
+              {
+                "pos": 6512,
+                "type": 0,
+                "points": 46,
+                "colorIndex": 2
+              },
+              {
+                "pos": 6049,
+                "type": 1,
+                "points": 54,
+                "colorIndex": 2
+              }
+            ]
+          }
+        }
+      ],
+      "9": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 8643,
+                "type": 2,
+                "points": 70,
+                "colorIndex": 10
+              },
+              {
+                "pos": 1356,
+                "type": 1,
+                "points": 19,
+                "colorIndex": 6
+              },
+              {
+                "pos": 8446,
+                "type": 3,
+                "points": 84,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5730,
+                "type": 0,
+                "points": 77,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1138,
+                "type": 2,
+                "points": 21,
+                "colorIndex": 0
+              },
+              {
+                "pos": 3972,
+                "type": 3,
+                "points": 70,
+                "colorIndex": 11
+              }
+            ]
+          }
+        }
+      ],
+      "10": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 94,
+                "type": 2,
+                "points": 56,
+                "colorIndex": 2
+              },
+              {
+                "pos": 7862,
+                "type": 1,
+                "points": 85,
+                "colorIndex": 0
+              },
+              {
+                "pos": 1907,
+                "type": 0,
+                "points": 54,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4345,
+                "type": 2,
+                "points": 13,
+                "colorIndex": 8
+              },
+              {
+                "pos": 649,
+                "type": 2,
+                "points": 68,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5249,
+                "type": 3,
+                "points": 88,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7297,
+                "type": 4,
+                "points": 42,
+                "colorIndex": 5
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407479101,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 18
+            }
+          }
+        }
+      ],
+      "11": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3223,
+                "type": 0,
+                "points": 43,
+                "colorIndex": 1
+              },
+              {
+                "pos": 9237,
+                "type": 3,
+                "points": 30,
+                "colorIndex": 2
+              },
+              {
+                "pos": 4053,
+                "type": 0,
+                "points": 44,
+                "colorIndex": 8
+              },
+              {
+                "pos": 5798,
+                "type": 4,
+                "points": 32,
+                "colorIndex": 2
+              },
+              {
+                "pos": 8607,
+                "type": 0,
+                "points": 13,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8756,
+                "type": 1,
+                "points": 66,
+                "colorIndex": 6
+              },
+              {
+                "pos": 7198,
+                "type": 4,
+                "points": 10,
+                "colorIndex": 3
+              },
+              {
+                "pos": 2931,
+                "type": 1,
+                "points": 62,
+                "colorIndex": 1
+              },
+              {
+                "pos": 3929,
+                "type": 1,
+                "points": 55,
+                "colorIndex": 7
+              },
+              {
+                "pos": 4336,
+                "type": 4,
+                "points": 28,
+                "colorIndex": 3
+              }
+            ]
+          }
+        }
+      ],
+      "12": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7633,
+                "type": 0,
+                "points": 69,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4896,
+                "type": 2,
+                "points": 79,
+                "colorIndex": 11
+              },
+              {
+                "pos": 1860,
+                "type": 4,
+                "points": 81,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4862,
+                "type": 0,
+                "points": 43,
+                "colorIndex": 10
+              },
+              {
+                "pos": 146,
+                "type": 4,
+                "points": 16,
+                "colorIndex": 8
+              },
+              {
+                "pos": 9042,
+                "type": 2,
+                "points": 91,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7439,
+                "type": 3,
+                "points": 62,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5206,
+                "type": 3,
+                "points": 61,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9406,
+                "type": 3,
+                "points": 44,
+                "colorIndex": 7
+              },
+              {
+                "pos": 3099,
+                "type": 0,
+                "points": 51,
+                "colorIndex": 6
+              },
+              {
+                "pos": 424,
+                "type": 4,
+                "points": 16,
+                "colorIndex": 5
+              }
+            ]
+          }
+        }
+      ],
+      "13": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 27,
+                "type": 4,
+                "points": 51,
+                "colorIndex": 6
+              },
+              {
+                "pos": 7229,
+                "type": 0,
+                "points": 54,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9393,
+                "type": 0,
+                "points": 1,
+                "colorIndex": 5
+              },
+              {
+                "pos": 9414,
+                "type": 2,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 1681,
+                "type": 0,
+                "points": 45,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7841,
+                "type": 0,
+                "points": 17,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "14": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3587,
+                "type": 3,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 6228,
+                "type": 3,
+                "points": 81,
+                "colorIndex": 4
+              },
+              {
+                "pos": 8057,
+                "type": 2,
+                "points": 48,
+                "colorIndex": 3
+              },
+              {
+                "pos": 7762,
+                "type": 4,
+                "points": 77,
+                "colorIndex": 5
+              },
+              {
+                "pos": 2951,
+                "type": 0,
+                "points": 5,
+                "colorIndex": 6
+              },
+              {
+                "pos": 6950,
+                "type": 0,
+                "points": 70,
+                "colorIndex": 4
+              },
+              {
+                "pos": 5325,
+                "type": 0,
+                "points": 35,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7182,
+                "type": 2,
+                "points": 88,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9722,
+                "type": 4,
+                "points": 30,
+                "colorIndex": 0
+              }
+            ]
+          }
+        }
+      ],
+      "15": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 2762,
+                "type": 1,
+                "points": 94,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5029,
+                "type": 3,
+                "points": 55,
+                "colorIndex": 6
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407480093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 17
+            }
+          }
+        }
+      ],
+      "16": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 2446,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9660,
+                "type": 4,
+                "points": 30,
+                "colorIndex": 5
+              },
+              {
+                "pos": 1040,
+                "type": 4,
+                "points": 40,
+                "colorIndex": 3
+              },
+              {
+                "pos": 3942,
+                "type": 1,
+                "points": 54,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2780,
+                "type": 2,
+                "points": 9,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1851,
+                "type": 4,
+                "points": 63,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4969,
+                "type": 0,
+                "points": 73,
+                "colorIndex": 10
+              }
+            ]
+          }
+        }
+      ],
+      "17": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7569,
+                "type": 3,
+                "points": 93,
+                "colorIndex": 10
+              },
+              {
+                "pos": 3278,
+                "type": 0,
+                "points": 39,
+                "colorIndex": 3
+              },
+              {
+                "pos": 594,
+                "type": 2,
+                "points": 50,
+                "colorIndex": 7
+              },
+              {
+                "pos": 8452,
+                "type": 2,
+                "points": 8,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2583,
+                "type": 1,
+                "points": 93,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4483,
+                "type": 1,
+                "points": 69,
+                "colorIndex": 9
+              },
+              {
+                "pos": 9459,
+                "type": 4,
+                "points": 37,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3700,
+                "type": 4,
+                "points": 79,
+                "colorIndex": 2
+              },
+              {
+                "pos": 7989,
+                "type": 2,
+                "points": 68,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2714,
+                "type": 2,
+                "points": 27,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9248,
+                "type": 4,
+                "points": 15,
+                "colorIndex": 5
+              }
+            ]
+          }
+        }
+      ],
+      "18": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 302,
+                "type": 1,
+                "points": 77,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7495,
+                "type": 3,
+                "points": 44,
+                "colorIndex": 2
+              }
+            ]
+          }
+        }
+      ],
+      "19": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3137,
+                "type": 4,
+                "points": 8,
+                "colorIndex": 11
+              },
+              {
+                "pos": 9033,
+                "type": 4,
+                "points": 69,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1969,
+                "type": 0,
+                "points": 49,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2209,
+                "type": 0,
+                "points": 35,
+                "colorIndex": 2
+              },
+              {
+                "pos": 728,
+                "type": 1,
+                "points": 61,
+                "colorIndex": 2
+              },
+              {
+                "pos": 1293,
+                "type": 1,
+                "points": 77,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2511,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 0
+              },
+              {
+                "pos": 9839,
+                "type": 2,
+                "points": 52,
+                "colorIndex": 2
+              }
+            ]
+          }
+        }
+      ],
+      "20": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9555,
+                "type": 0,
+                "points": 98,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4282,
+                "type": 4,
+                "points": 33,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2974,
+                "type": 4,
+                "points": 60,
+                "colorIndex": 6
+              },
+              {
+                "pos": 825,
+                "type": 1,
+                "points": 17,
+                "colorIndex": 11
+              },
+              {
+                "pos": 3790,
+                "type": 2,
+                "points": 55,
+                "colorIndex": 8
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407481093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 16
+            }
+          }
+        }
+      ],
+      "21": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6887,
+                "type": 3,
+                "points": 18,
+                "colorIndex": 9
+              },
+              {
+                "pos": 5200,
+                "type": 1,
+                "points": 95,
+                "colorIndex": 1
+              },
+              {
+                "pos": 8579,
+                "type": 1,
+                "points": 7,
+                "colorIndex": 3
+              },
+              {
+                "pos": 9430,
+                "type": 3,
+                "points": 87,
+                "colorIndex": 3
+              },
+              {
+                "pos": 2073,
+                "type": 1,
+                "points": 71,
+                "colorIndex": 10
+              },
+              {
+                "pos": 9049,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2627,
+                "type": 2,
+                "points": 22,
+                "colorIndex": 4
+              },
+              {
+                "pos": 7726,
+                "type": 3,
+                "points": 97,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8113,
+                "type": 1,
+                "points": 40,
+                "colorIndex": 3
+              },
+              {
+                "pos": 1580,
+                "type": 2,
+                "points": 33,
+                "colorIndex": 7
+              },
+              {
+                "pos": 3876,
+                "type": 1,
+                "points": 64,
+                "colorIndex": 9
+              }
+            ]
+          }
+        }
+      ],
+      "22": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7038,
+                "type": 1,
+                "points": 82,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7148,
+                "type": 0,
+                "points": 1,
+                "colorIndex": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407481513,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3946,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407481513,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 0,
+                "r": 3,
+                "bombs": {
+                  "0": 29,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "23": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 612,
+                "type": 4,
+                "points": 85,
+                "colorIndex": 6
+              },
+              {
+                "pos": 723,
+                "type": 2,
+                "points": 8,
+                "colorIndex": 5
+              },
+              {
+                "pos": 7676,
+                "type": 4,
+                "points": 47,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7898,
+                "type": 1,
+                "points": 8,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7426,
+                "type": 1,
+                "points": 61,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3624,
+                "type": 3,
+                "points": 62,
+                "colorIndex": 10
+              },
+              {
+                "pos": 7026,
+                "type": 0,
+                "points": 70,
+                "colorIndex": 9
+              },
+              {
+                "pos": 8796,
+                "type": 2,
+                "points": 1,
+                "colorIndex": 3
+              },
+              {
+                "pos": 5639,
+                "type": 4,
+                "points": 40,
+                "colorIndex": 1
+              }
+            ]
+          }
+        }
+      ],
+      "24": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 2057,
+                "type": 0,
+                "points": 57,
+                "colorIndex": 0
+              },
+              {
+                "pos": 2611,
+                "type": 1,
+                "points": 73,
+                "colorIndex": 8
+              },
+              {
+                "pos": 1735,
+                "type": 4,
+                "points": 49,
+                "colorIndex": 7
+              },
+              {
+                "pos": 4702,
+                "type": 0,
+                "points": 14,
+                "colorIndex": 9
+              },
+              {
+                "pos": 3048,
+                "type": 4,
+                "points": 3,
+                "colorIndex": 5
+              },
+              {
+                "pos": 4394,
+                "type": 4,
+                "points": 70,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5907,
+                "type": 1,
+                "points": 16,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2991,
+                "type": 4,
+                "points": 35,
+                "colorIndex": 5
+              }
+            ]
+          }
+        }
+      ],
+      "25": [
+        {
+          "ts": 1764407482093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 15
+            }
+          }
+        }
+      ],
+      "30": [
+        {
+          "ts": 1764407483093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 14
+            }
+          }
+        }
+      ],
+      "35": [
+        {
+          "ts": 1764407484093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 13
+            }
+          }
+        }
+      ],
+      "37": [
+        {
+          "ts": 1764407484493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3946,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407484493,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3946,
+              3947,
+              3948,
+              3949,
+              3945,
+              3944,
+              3943,
+              4046,
+              4146,
+              4246,
+              3846,
+              3746,
+              3646
+            ]
+          }
+        },
+        {
+          "ts": 1764407484493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3746,
+                "live": 800,
+                "blastRadius": 4,
+                "type": 2
+              }
+            ]
+          }
+        }
+      ],
+      "40": [
+        {
+          "ts": 1764407485093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 12
+            }
+          }
+        }
+      ],
+      "41": [
+        {
+          "ts": 1764407485293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3746,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407485293,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3746,
+              3742,
+              3543,
+              3643,
+              3743,
+              3843,
+              3943,
+              3444,
+              3544,
+              3644,
+              3744,
+              3844,
+              3944,
+              4044,
+              3445,
+              3545,
+              3645,
+              3745,
+              3845,
+              3945,
+              4045,
+              3346,
+              3446,
+              3546,
+              3646,
+              3846,
+              3946,
+              4046,
+              4146,
+              3447,
+              3547,
+              3647,
+              3747,
+              3847,
+              3947,
+              4047,
+              3448,
+              3548,
+              3648,
+              3748,
+              3848,
+              3948,
+              4048,
+              3549,
+              3649,
+              3749,
+              3849,
+              3949,
+              3750
+            ]
+          }
+        },
+        {
+          "ts": 1764407485293,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 3746,
+                "point": 70,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 70,
+                "r": 3,
+                "bombs": {
+                  "0": 29,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "45": [
+        {
+          "ts": 1764407486093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 11
+            }
+          }
+        }
+      ],
+      "49": [
+        {
+          "ts": 1764407486901,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3051,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407486901,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 70,
+                "r": 3,
+                "bombs": {
+                  "0": 28,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "50": [
+        {
+          "ts": 1764407487093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 10
+            }
+          }
+        }
+      ],
+      "52": [
+        {
+          "ts": 1764407487537,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2856,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407487537,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 70,
+                "r": 3,
+                "bombs": {
+                  "0": 27,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "55": [
+        {
+          "ts": 1764407488093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 9
+            }
+          }
+        }
+      ],
+      "58": [
+        {
+          "ts": 1764407488773,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2763,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407488773,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 70,
+                "r": 3,
+                "bombs": {
+                  "0": 26,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "60": [
+        {
+          "ts": 1764407489093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 8
+            }
+          }
+        }
+      ],
+      "64": [
+        {
+          "ts": 1764407489893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3051,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407489893,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3051,
+              3052,
+              3053,
+              3054,
+              3050,
+              3049,
+              3048,
+              3151,
+              3251,
+              3351,
+              2951,
+              2851,
+              2751
+            ]
+          }
+        },
+        {
+          "ts": 1764407489893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3048,
+                "live": 800,
+                "blastRadius": 1,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407489893,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 2951,
+                "point": 5,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 75,
+                "r": 3,
+                "bombs": {
+                  "0": 26,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407490049,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3274,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407490049,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 75,
+                "r": 3,
+                "bombs": {
+                  "0": 25,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "65": [
+        {
+          "ts": 1764407490093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 7
+            }
+          }
+        }
+      ],
+      "67": [
+        {
+          "ts": 1764407490493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2856,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407490493,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              2856,
+              2857,
+              2858,
+              2859,
+              2855,
+              2854,
+              2853,
+              2956,
+              3056,
+              3156,
+              2756,
+              2656,
+              2556
+            ]
+          }
+        },
+        {
+          "ts": 1764407490493,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 2855,
+                "point": 15,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 90,
+                "r": 3,
+                "bombs": {
+                  "0": 25,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "68": [
+        {
+          "ts": 1764407490693,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3048,
+                "live": 0,
+                "blastRadius": 1,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407490693,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3048,
+              2947,
+              3047,
+              3147,
+              2948,
+              3148,
+              2949,
+              3049,
+              3149
+            ]
+          }
+        },
+        {
+          "ts": 1764407490693,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 3048,
+                "point": 3,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 93,
+                "r": 3,
+                "bombs": {
+                  "0": 25,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "70": [
+        {
+          "ts": 1764407491093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 6
+            }
+          }
+        }
+      ],
+      "71": [
+        {
+          "ts": 1764407491421,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3277,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407491421,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 93,
+                "r": 3,
+                "bombs": {
+                  "0": 24,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "73": [
+        {
+          "ts": 1764407491693,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2763,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407491693,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              2763,
+              2764,
+              2765,
+              2766,
+              2762,
+              2761,
+              2760,
+              2863,
+              2963,
+              3063,
+              2663,
+              2563,
+              2463
+            ]
+          }
+        },
+        {
+          "ts": 1764407491693,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 2762,
+                "point": 94,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 8255,
+                "type": 3,
+                "points": 1,
+                "colorIndex": 1
+              },
+              {
+                "pos": 3241,
+                "type": 4,
+                "points": 1,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4770,
+                "type": 0,
+                "points": 94,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9448,
+                "type": 2,
+                "points": 59,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5552,
+                "type": 4,
+                "points": 1,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9600,
+                "type": 3,
+                "points": 75,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2709,
+                "type": 1,
+                "points": 51,
+                "colorIndex": 0
+              },
+              {
+                "pos": 4374,
+                "type": 4,
+                "points": 70,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2266,
+                "type": 0,
+                "points": 47,
+                "colorIndex": 6
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 187,
+                "r": 3,
+                "bombs": {
+                  "0": 24,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "75": [
+        {
+          "ts": 1764407492093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 5
+            }
+          }
+        }
+      ],
+      "77": [
+        {
+          "ts": 1764407492689,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3879,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407492689,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 187,
+                "r": 3,
+                "bombs": {
+                  "0": 23,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "79": [
+        {
+          "ts": 1764407492893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3274,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 3277,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407492893,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3274,
+              3275,
+              3276,
+              3273,
+              3272,
+              3271,
+              3374,
+              3474,
+              3574,
+              3174,
+              3074,
+              2974,
+              3277,
+              3278,
+              3279,
+              3280,
+              3377,
+              3477,
+              3577,
+              3177,
+              3077,
+              2977
+            ]
+          }
+        },
+        {
+          "ts": 1764407492893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2974,
+                "live": 800,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407492893,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 3278,
+                "point": 39,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 226,
+                "r": 3,
+                "bombs": {
+                  "0": 23,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "80": [
+        {
+          "ts": 1764407493093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 4
+            }
+          }
+        }
+      ],
+      "83": [
+        {
+          "ts": 1764407493693,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 2974,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407493693,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              2974,
+              2971,
+              2772,
+              2872,
+              2972,
+              3072,
+              3172,
+              2773,
+              2873,
+              2973,
+              3073,
+              3173,
+              2674,
+              2774,
+              2874,
+              3074,
+              3174,
+              3274,
+              2775,
+              2875,
+              2975,
+              3075,
+              3175,
+              2776,
+              2876,
+              2976,
+              3076,
+              3176,
+              2977
+            ]
+          }
+        },
+        {
+          "ts": 1764407493693,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 2974,
+                "point": 60,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 286,
+                "r": 3,
+                "bombs": {
+                  "0": 23,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "85": [
+        {
+          "ts": 1764407494093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 3
+            }
+          }
+        }
+      ],
+      "86": [
+        {
+          "ts": 1764407494393,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4372,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407494393,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 286,
+                "r": 3,
+                "bombs": {
+                  "0": 22,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "90": [
+        {
+          "ts": 1764407495093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 2
+            }
+          }
+        }
+      ],
+      "92": [
+        {
+          "ts": 1764407495493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3879,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407495493,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3879,
+              3880,
+              3881,
+              3882,
+              3878,
+              3877,
+              3876,
+              3979,
+              4079,
+              4179,
+              3779,
+              3679,
+              3579
+            ]
+          }
+        },
+        {
+          "ts": 1764407495493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3880,
+                "live": 800,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407495493,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 3876,
+                "point": 64,
+                "playerId": 1
+              },
+              {
+                "pos": 3679,
+                "point": 86,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 436,
+                "r": 3,
+                "bombs": {
+                  "0": 22,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407495629,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4272,
+                "live": 3000,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407495629,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 436,
+                "r": 3,
+                "bombs": {
+                  "0": 21,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "95": [
+        {
+          "ts": 1764407496093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 1
+            }
+          }
+        }
+      ],
+      "96": [
+        {
+          "ts": 1764407496293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3880,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407496293,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              3880,
+              3877,
+              3678,
+              3778,
+              3878,
+              3978,
+              4078,
+              3679,
+              3779,
+              3879,
+              3979,
+              4079,
+              3580,
+              3680,
+              3780,
+              3980,
+              4080,
+              4180,
+              3681,
+              3781,
+              3881,
+              3981,
+              4081,
+              3682,
+              3782,
+              3882,
+              3982,
+              4082,
+              3883
+            ]
+          }
+        },
+        {
+          "ts": 1764407496293,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 3880,
+                "point": 48,
+                "playerId": 1
+              },
+              {
+                "pos": 4078,
+                "point": 68,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 552,
+                "r": 3,
+                "bombs": {
+                  "0": 21,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "100": [
+        {
+          "ts": 1764407497093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "101": [
+        {
+          "ts": 1764407497293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4372,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 4272,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407497293,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4372,
+              4373,
+              4374,
+              4375,
+              4371,
+              4370,
+              4369,
+              4472,
+              4572,
+              4672,
+              4272,
+              4273,
+              4274,
+              4275,
+              4271,
+              4270,
+              4269,
+              4172,
+              4072,
+              3972
+            ]
+          }
+        },
+        {
+          "ts": 1764407497293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4374,
+                "live": 800,
+                "blastRadius": 4,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407497293,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4370,
+                "point": 110,
+                "playerId": 1
+              },
+              {
+                "pos": 3972,
+                "point": 98,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 760,
+                "r": 3,
+                "bombs": {
+                  "0": 21,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407497293,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "102": [
+        {
+          "ts": 1764407497493,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "103": [
+        {
+          "ts": 1764407497693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "104": [
+        {
+          "ts": 1764407497893,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "105": [
+        {
+          "ts": 1764407498093,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4374,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407498093,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4374,
+              4370,
+              4171,
+              4271,
+              4371,
+              4471,
+              4571,
+              4072,
+              4172,
+              4272,
+              4372,
+              4472,
+              4572,
+              4672,
+              4073,
+              4173,
+              4273,
+              4373,
+              4473,
+              4573,
+              4673,
+              3974,
+              4074,
+              4174,
+              4274,
+              4474,
+              4574,
+              4674,
+              4774,
+              4075,
+              4175,
+              4275,
+              4375,
+              4475,
+              4575,
+              4675,
+              4076,
+              4176,
+              4276,
+              4376,
+              4476,
+              4576,
+              4676,
+              4177,
+              4277,
+              4377,
+              4477,
+              4577,
+              4378
+            ]
+          }
+        },
+        {
+          "ts": 1764407498093,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4374,
+                "point": 98,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 1829,
+                "type": 0,
+                "points": 97,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7537,
+                "type": 2,
+                "points": 18,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9685,
+                "type": 4,
+                "points": 58,
+                "colorIndex": 1
+              },
+              {
+                "pos": 6554,
+                "type": 0,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 2169,
+                "type": 2,
+                "points": 99,
+                "colorIndex": 10
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 858,
+                "r": 3,
+                "bombs": {
+                  "0": 21,
+                  "1": 1,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407498093,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "pausing": true,
+              "timeLeft": 0
+            }
+          }
+        }
+      ],
+      "maxFrame": 105
+    },
+    "2": {
+      "0": [
+        {
+          "ts": 1764407501865,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 858,
+                "r": 4,
+                "bombs": {
+                  "0": 51,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407501865,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6196,
+                "type": 2,
+                "points": 54,
+                "colorIndex": 0
+              },
+              {
+                "pos": 9371,
+                "type": 2,
+                "points": 15,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8153,
+                "type": 1,
+                "points": 13,
+                "colorIndex": 6
+              },
+              {
+                "pos": 6553,
+                "type": 3,
+                "points": 37,
+                "colorIndex": 9
+              },
+              {
+                "pos": 7001,
+                "type": 4,
+                "points": 43,
+                "colorIndex": 1
+              },
+              {
+                "pos": 4719,
+                "type": 0,
+                "points": 71,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5127,
+                "type": 3,
+                "points": 52,
+                "colorIndex": 10
+              },
+              {
+                "pos": 4603,
+                "type": 3,
+                "points": 81,
+                "colorIndex": 4
+              },
+              {
+                "pos": 7835,
+                "type": 3,
+                "points": 94,
+                "colorIndex": 7
+              },
+              {
+                "pos": 272,
+                "type": 2,
+                "points": 17,
+                "colorIndex": 1
+              },
+              {
+                "pos": 6379,
+                "type": 4,
+                "points": 22,
+                "colorIndex": 3
+              },
+              {
+                "pos": 743,
+                "type": 0,
+                "points": 84,
+                "colorIndex": 4
+              },
+              {
+                "pos": 5582,
+                "type": 3,
+                "points": 3,
+                "colorIndex": 11
+              },
+              {
+                "pos": 6366,
+                "type": 3,
+                "points": 70,
+                "colorIndex": 8
+              },
+              {
+                "pos": 193,
+                "type": 4,
+                "points": 82,
+                "colorIndex": 1
+              },
+              {
+                "pos": 6803,
+                "type": 0,
+                "points": 9,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3365,
+                "type": 2,
+                "points": 6,
+                "colorIndex": 4
+              },
+              {
+                "pos": 4356,
+                "type": 0,
+                "points": 63,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5269,
+                "type": 1,
+                "points": 75,
+                "colorIndex": 9
+              },
+              {
+                "pos": 8861,
+                "type": 2,
+                "points": 91,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4840,
+                "type": 3,
+                "points": 56,
+                "colorIndex": 4
+              },
+              {
+                "pos": 3205,
+                "type": 2,
+                "points": 64,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7226,
+                "type": 1,
+                "points": 71,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9102,
+                "type": 1,
+                "points": 90,
+                "colorIndex": 11
+              },
+              {
+                "pos": 8985,
+                "type": 2,
+                "points": 48,
+                "colorIndex": 10
+              },
+              {
+                "pos": 8042,
+                "type": 4,
+                "points": 76,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8331,
+                "type": 3,
+                "points": 88,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2085,
+                "type": 1,
+                "points": 59,
+                "colorIndex": 9
+              },
+              {
+                "pos": 399,
+                "type": 3,
+                "points": 13,
+                "colorIndex": 7
+              },
+              {
+                "pos": 9288,
+                "type": 2,
+                "points": 65,
+                "colorIndex": 11
+              },
+              {
+                "pos": 5101,
+                "type": 4,
+                "points": 96,
+                "colorIndex": 2
+              },
+              {
+                "pos": 3831,
+                "type": 1,
+                "points": 23,
+                "colorIndex": 0
+              },
+              {
+                "pos": 6512,
+                "type": 0,
+                "points": 46,
+                "colorIndex": 2
+              },
+              {
+                "pos": 6049,
+                "type": 1,
+                "points": 54,
+                "colorIndex": 2
+              },
+              {
+                "pos": 8643,
+                "type": 2,
+                "points": 70,
+                "colorIndex": 10
+              },
+              {
+                "pos": 1356,
+                "type": 1,
+                "points": 19,
+                "colorIndex": 6
+              },
+              {
+                "pos": 8446,
+                "type": 3,
+                "points": 84,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5730,
+                "type": 0,
+                "points": 77,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1138,
+                "type": 2,
+                "points": 21,
+                "colorIndex": 0
+              },
+              {
+                "pos": 94,
+                "type": 2,
+                "points": 56,
+                "colorIndex": 2
+              },
+              {
+                "pos": 7862,
+                "type": 1,
+                "points": 85,
+                "colorIndex": 0
+              },
+              {
+                "pos": 1907,
+                "type": 0,
+                "points": 54,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4345,
+                "type": 2,
+                "points": 13,
+                "colorIndex": 8
+              },
+              {
+                "pos": 649,
+                "type": 2,
+                "points": 68,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5249,
+                "type": 3,
+                "points": 88,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7297,
+                "type": 4,
+                "points": 42,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3223,
+                "type": 0,
+                "points": 43,
+                "colorIndex": 1
+              },
+              {
+                "pos": 9237,
+                "type": 3,
+                "points": 30,
+                "colorIndex": 2
+              },
+              {
+                "pos": 4053,
+                "type": 0,
+                "points": 44,
+                "colorIndex": 8
+              },
+              {
+                "pos": 5798,
+                "type": 4,
+                "points": 32,
+                "colorIndex": 2
+              },
+              {
+                "pos": 8607,
+                "type": 0,
+                "points": 13,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8756,
+                "type": 1,
+                "points": 66,
+                "colorIndex": 6
+              },
+              {
+                "pos": 7198,
+                "type": 4,
+                "points": 10,
+                "colorIndex": 3
+              },
+              {
+                "pos": 2931,
+                "type": 1,
+                "points": 62,
+                "colorIndex": 1
+              },
+              {
+                "pos": 3929,
+                "type": 1,
+                "points": 55,
+                "colorIndex": 7
+              },
+              {
+                "pos": 4336,
+                "type": 4,
+                "points": 28,
+                "colorIndex": 3
+              },
+              {
+                "pos": 7633,
+                "type": 0,
+                "points": 69,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4896,
+                "type": 2,
+                "points": 79,
+                "colorIndex": 11
+              },
+              {
+                "pos": 1860,
+                "type": 4,
+                "points": 81,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4862,
+                "type": 0,
+                "points": 43,
+                "colorIndex": 10
+              },
+              {
+                "pos": 146,
+                "type": 4,
+                "points": 16,
+                "colorIndex": 8
+              },
+              {
+                "pos": 9042,
+                "type": 2,
+                "points": 91,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7439,
+                "type": 3,
+                "points": 62,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5206,
+                "type": 3,
+                "points": 61,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9406,
+                "type": 3,
+                "points": 44,
+                "colorIndex": 7
+              },
+              {
+                "pos": 3099,
+                "type": 0,
+                "points": 51,
+                "colorIndex": 6
+              },
+              {
+                "pos": 424,
+                "type": 4,
+                "points": 16,
+                "colorIndex": 5
+              },
+              {
+                "pos": 27,
+                "type": 4,
+                "points": 51,
+                "colorIndex": 6
+              },
+              {
+                "pos": 7229,
+                "type": 0,
+                "points": 54,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9393,
+                "type": 0,
+                "points": 1,
+                "colorIndex": 5
+              },
+              {
+                "pos": 9414,
+                "type": 2,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 1681,
+                "type": 0,
+                "points": 45,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7841,
+                "type": 0,
+                "points": 17,
+                "colorIndex": 6
+              },
+              {
+                "pos": 3587,
+                "type": 3,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 6228,
+                "type": 3,
+                "points": 81,
+                "colorIndex": 4
+              },
+              {
+                "pos": 8057,
+                "type": 2,
+                "points": 48,
+                "colorIndex": 3
+              },
+              {
+                "pos": 7762,
+                "type": 4,
+                "points": 77,
+                "colorIndex": 5
+              },
+              {
+                "pos": 6950,
+                "type": 0,
+                "points": 70,
+                "colorIndex": 4
+              },
+              {
+                "pos": 5325,
+                "type": 0,
+                "points": 35,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7182,
+                "type": 2,
+                "points": 88,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9722,
+                "type": 4,
+                "points": 30,
+                "colorIndex": 0
+              },
+              {
+                "pos": 5029,
+                "type": 3,
+                "points": 55,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2446,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9660,
+                "type": 4,
+                "points": 30,
+                "colorIndex": 5
+              },
+              {
+                "pos": 1040,
+                "type": 4,
+                "points": 40,
+                "colorIndex": 3
+              },
+              {
+                "pos": 3942,
+                "type": 1,
+                "points": 54,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2780,
+                "type": 2,
+                "points": 9,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1851,
+                "type": 4,
+                "points": 63,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4969,
+                "type": 0,
+                "points": 73,
+                "colorIndex": 10
+              },
+              {
+                "pos": 7569,
+                "type": 3,
+                "points": 93,
+                "colorIndex": 10
+              },
+              {
+                "pos": 594,
+                "type": 2,
+                "points": 50,
+                "colorIndex": 7
+              },
+              {
+                "pos": 8452,
+                "type": 2,
+                "points": 8,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2583,
+                "type": 1,
+                "points": 93,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4483,
+                "type": 1,
+                "points": 69,
+                "colorIndex": 9
+              },
+              {
+                "pos": 9459,
+                "type": 4,
+                "points": 37,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3700,
+                "type": 4,
+                "points": 79,
+                "colorIndex": 2
+              },
+              {
+                "pos": 7989,
+                "type": 2,
+                "points": 68,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2714,
+                "type": 2,
+                "points": 27,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9248,
+                "type": 4,
+                "points": 15,
+                "colorIndex": 5
+              },
+              {
+                "pos": 302,
+                "type": 1,
+                "points": 77,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7495,
+                "type": 3,
+                "points": 44,
+                "colorIndex": 2
+              },
+              {
+                "pos": 3137,
+                "type": 4,
+                "points": 8,
+                "colorIndex": 11
+              },
+              {
+                "pos": 9033,
+                "type": 4,
+                "points": 69,
+                "colorIndex": 1
+              },
+              {
+                "pos": 1969,
+                "type": 0,
+                "points": 49,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2209,
+                "type": 0,
+                "points": 35,
+                "colorIndex": 2
+              },
+              {
+                "pos": 728,
+                "type": 1,
+                "points": 61,
+                "colorIndex": 2
+              },
+              {
+                "pos": 1293,
+                "type": 1,
+                "points": 77,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2511,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 0
+              },
+              {
+                "pos": 9839,
+                "type": 2,
+                "points": 52,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9555,
+                "type": 0,
+                "points": 98,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4282,
+                "type": 0,
+                "points": 33,
+                "colorIndex": 1
+              },
+              {
+                "pos": 825,
+                "type": 1,
+                "points": 17,
+                "colorIndex": 11
+              },
+              {
+                "pos": 3790,
+                "type": 2,
+                "points": 55,
+                "colorIndex": 8
+              },
+              {
+                "pos": 6887,
+                "type": 3,
+                "points": 18,
+                "colorIndex": 9
+              },
+              {
+                "pos": 5200,
+                "type": 1,
+                "points": 95,
+                "colorIndex": 1
+              },
+              {
+                "pos": 8579,
+                "type": 1,
+                "points": 7,
+                "colorIndex": 3
+              },
+              {
+                "pos": 9430,
+                "type": 3,
+                "points": 87,
+                "colorIndex": 3
+              },
+              {
+                "pos": 2073,
+                "type": 1,
+                "points": 71,
+                "colorIndex": 10
+              },
+              {
+                "pos": 9049,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2627,
+                "type": 2,
+                "points": 22,
+                "colorIndex": 4
+              },
+              {
+                "pos": 7726,
+                "type": 3,
+                "points": 97,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8113,
+                "type": 1,
+                "points": 40,
+                "colorIndex": 3
+              },
+              {
+                "pos": 1580,
+                "type": 2,
+                "points": 33,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7038,
+                "type": 1,
+                "points": 82,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7148,
+                "type": 0,
+                "points": 1,
+                "colorIndex": 2
+              },
+              {
+                "pos": 612,
+                "type": 4,
+                "points": 85,
+                "colorIndex": 6
+              },
+              {
+                "pos": 723,
+                "type": 2,
+                "points": 8,
+                "colorIndex": 5
+              },
+              {
+                "pos": 7676,
+                "type": 4,
+                "points": 47,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7898,
+                "type": 1,
+                "points": 8,
+                "colorIndex": 0
+              },
+              {
+                "pos": 7426,
+                "type": 1,
+                "points": 61,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3624,
+                "type": 3,
+                "points": 62,
+                "colorIndex": 10
+              },
+              {
+                "pos": 7026,
+                "type": 0,
+                "points": 70,
+                "colorIndex": 9
+              },
+              {
+                "pos": 8796,
+                "type": 2,
+                "points": 1,
+                "colorIndex": 3
+              },
+              {
+                "pos": 5639,
+                "type": 4,
+                "points": 40,
+                "colorIndex": 1
+              },
+              {
+                "pos": 2057,
+                "type": 0,
+                "points": 57,
+                "colorIndex": 0
+              },
+              {
+                "pos": 2611,
+                "type": 1,
+                "points": 73,
+                "colorIndex": 8
+              },
+              {
+                "pos": 1735,
+                "type": 4,
+                "points": 49,
+                "colorIndex": 7
+              },
+              {
+                "pos": 4702,
+                "type": 0,
+                "points": 14,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4394,
+                "type": 4,
+                "points": 70,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5907,
+                "type": 1,
+                "points": 16,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2991,
+                "type": 4,
+                "points": 35,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8255,
+                "type": 3,
+                "points": 1,
+                "colorIndex": 1
+              },
+              {
+                "pos": 3241,
+                "type": 4,
+                "points": 1,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4770,
+                "type": 0,
+                "points": 94,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9448,
+                "type": 2,
+                "points": 59,
+                "colorIndex": 10
+              },
+              {
+                "pos": 5552,
+                "type": 4,
+                "points": 1,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9600,
+                "type": 3,
+                "points": 75,
+                "colorIndex": 2
+              },
+              {
+                "pos": 2709,
+                "type": 1,
+                "points": 51,
+                "colorIndex": 0
+              },
+              {
+                "pos": 2266,
+                "type": 0,
+                "points": 47,
+                "colorIndex": 6
+              },
+              {
+                "pos": 1829,
+                "type": 0,
+                "points": 97,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7537,
+                "type": 2,
+                "points": 18,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9685,
+                "type": 4,
+                "points": 58,
+                "colorIndex": 1
+              },
+              {
+                "pos": 6554,
+                "type": 0,
+                "points": 25,
+                "colorIndex": 10
+              },
+              {
+                "pos": 2169,
+                "type": 2,
+                "points": 99,
+                "colorIndex": 10
+              }
+            ]
+          }
+        }
+      ],
+      "1": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9790,
+                "type": 2,
+                "points": 81,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8870,
+                "type": 3,
+                "points": 46,
+                "colorIndex": 10
+              },
+              {
+                "pos": 4798,
+                "type": 1,
+                "points": 55,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7513,
+                "type": 1,
+                "points": 68,
+                "colorIndex": 9
+              },
+              {
+                "pos": 1658,
+                "type": 2,
+                "points": 58,
+                "colorIndex": 5
+              }
+            ]
+          }
+        }
+      ],
+      "2": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9795,
+                "type": 4,
+                "points": 90,
+                "colorIndex": 11
+              },
+              {
+                "pos": 9875,
+                "type": 0,
+                "points": 22,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9535,
+                "type": 4,
+                "points": 70,
+                "colorIndex": 10
+              }
+            ]
+          }
+        }
+      ],
+      "3": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6523,
+                "type": 0,
+                "points": 86,
+                "colorIndex": 10
+              },
+              {
+                "pos": 599,
+                "type": 4,
+                "points": 90,
+                "colorIndex": 2
+              },
+              {
+                "pos": 3998,
+                "type": 2,
+                "points": 22,
+                "colorIndex": 6
+              },
+              {
+                "pos": 9243,
+                "type": 0,
+                "points": 5,
+                "colorIndex": 10
+              },
+              {
+                "pos": 503,
+                "type": 2,
+                "points": 29,
+                "colorIndex": 1
+              },
+              {
+                "pos": 8022,
+                "type": 0,
+                "points": 63,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2255,
+                "type": 0,
+                "points": 97,
+                "colorIndex": 4
+              },
+              {
+                "pos": 4376,
+                "type": 0,
+                "points": 5,
+                "colorIndex": 8
+              },
+              {
+                "pos": 480,
+                "type": 0,
+                "points": 94,
+                "colorIndex": 10
+              }
+            ]
+          }
+        }
+      ],
+      "4": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 1459,
+                "type": 0,
+                "points": 38,
+                "colorIndex": 6
+              },
+              {
+                "pos": 8427,
+                "type": 1,
+                "points": 3,
+                "colorIndex": 5
+              },
+              {
+                "pos": 7721,
+                "type": 3,
+                "points": 17,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "5": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3631,
+                "type": 0,
+                "points": 48,
+                "colorIndex": 3
+              },
+              {
+                "pos": 9587,
+                "type": 0,
+                "points": 28,
+                "colorIndex": 9
+              },
+              {
+                "pos": 686,
+                "type": 2,
+                "points": 77,
+                "colorIndex": 6
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407502693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 19
+            }
+          }
+        }
+      ],
+      "6": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 5500,
+                "type": 1,
+                "points": 1,
+                "colorIndex": 9
+              },
+              {
+                "pos": 7542,
+                "type": 3,
+                "points": 67,
+                "colorIndex": 4
+              },
+              {
+                "pos": 1536,
+                "type": 1,
+                "points": 32,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8965,
+                "type": 1,
+                "points": 92,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7244,
+                "type": 1,
+                "points": 85,
+                "colorIndex": 9
+              },
+              {
+                "pos": 2283,
+                "type": 1,
+                "points": 65,
+                "colorIndex": 10
+              },
+              {
+                "pos": 26,
+                "type": 2,
+                "points": 13,
+                "colorIndex": 2
+              },
+              {
+                "pos": 7437,
+                "type": 3,
+                "points": 11,
+                "colorIndex": 1
+              },
+              {
+                "pos": 3749,
+                "type": 4,
+                "points": 33,
+                "colorIndex": 5
+              }
+            ]
+          }
+        }
+      ],
+      "7": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 1721,
+                "type": 0,
+                "points": 62,
+                "colorIndex": 5
+              },
+              {
+                "pos": 756,
+                "type": 2,
+                "points": 81,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7922,
+                "type": 3,
+                "points": 30,
+                "colorIndex": 4
+              },
+              {
+                "pos": 457,
+                "type": 1,
+                "points": 52,
+                "colorIndex": 9
+              },
+              {
+                "pos": 9118,
+                "type": 2,
+                "points": 46,
+                "colorIndex": 11
+              },
+              {
+                "pos": 4712,
+                "type": 0,
+                "points": 38,
+                "colorIndex": 9
+              }
+            ]
+          }
+        }
+      ],
+      "8": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3688,
+                "type": 0,
+                "points": 62,
+                "colorIndex": 3
+              },
+              {
+                "pos": 2357,
+                "type": 2,
+                "points": 82,
+                "colorIndex": 11
+              },
+              {
+                "pos": 1827,
+                "type": 4,
+                "points": 58,
+                "colorIndex": 2
+              },
+              {
+                "pos": 1166,
+                "type": 4,
+                "points": 30,
+                "colorIndex": 4
+              },
+              {
+                "pos": 4830,
+                "type": 2,
+                "points": 66,
+                "colorIndex": 0
+              },
+              {
+                "pos": 2022,
+                "type": 4,
+                "points": 23,
+                "colorIndex": 10
+              },
+              {
+                "pos": 9485,
+                "type": 1,
+                "points": 31,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8744,
+                "type": 4,
+                "points": 10,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4684,
+                "type": 4,
+                "points": 85,
+                "colorIndex": 8
+              },
+              {
+                "pos": 4941,
+                "type": 2,
+                "points": 51,
+                "colorIndex": 3
+              }
+            ]
+          }
+        }
+      ],
+      "9": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9764,
+                "type": 2,
+                "points": 30,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9543,
+                "type": 1,
+                "points": 12,
+                "colorIndex": 9
+              },
+              {
+                "pos": 3474,
+                "type": 1,
+                "points": 15,
+                "colorIndex": 5
+              },
+              {
+                "pos": 5018,
+                "type": 3,
+                "points": 76,
+                "colorIndex": 3
+              },
+              {
+                "pos": 1111,
+                "type": 1,
+                "points": 88,
+                "colorIndex": 1
+              }
+            ]
+          }
+        }
+      ],
+      "10": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 4370,
+                "type": 4,
+                "points": 29,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4458,
+                "type": 3,
+                "points": 22,
+                "colorIndex": 11
+              },
+              {
+                "pos": 8576,
+                "type": 0,
+                "points": 37,
+                "colorIndex": 9
+              },
+              {
+                "pos": 5800,
+                "type": 3,
+                "points": 67,
+                "colorIndex": 9
+              },
+              {
+                "pos": 7823,
+                "type": 3,
+                "points": 73,
+                "colorIndex": 5
+              },
+              {
+                "pos": 7257,
+                "type": 0,
+                "points": 62,
+                "colorIndex": 3
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407503693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 18
+            }
+          }
+        }
+      ],
+      "11": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 772,
+                "type": 3,
+                "points": 6,
+                "colorIndex": 8
+              },
+              {
+                "pos": 1,
+                "type": 2,
+                "points": 65,
+                "colorIndex": 8
+              }
+            ]
+          }
+        }
+      ],
+      "12": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 2029,
+                "type": 4,
+                "points": 75,
+                "colorIndex": 11
+              },
+              {
+                "pos": 2033,
+                "type": 0,
+                "points": 26,
+                "colorIndex": 9
+              },
+              {
+                "pos": 305,
+                "type": 2,
+                "points": 23,
+                "colorIndex": 9
+              },
+              {
+                "pos": 9480,
+                "type": 3,
+                "points": 89,
+                "colorIndex": 3
+              },
+              {
+                "pos": 9964,
+                "type": 4,
+                "points": 88,
+                "colorIndex": 8
+              },
+              {
+                "pos": 8295,
+                "type": 2,
+                "points": 27,
+                "colorIndex": 11
+              },
+              {
+                "pos": 9733,
+                "type": 0,
+                "points": 43,
+                "colorIndex": 8
+              }
+            ]
+          }
+        }
+      ],
+      "13": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 5390,
+                "type": 0,
+                "points": 4,
+                "colorIndex": 5
+              },
+              {
+                "pos": 4567,
+                "type": 2,
+                "points": 16,
+                "colorIndex": 1
+              }
+            ]
+          }
+        }
+      ],
+      "14": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7808,
+                "type": 1,
+                "points": 20,
+                "colorIndex": 5
+              },
+              {
+                "pos": 9507,
+                "type": 0,
+                "points": 47,
+                "colorIndex": 10
+              },
+              {
+                "pos": 4134,
+                "type": 2,
+                "points": 45,
+                "colorIndex": 3
+              },
+              {
+                "pos": 6373,
+                "type": 4,
+                "points": 29,
+                "colorIndex": 11
+              },
+              {
+                "pos": 3124,
+                "type": 0,
+                "points": 57,
+                "colorIndex": 8
+              },
+              {
+                "pos": 7342,
+                "type": 3,
+                "points": 58,
+                "colorIndex": 6
+              },
+              {
+                "pos": 562,
+                "type": 1,
+                "points": 50,
+                "colorIndex": 2
+              },
+              {
+                "pos": 6106,
+                "type": 1,
+                "points": 3,
+                "colorIndex": 3
+              },
+              {
+                "pos": 3198,
+                "type": 0,
+                "points": 72,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "15": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6043,
+                "type": 3,
+                "points": 83,
+                "colorIndex": 0
+              },
+              {
+                "pos": 3550,
+                "type": 4,
+                "points": 3,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8608,
+                "type": 4,
+                "points": 40,
+                "colorIndex": 9
+              },
+              {
+                "pos": 2075,
+                "type": 4,
+                "points": 7,
+                "colorIndex": 8
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407504693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 17
+            }
+          }
+        }
+      ],
+      "16": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3043,
+                "type": 0,
+                "points": 36,
+                "colorIndex": 3
+              },
+              {
+                "pos": 693,
+                "type": 4,
+                "points": 66,
+                "colorIndex": 7
+              },
+              {
+                "pos": 7562,
+                "type": 0,
+                "points": 41,
+                "colorIndex": 5
+              },
+              {
+                "pos": 9096,
+                "type": 2,
+                "points": 16,
+                "colorIndex": 0
+              },
+              {
+                "pos": 340,
+                "type": 3,
+                "points": 60,
+                "colorIndex": 10
+              },
+              {
+                "pos": 2279,
+                "type": 4,
+                "points": 89,
+                "colorIndex": 3
+              },
+              {
+                "pos": 7919,
+                "type": 4,
+                "points": 56,
+                "colorIndex": 1
+              },
+              {
+                "pos": 5521,
+                "type": 1,
+                "points": 73,
+                "colorIndex": 0
+              },
+              {
+                "pos": 714,
+                "type": 1,
+                "points": 42,
+                "colorIndex": 0
+              }
+            ]
+          }
+        }
+      ],
+      "17": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9728,
+                "type": 2,
+                "points": 32,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8775,
+                "type": 4,
+                "points": 57,
+                "colorIndex": 7
+              },
+              {
+                "pos": 4388,
+                "type": 2,
+                "points": 66,
+                "colorIndex": 8
+              },
+              {
+                "pos": 6279,
+                "type": 1,
+                "points": 31,
+                "colorIndex": 7
+              },
+              {
+                "pos": 1925,
+                "type": 3,
+                "points": 77,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "18": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 4974,
+                "type": 1,
+                "points": 32,
+                "colorIndex": 9
+              },
+              {
+                "pos": 3354,
+                "type": 4,
+                "points": 37,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "19": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 1591,
+                "type": 4,
+                "points": 21,
+                "colorIndex": 6
+              },
+              {
+                "pos": 8889,
+                "type": 3,
+                "points": 40,
+                "colorIndex": 9
+              },
+              {
+                "pos": 9693,
+                "type": 2,
+                "points": 10,
+                "colorIndex": 1
+              },
+              {
+                "pos": 5667,
+                "type": 1,
+                "points": 34,
+                "colorIndex": 6
+              },
+              {
+                "pos": 5632,
+                "type": 0,
+                "points": 76,
+                "colorIndex": 10
+              },
+              {
+                "pos": 6648,
+                "type": 4,
+                "points": 6,
+                "colorIndex": 5
+              },
+              {
+                "pos": 9608,
+                "type": 3,
+                "points": 1,
+                "colorIndex": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407505690,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4570,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407505690,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 858,
+                "r": 4,
+                "bombs": {
+                  "0": 50,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "20": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 5395,
+                "type": 2,
+                "points": 9,
+                "colorIndex": 4
+              },
+              {
+                "pos": 1718,
+                "type": 4,
+                "points": 43,
+                "colorIndex": 3
+              },
+              {
+                "pos": 6962,
+                "type": 3,
+                "points": 85,
+                "colorIndex": 4
+              },
+              {
+                "pos": 6250,
+                "type": 2,
+                "points": 96,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2349,
+                "type": 2,
+                "points": 31,
+                "colorIndex": 6
+              },
+              {
+                "pos": 8913,
+                "type": 3,
+                "points": 61,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4350,
+                "type": 2,
+                "points": 26,
+                "colorIndex": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407505703,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 16
+            }
+          }
+        }
+      ],
+      "21": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3132,
+                "type": 4,
+                "points": 65,
+                "colorIndex": 5
+              },
+              {
+                "pos": 5477,
+                "type": 4,
+                "points": 34,
+                "colorIndex": 2
+              },
+              {
+                "pos": 5511,
+                "type": 0,
+                "points": 63,
+                "colorIndex": 2
+              },
+              {
+                "pos": 9563,
+                "type": 0,
+                "points": 35,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8063,
+                "type": 3,
+                "points": 37,
+                "colorIndex": 11
+              },
+              {
+                "pos": 5248,
+                "type": 1,
+                "points": 41,
+                "colorIndex": 7
+              },
+              {
+                "pos": 3279,
+                "type": 3,
+                "points": 74,
+                "colorIndex": 0
+              },
+              {
+                "pos": 5489,
+                "type": 4,
+                "points": 89,
+                "colorIndex": 1
+              },
+              {
+                "pos": 5021,
+                "type": 3,
+                "points": 29,
+                "colorIndex": 5
+              },
+              {
+                "pos": 5890,
+                "type": 3,
+                "points": 19,
+                "colorIndex": 6
+              }
+            ]
+          }
+        }
+      ],
+      "22": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 9007,
+                "type": 3,
+                "points": 20,
+                "colorIndex": 4
+              },
+              {
+                "pos": 1951,
+                "type": 3,
+                "points": 34,
+                "colorIndex": 9
+              },
+              {
+                "pos": 6750,
+                "type": 1,
+                "points": 1,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2523,
+                "type": 0,
+                "points": 27,
+                "colorIndex": 11
+              },
+              {
+                "pos": 77,
+                "type": 0,
+                "points": 5,
+                "colorIndex": 0
+              },
+              {
+                "pos": 6875,
+                "type": 3,
+                "points": 5,
+                "colorIndex": 10
+              },
+              {
+                "pos": 3857,
+                "type": 4,
+                "points": 51,
+                "colorIndex": 4
+              },
+              {
+                "pos": 8199,
+                "type": 3,
+                "points": 71,
+                "colorIndex": 4
+              },
+              {
+                "pos": 1238,
+                "type": 1,
+                "points": 78,
+                "colorIndex": 3
+              },
+              {
+                "pos": 3106,
+                "type": 1,
+                "points": 48,
+                "colorIndex": 7
+              }
+            ]
+          }
+        }
+      ],
+      "23": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3878,
+                "type": 4,
+                "points": 72,
+                "colorIndex": 10
+              },
+              {
+                "pos": 45,
+                "type": 2,
+                "points": 7,
+                "colorIndex": 10
+              },
+              {
+                "pos": 4358,
+                "type": 3,
+                "points": 12,
+                "colorIndex": 5
+              },
+              {
+                "pos": 8834,
+                "type": 4,
+                "points": 13,
+                "colorIndex": 2
+              }
+            ]
+          }
+        }
+      ],
+      "24": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 8888,
+                "type": 3,
+                "points": 3,
+                "colorIndex": 5
+              },
+              {
+                "pos": 1469,
+                "type": 2,
+                "points": 35,
+                "colorIndex": 5
+              },
+              {
+                "pos": 3415,
+                "type": 1,
+                "points": 5,
+                "colorIndex": 3
+              },
+              {
+                "pos": 776,
+                "type": 2,
+                "points": 60,
+                "colorIndex": 5
+              },
+              {
+                "pos": 1687,
+                "type": 0,
+                "points": 10,
+                "colorIndex": 0
+              },
+              {
+                "pos": 5209,
+                "type": 4,
+                "points": 41,
+                "colorIndex": 0
+              }
+            ]
+          }
+        }
+      ],
+      "25": [
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3149,
+                "type": 1,
+                "points": 8,
+                "colorIndex": 10
+              },
+              {
+                "pos": 8234,
+                "type": 0,
+                "points": 24,
+                "colorIndex": 8
+              },
+              {
+                "pos": 2180,
+                "type": 4,
+                "points": 53,
+                "colorIndex": 2
+              },
+              {
+                "pos": 3187,
+                "type": 3,
+                "points": 44,
+                "colorIndex": 9
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407506693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 15
+            }
+          }
+        }
+      ],
+      "27": [
+        {
+          "ts": 1764407507194,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4970,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407507194,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 858,
+                "r": 4,
+                "bombs": {
+                  "0": 49,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "30": [
+        {
+          "ts": 1764407507693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 14
+            }
+          }
+        },
+        {
+          "ts": 1764407507794,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5270,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407507794,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 858,
+                "r": 4,
+                "bombs": {
+                  "0": 48,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "34": [
+        {
+          "ts": 1764407508493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4570,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 4970,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 5270,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407508493,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4570,
+              4571,
+              4572,
+              4573,
+              4574,
+              4569,
+              4568,
+              4567,
+              4566,
+              4670,
+              4770,
+              4870,
+              4470,
+              4370,
+              4270,
+              4170,
+              4970,
+              4971,
+              4972,
+              4973,
+              4974,
+              4969,
+              4968,
+              4967,
+              4966,
+              5070,
+              5170,
+              5270,
+              5271,
+              5272,
+              5273,
+              5274,
+              5269,
+              5268,
+              5267,
+              5266,
+              5370,
+              5470,
+              5570,
+              5670
+            ]
+          }
+        },
+        {
+          "ts": 1764407508493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4370,
+                "live": 800,
+                "blastRadius": 2,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407508493,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4567,
+                "point": 16,
+                "playerId": 1
+              },
+              {
+                "pos": 4770,
+                "point": 94,
+                "playerId": 1
+              },
+              {
+                "pos": 4974,
+                "point": 32,
+                "playerId": 1
+              },
+              {
+                "pos": 4969,
+                "point": 73,
+                "playerId": 1
+              },
+              {
+                "pos": 5269,
+                "point": 75,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 7192,
+                "type": 0,
+                "points": 96,
+                "colorIndex": 2
+              },
+              {
+                "pos": 1282,
+                "type": 1,
+                "points": 76,
+                "colorIndex": 5
+              },
+              {
+                "pos": 6259,
+                "type": 3,
+                "points": 29,
+                "colorIndex": 9
+              },
+              {
+                "pos": 4533,
+                "type": 1,
+                "points": 25,
+                "colorIndex": 5
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1148,
+                "r": 4,
+                "bombs": {
+                  "0": 48,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "35": [
+        {
+          "ts": 1764407508693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 13
+            }
+          }
+        }
+      ],
+      "37": [
+        {
+          "ts": 1764407509218,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5583,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407509218,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1148,
+                "r": 4,
+                "bombs": {
+                  "0": 47,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "38": [
+        {
+          "ts": 1764407509293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4370,
+                "live": 0,
+                "blastRadius": 2,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407509293,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4370,
+              4168,
+              4268,
+              4368,
+              4468,
+              4568,
+              4169,
+              4269,
+              4369,
+              4469,
+              4569,
+              4170,
+              4270,
+              4470,
+              4570,
+              4171,
+              4271,
+              4371,
+              4471,
+              4571,
+              4172,
+              4272,
+              4372,
+              4472,
+              4572
+            ]
+          }
+        },
+        {
+          "ts": 1764407509293,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4370,
+                "point": 29,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 6008,
+                "type": 0,
+                "points": 16,
+                "colorIndex": 7
+              },
+              {
+                "pos": 8092,
+                "type": 2,
+                "points": 33,
+                "colorIndex": 3
+              },
+              {
+                "pos": 7559,
+                "type": 0,
+                "points": 42,
+                "colorIndex": 11
+              },
+              {
+                "pos": 1635,
+                "type": 3,
+                "points": 46,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8296,
+                "type": 2,
+                "points": 17,
+                "colorIndex": 6
+              },
+              {
+                "pos": 2465,
+                "type": 2,
+                "points": 50,
+                "colorIndex": 11
+              },
+              {
+                "pos": 3319,
+                "type": 0,
+                "points": 63,
+                "colorIndex": 11
+              },
+              {
+                "pos": 7261,
+                "type": 4,
+                "points": 20,
+                "colorIndex": 6
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1177,
+                "r": 4,
+                "bombs": {
+                  "0": 47,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "40": [
+        {
+          "ts": 1764407509693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 12
+            }
+          }
+        }
+      ],
+      "41": [
+        {
+          "ts": 1764407510050,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5490,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407510050,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1177,
+                "r": 4,
+                "bombs": {
+                  "0": 46,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "45": [
+        {
+          "ts": 1764407510693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 11
+            }
+          }
+        }
+      ],
+      "50": [
+        {
+          "ts": 1764407511693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 10
+            }
+          }
+        }
+      ],
+      "52": [
+        {
+          "ts": 1764407512093,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5583,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407512093,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              5583,
+              5584,
+              5585,
+              5586,
+              5587,
+              5582,
+              5581,
+              5580,
+              5579,
+              5683,
+              5783,
+              5883,
+              5983,
+              5483,
+              5383,
+              5283,
+              5183
+            ]
+          }
+        },
+        {
+          "ts": 1764407512093,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 5582,
+                "point": 4,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1181,
+                "r": 4,
+                "bombs": {
+                  "0": 46,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "55": [
+        {
+          "ts": 1764407512693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 9
+            }
+          }
+        }
+      ],
+      "56": [
+        {
+          "ts": 1764407512893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5490,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407512893,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              5490,
+              5491,
+              5492,
+              5493,
+              5494,
+              5489,
+              5488,
+              5487,
+              5486,
+              5590,
+              5690,
+              5790,
+              5890,
+              5390,
+              5290,
+              5190,
+              5090
+            ]
+          }
+        },
+        {
+          "ts": 1764407512893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5489,
+                "live": 800,
+                "blastRadius": 5,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407512893,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 5890,
+                "point": 23,
+                "playerId": 1
+              },
+              {
+                "pos": 5390,
+                "point": 5,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1209,
+                "r": 4,
+                "bombs": {
+                  "0": 46,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "60": [
+        {
+          "ts": 1764407513693,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 5489,
+                "live": 0,
+                "blastRadius": 5,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407513693,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              5489,
+              5484,
+              5185,
+              5285,
+              5385,
+              5485,
+              5585,
+              5685,
+              5785,
+              5086,
+              5186,
+              5286,
+              5386,
+              5486,
+              5586,
+              5686,
+              5786,
+              5886,
+              5087,
+              5187,
+              5287,
+              5387,
+              5487,
+              5587,
+              5687,
+              5787,
+              5887,
+              5088,
+              5188,
+              5288,
+              5388,
+              5488,
+              5588,
+              5688,
+              5788,
+              5888,
+              4989,
+              5089,
+              5189,
+              5289,
+              5389,
+              5589,
+              5689,
+              5789,
+              5889,
+              5989,
+              5090,
+              5190,
+              5290,
+              5390,
+              5490,
+              5590,
+              5690,
+              5790,
+              5890,
+              5091,
+              5191,
+              5291,
+              5391,
+              5491,
+              5591,
+              5691,
+              5791,
+              5891,
+              5092,
+              5192,
+              5292,
+              5392,
+              5492,
+              5592,
+              5692,
+              5792,
+              5892,
+              5193,
+              5293,
+              5393,
+              5493,
+              5593,
+              5693,
+              5793,
+              5494
+            ]
+          }
+        },
+        {
+          "ts": 1764407513693,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 5489,
+                "point": 107,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1316,
+                "r": 4,
+                "bombs": {
+                  "0": 46,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407513693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 8
+            }
+          }
+        }
+      ],
+      "65": [
+        {
+          "ts": 1764407514693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 7
+            }
+          }
+        }
+      ],
+      "67": [
+        {
+          "ts": 1764407515186,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4683,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407515186,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1316,
+                "r": 4,
+                "bombs": {
+                  "0": 45,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "70": [
+        {
+          "ts": 1764407515693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 6
+            }
+          }
+        }
+      ],
+      "75": [
+        {
+          "ts": 1764407516693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 5
+            }
+          }
+        }
+      ],
+      "79": [
+        {
+          "ts": 1764407517522,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4357,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407517522,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1316,
+                "r": 4,
+                "bombs": {
+                  "0": 44,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "80": [
+        {
+          "ts": 1764407517693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 4
+            }
+          }
+        }
+      ],
+      "81": [
+        {
+          "ts": 1764407518002,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4157,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407518002,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1316,
+                "r": 4,
+                "bombs": {
+                  "0": 43,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "82": [
+        {
+          "ts": 1764407518093,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4683,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407518093,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4683,
+              4684,
+              4685,
+              4686,
+              4687,
+              4682,
+              4681,
+              4680,
+              4679,
+              4783,
+              4883,
+              4983,
+              5083,
+              4583,
+              4483,
+              4383,
+              4283
+            ]
+          }
+        },
+        {
+          "ts": 1764407518093,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4684,
+                "live": 800,
+                "blastRadius": 5,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407518093,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4483,
+                "point": 69,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1385,
+                "r": 4,
+                "bombs": {
+                  "0": 43,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "85": [
+        {
+          "ts": 1764407518693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 3
+            }
+          }
+        }
+      ],
+      "86": [
+        {
+          "ts": 1764407518893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4684,
+                "live": 0,
+                "blastRadius": 5,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407518893,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4684,
+              4679,
+              4380,
+              4480,
+              4580,
+              4680,
+              4780,
+              4880,
+              4980,
+              4281,
+              4381,
+              4481,
+              4581,
+              4681,
+              4781,
+              4881,
+              4981,
+              5081,
+              4282,
+              4382,
+              4482,
+              4582,
+              4682,
+              4782,
+              4882,
+              4982,
+              5082,
+              4283,
+              4383,
+              4483,
+              4583,
+              4683,
+              4783,
+              4883,
+              4983,
+              5083,
+              4184,
+              4284,
+              4384,
+              4484,
+              4584,
+              4784,
+              4884,
+              4984,
+              5084,
+              5184,
+              4285,
+              4385,
+              4485,
+              4585,
+              4685,
+              4785,
+              4885,
+              4985,
+              5085,
+              4286,
+              4386,
+              4486,
+              4586,
+              4686,
+              4786,
+              4886,
+              4986,
+              5086,
+              4287,
+              4387,
+              4487,
+              4587,
+              4687,
+              4787,
+              4887,
+              4987,
+              5087,
+              4388,
+              4488,
+              4588,
+              4688,
+              4788,
+              4888,
+              4988,
+              4689
+            ]
+          }
+        },
+        {
+          "ts": 1764407518893,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4282,
+                "live": 800,
+                "blastRadius": 2,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407518893,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4684,
+                "point": 85,
+                "playerId": 1
+              },
+              {
+                "pos": 4388,
+                "point": 66,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1536,
+                "r": 4,
+                "bombs": {
+                  "0": 43,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "89": [
+        {
+          "ts": 1764407519506,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4358,
+                "live": 3000,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407519506,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1536,
+                "r": 4,
+                "bombs": {
+                  "0": 42,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "90": [
+        {
+          "ts": 1764407519693,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4282,
+                "live": 0,
+                "blastRadius": 2,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407519693,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4282,
+              4080,
+              4180,
+              4280,
+              4380,
+              4480,
+              4081,
+              4181,
+              4281,
+              4381,
+              4481,
+              4082,
+              4182,
+              4382,
+              4482,
+              4083,
+              4183,
+              4283,
+              4383,
+              4483,
+              4084,
+              4184,
+              4284,
+              4384,
+              4484
+            ]
+          }
+        },
+        {
+          "ts": 1764407519693,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4282,
+                "point": 33,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "addItems",
+            "items": [
+              {
+                "pos": 3324,
+                "type": 3,
+                "points": 43,
+                "colorIndex": 1
+              },
+              {
+                "pos": 7725,
+                "type": 4,
+                "points": 97,
+                "colorIndex": 11
+              },
+              {
+                "pos": 6480,
+                "type": 0,
+                "points": 33,
+                "colorIndex": 0
+              },
+              {
+                "pos": 1388,
+                "type": 0,
+                "points": 54,
+                "colorIndex": 9
+              },
+              {
+                "pos": 6084,
+                "type": 1,
+                "points": 86,
+                "colorIndex": 3
+              },
+              {
+                "pos": 8833,
+                "type": 3,
+                "points": 31,
+                "colorIndex": 1
+              },
+              {
+                "pos": 7545,
+                "type": 0,
+                "points": 82,
+                "colorIndex": 0
+              },
+              {
+                "pos": 4542,
+                "type": 4,
+                "points": 26,
+                "colorIndex": 0
+              },
+              {
+                "pos": 590,
+                "type": 3,
+                "points": 81,
+                "colorIndex": 6
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1569,
+                "r": 4,
+                "bombs": {
+                  "0": 42,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407519693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 2
+            }
+          }
+        }
+      ],
+      "94": [
+        {
+          "ts": 1764407520493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4357,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 4358,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              },
+              {
+                "ownerId": 1,
+                "pos": 4157,
+                "live": 0,
+                "blastRadius": 4,
+                "type": 0
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407520493,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4357,
+              4356,
+              4355,
+              4354,
+              4353,
+              4457,
+              4557,
+              4657,
+              4757,
+              4257,
+              4358,
+              4359,
+              4360,
+              4361,
+              4362,
+              4458,
+              4558,
+              4658,
+              4758,
+              4258,
+              4158,
+              4058,
+              3958,
+              4157,
+              4156,
+              4155,
+              4154,
+              4153,
+              4057,
+              3957,
+              3857,
+              3757
+            ]
+          }
+        },
+        {
+          "ts": 1764407520493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4356,
+                "live": 800,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407520493,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 3857,
+                "live": 800,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407520493,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4358,
+                "point": 17,
+                "playerId": 1
+              },
+              {
+                "pos": 4458,
+                "point": 31,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1617,
+                "r": 4,
+                "bombs": {
+                  "0": 42,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "95": [
+        {
+          "ts": 1764407520693,
+          "msg": {
+            "type": "gameState",
+            "state": {
+              "timeLeft": 1
+            }
+          }
+        }
+      ],
+      "98": [
+        {
+          "ts": 1764407521293,
+          "msg": {
+            "type": "bombs",
+            "bombs": [
+              {
+                "ownerId": 1,
+                "pos": 4356,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 2
+              },
+              {
+                "ownerId": 1,
+                "pos": 3857,
+                "live": 0,
+                "blastRadius": 3,
+                "type": 2
+              }
+            ]
+          }
+        },
+        {
+          "ts": 1764407521293,
+          "msg": {
+            "type": "explosions",
+            "explosions": [
+              4356,
+              4353,
+              4154,
+              4254,
+              4354,
+              4454,
+              4554,
+              4155,
+              4255,
+              4355,
+              4455,
+              4555,
+              4056,
+              4156,
+              4256,
+              4456,
+              4556,
+              4656,
+              4157,
+              4257,
+              4357,
+              4457,
+              4557,
+              4158,
+              4258,
+              4358,
+              4458,
+              4558,
+              4359,
+              3857,
+              3854,
+              3655,
+              3755,
+              3855,
+              3955,
+              4055,
+              3656,
+              3756,
+              3856,
+              3956,
+              3557,
+              3657,
+              3757,
+              3957,
+              4057,
+              3658,
+              3758,
+              3858,
+              3958,
+              4058,
+              3659,
+              3759,
+              3859,
+              3959,
+              4059,
+              3860
+            ]
+          }
+        },
+        {
+          "ts": 1764407521293,
+          "msg": {
+            "type": "removeItems",
+            "items": [
+              {
+                "pos": 4356,
+                "point": 63,
+                "playerId": 1
+              },
+              {
+                "pos": 3857,
+                "point": 72,
+                "playerId": 1
+              }
+            ]
+          }
+        },
+        {
+          "ts": 0,
+          "msg": {
+            "type": "players",
+            "players": [
+              {
+                "id": 1,
+                "name": "qw",
+                "score": 1752,
+                "r": 4,
+                "bombs": {
+                  "0": 42,
+                  "1": 2,
+                  "2": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "maxFrame": 98
+    }
+  }
+}

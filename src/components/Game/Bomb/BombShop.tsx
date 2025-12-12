@@ -3,6 +3,7 @@ import { FaBomb, FaRocket, FaBolt } from 'react-icons/fa'
 import { BombMap } from './BombMap'
 import { BombType, PlayerState } from './types'
 import { bombPrices } from './constant'
+import { CountInput } from './CountInput'
 
 /**
  * Component hiển thị một vật phẩm trong cửa hàng
@@ -16,16 +17,16 @@ interface ShopItemProps {
   name: string
   price: number
   icon: React.ElementType
-  onBuyClick?: () => void
+  onBuyClick?: (quantity: number) => void
 }
 
 const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick }) => {
+  const [quantity, setQuantity] = useState(1)
+
   // Hàm xử lý khi nhấn nút Mua
   const handleBuyClick = useCallback(() => {
-    // Logic xử lý mua hàng (ví dụ: gọi API, cập nhật state global)
-    // Bạn có thể thêm logic đóng modal hoặc hiển thị thông báo tại đây
-    onBuyClick?.()
-  }, [name, price, onBuyClick])
+    onBuyClick?.(quantity)
+  }, [onBuyClick, quantity])
 
   return (
     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white shadow-sm gap-3">
@@ -44,13 +45,7 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
 
       {/* Phần hành động (số lượng, nút mua) */}
       <div className="flex items-center space-x-2 flex-shrink-0">
-        {/* <input
-          type="number"
-          value={quantity}
-          onChange={handleQuantityChange}
-          min="1"
-          className="w-14 text-center border border-gray-300 rounded-md p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        /> */}
+        <CountInput min={1} max={5} defaultValue={1} onChange={setQuantity} />
         <button
           onClick={handleBuyClick}
           className="px-3 py-1.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors duration-200"
@@ -70,23 +65,23 @@ const ShopItem: React.FC<ShopItemProps> = ({ name, price, icon: Icon, onBuyClick
  */
 
 interface ShopModalProps {
-  bomMapRef: React.RefObject<BombMap | undefined>
+  bombMap: BombMap
   playerState: PlayerState
   onClose: () => void
 }
 
-export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, playerState, onClose }) => {
+export const BombShop: React.FC<ShopModalProps> = ({ bombMap, playerState, onClose }) => {
   // Dữ liệu giả (mock data) cho các vật phẩm
   const shopItemsData = [
     { id: BombType.Standard, name: "Normal", price: bombPrices[BombType.Standard], icon: FaBomb },
     { id: BombType.Atomic, name: "Atomic", price: bombPrices[BombType.Atomic], icon: FaRocket },
   ]
 
-  const doBuyItem = useCallback((type: BombType) => {
+  const doBuyItem = useCallback((type: BombType, quantity: number) => {
     // Logic xử lý sau khi mua hàng (ví dụ: cập nhật số dư vàng, thông báo thành công, v.v.)
-    console.log('Đã mua vật phẩm thành công!')
-    bomMapRef.current?.bombNetwork.buyBomb(type)
-  }, [onClose])
+    console.log('Đã bấm mua vật phẩm!', type, quantity)
+    bombMap.bombNetwork.buyBomb(type, quantity)
+  }, [bombMap])
 
   return (
     // Lớp phủ nền (overlay)
@@ -142,7 +137,7 @@ export const BombShop: React.FC<ShopModalProps> = ({ bomMapRef, playerState, onC
               name={item.name}
               price={item.price}
               icon={item.icon}
-              onBuyClick={() => doBuyItem(item.id)}
+              onBuyClick={(quantity) => doBuyItem(item.id, quantity)}
             />
           ))}
         </div>

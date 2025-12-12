@@ -3,14 +3,27 @@ export interface WebRTCServiceOptions {
   onMessage: (data: string | ArrayBuffer) => void
   onConnect?: () => void
   onClose?: () => void
+  onTrack?: (e: RTCTrackEvent) => void
 }
 
 export class WebRTCService {
   pc: RTCPeerConnection
   channel: RTCDataChannel | null = null
+  private isClosed = false
 
-  constructor(private options: WebRTCServiceOptions) {
-    const pc = this.pc = new RTCPeerConnection()
+  constructor(private options: WebRTCServiceOptions, private stream: MediaStream) {
+    const pc = this.pc = new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: 'stun:relay1.expressturn.com:3480'
+        },
+        {
+          urls: 'turn:relay1.expressturn.com:3480',
+          username: '000000002080108438',
+          credential: 'VA9EnnDbPrfP2Psi0HYMtx/QujA=',
+        }
+      ],
+    })
 
     pc.onicecandidate = (ev) => {
       if (ev.candidate) {
@@ -30,6 +43,33 @@ export class WebRTCService {
       console.log('channel created', channel)
       this.setupChannel(channel)
     }
+
+    pc.ontrack = (e) => {
+      console.log('ontrack', e.streams)
+      this.options.onTrack?.(e)
+    }
+
+    // Monitor connection state changes to detect when peer closes browser
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState)
+      if (pc.connectionState === 'disconnected' || 
+          pc.connectionState === 'failed' || 
+          pc.connectionState === 'closed') {
+        console.log('Peer connection closed or failed')
+        this.handleClose()
+      }
+    }
+
+    // Additional monitoring via ICE connection state
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', pc.iceConnectionState)
+      if (pc.iceConnectionState === 'disconnected' || 
+          pc.iceConnectionState === 'failed' || 
+          pc.iceConnectionState === 'closed') {
+        console.log('ICE connection closed or failed')
+        this.handleClose()
+      }
+    }
   }
 
   async createOffer() {
@@ -43,10 +83,13 @@ export class WebRTCService {
   // Call this function before creating offer or answer
   // so it could get the ICECandidate and update the local SDP after setLocalDescription
   private async requestMediaStream() {
-    // Request media stream to trigger permissions dialog (this is just for testing)
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true})
-    // Add the stream to the connection to use it in the offer
-    stream.getTracks().forEach(track => this.pc.addTrack(track, stream))
+    // Only request media stream once and reuse it
+    if (!this.stream) {
+      return
+    }
+
+    // Add the stream to the connection to use it in the offer/answer
+    this.stream.getAudioTracks().forEach(track => this.pc.addTrack(track, this.stream))
   }
 
   /**
@@ -95,7 +138,16 @@ export class WebRTCService {
 
     channel.onclose = () => {
       console.log('Channel closed', channel)
-      if (onClose) onClose()
+      this.handleClose()
+    }
+  }
+
+  private handleClose() {
+    if (this.isClosed) return
+    this.isClosed = true
+    
+    if (this.options.onClose) {
+      this.options.onClose()
     }
   }
 

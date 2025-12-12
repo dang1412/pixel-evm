@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FaInfo } from 'react-icons/fa'
+import { useSearchParams } from 'next/navigation'
 
 import { useNotification } from '@/providers/NotificationProvider'
 import { useWebRTCConnectWs } from '@/lib/webRTC/hooks/useWebRTCConnectWs'
+import { useWebSocket } from '@/providers/WebsocketProvider'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { mockImages } from '../mock/images'
@@ -11,11 +13,12 @@ import { MenuModal } from '../MenuModal'
 import { GuideModal } from '../GuideModal'
 import { BombMap } from './BombMap'
 import { GuideSteps } from './GuideSteps'
-import { useWebSocket } from '@/providers/WebsocketProvider'
 
 interface Props {
   onBombMapReady: (bombMap: BombMap) => void
 }
+
+const audioStream: {[name: string]: HTMLAudioElement} = {}
 
 const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
   const bombMapRef = useRef<BombMap | undefined>(undefined)
@@ -24,6 +27,10 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
   const { notify, setLoading } = useNotification()
 
   const [shouldShowInfoButton, setShouldShowInfoButton] = useState(true)
+
+  const searchParams = useSearchParams()
+  const connectToParam = searchParams.get('connectTo')
+  const replayGameId = searchParams.get('replayGameId')
 
   // receive data from host/client
   const onMsg = useCallback((from: string, data: string | ArrayBuffer) => {
@@ -38,14 +45,27 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     bombNetwork.receiveMsg(from, data as string)
   }, [])
 
-  const { offerConnect, sendAll, sendTo, wsRandomName } = useWebRTCConnectWs(onMsg)
+  const onTrack = useCallback((from: string, e: RTCTrackEvent) => {
+    console.log('Received track from', from, 'streams:', e.streams)
+    const audio = audioStream[from] || document.createElement('audio')
+    audio.srcObject = e.streams[0]
+
+    if (!audioStream[from]) {
+      audio.autoplay = true
+      audioStream[from] = audio
+      document.body.appendChild(audio)
+    }
+  }, [])
+
+  const { offerConnect, sendAll, sendTo, wsRandomName } = useWebRTCConnectWs({ onMsg, onTrack })
 
   useEffect(() => {
     if (canvas && bombMapRef.current === undefined) {
       // pixel map
       const map = new PixelMap(canvas, {
         // not open scene when click on image
-        preOpenImageHook: (curScene, pixel, image) => false
+        preOpenImageHook: (curScene, pixel, image) => false,
+        // backgroundColor: 0x000000,
       })
       map.addMainImages(mockImages)
 
@@ -78,21 +98,20 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
 
   const { send, subscribe } = useWebSocket()
 
-  // subscribe to bomb-game channel
-  useEffect(() => {
-    subscribe('bomb-game', (payload) => {
-      if (payload.type === 'game_created') {
-        bombMapRef.current?.bombNetwork.getBombGame()?.setGameId(payload.gameId)
-      } else if (payload.type === 'top_rank') {
-        console.log('Top Ranks:', payload.players)
-      }
-    })
-  }, [subscribe])
-
   // make host
   const createGame = useCallback(async () => {
     const bombMap = bombMapRef.current
     if (bombMap && !bombMap.bombNetwork.isHost()) {
+      // subscribe to bomb-game channel
+      subscribe('bomb-game', (payload) => {
+        if (payload.type === 'game_created') {
+          bombMapRef.current?.bombNetwork.getBombGame()?.setGameId(payload.gameId)
+        } 
+        // else if (payload.type === 'top_rank') {
+        //   console.log('Top Ranks:', payload.players)
+        // }
+      })
+
       // create game as host
       bombMap.bombNetwork.createGame(send)
 
@@ -101,7 +120,7 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
       // not show info button
       setShouldShowInfoButton(false)
     }
-  }, [send])
+  }, [send, subscribe])
 
   // connect to a host
   const connect = useCallback(async (addr: string) => {
@@ -110,7 +129,23 @@ const BombMapComponent: React.FC<Props> = ({ onBombMapReady }) => {
     setIsConnectModalOpen(false)
   }, [offerConnect])
 
-  const [isGuideModalOpen, setIsGuideModalOpen] = useState(true)
+  // Auto-connect if connectTo parameter exists
+  useEffect(() => {
+    if (connectToParam) {
+      setIsGuideModalOpen(false)
+      connect(connectToParam)
+    }
+  }, [connectToParam, connect])
+
+  useEffect(() => {
+    if (replayGameId) {
+      setIsGuideModalOpen(false)
+      setIsConnectModalOpen(false)
+      setShouldShowInfoButton(false)
+    }
+  }, [replayGameId, connect])
+
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false)
 
   return (
     <>

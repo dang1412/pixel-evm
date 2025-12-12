@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { GameState, PlayerState } from './types'
+import { CountDown } from './CountDown'
 
 interface Props {
   gameState: GameState
@@ -27,7 +28,8 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
       <div className="text-sm bg-white/80 shadow-lg rounded-lg p-2 min-w-[150px] pointer-events-none">
         <div className="flex text-sm justify-between items-center mb-2 border-b pb-2">
           <span className='font-semibold'>Round {gameState.round}</span>
-          <div className='font-semibold'>⏱️ {gameState.timeLeft}s</div>
+          {/* <div className='font-semibold'>⏱️ {gameState.timeLeft}s</div> */}
+          <span className='font-semibold'><CountDown time={gameState.timeLeft} isPaused={gameState.pausing} /></span>
           {onExpandClick && (
             <button 
               onClick={onExpandClick}
@@ -76,6 +78,7 @@ export const FloatScoreTable: React.FC<Props> = ({ gameState, players, playerId,
                 <div className="flex items-center gap-1">
                   <span className="truncate">{currentPlayerIndex + 1}</span>
                 </div>
+                <div className="font-medium">{currentPlayer.name}</div>
                 <div className="font-medium">{currentPlayer.score || 0}</div>
               </div>
             </>

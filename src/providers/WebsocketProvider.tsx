@@ -26,7 +26,7 @@ interface WebSocketContextType<T = ClientMessage> {
   // Hàm để gửi tin nhắn đi (bao gồm cả tin nhắn subscribe/unsubscribe)
   send: (message: T) => void;
   // Hàm để đăng ký lắng nghe một channel
-  subscribe: <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) => void;
+  subscribe: <T extends keyof ChannelPayloadMap>(channel: T, callback: MessageCallback<ChannelPayloadMap[T]>) => () => void;
   // Hàm để hủy đăng ký
   unsubscribe: (channel: string, callback: MessageCallback) => void;
   isConnected: boolean;
@@ -38,6 +38,19 @@ interface WebSocketProviderProps {
   url: string;
   children: ReactNode;
 }
+
+// Check if running on localhost - only runs once per component instance
+let isLocalhost: boolean | null = null;
+
+const checkIsLocalhost = (): boolean => {
+  if (isLocalhost === null) {
+    isLocalhost = typeof window !== 'undefined' && 
+                  (window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1' ||
+                   window.location.hostname.includes('.local'));
+  }
+  return isLocalhost;
+};
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   url,
@@ -104,9 +117,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, [url]); // Chỉ chạy lại khi URL thay đổi
 
   // Hàm gửi tin nhắn, dùng useCallback để tối ưu
-  const send = useCallback((message: any) => {
+  const send = useCallback((message: ClientMessage) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(message));
+      // not send if running on localhost
+      console.log('Sending message:', message, isLocalhost);
+      if (!checkIsLocalhost() || message.action !== 'bomb_game') {
+        ws.current.send(JSON.stringify(message));
+      }
     } else {
       console.warn('WebSocket not connected. Message not sent:', message);
     }
@@ -133,6 +150,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     listeners.current[channel].push(callback);
     console.log(`Subscribed to channel: ${channel}`);
+
+    // return unsubscribe function
+    return () => {
+      unsubscribe(channel, callback)
+    }
+
   }, [send]); // Phụ thuộc vào hàm `send`
 
   // Hàm hủy đăng ký channel

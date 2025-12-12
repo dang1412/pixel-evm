@@ -69,7 +69,7 @@ export function useWebRTCConnect(onMsg: (from: string, data: string | ArrayBuffe
         // This could be a custom event or a state update
         onMsg(to, '_connected_')
       }
-    });
+    }, new MediaStream());
   }, [sendMessage]);
 
   const onEventMessage = useCallback(async (e: EventMessagePayload) => {

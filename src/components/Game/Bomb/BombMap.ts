@@ -1,14 +1,17 @@
 import { IMediaInstance, sound } from '@pixi/sound'
+import { Container, Graphics, Text } from 'pixi.js'
 
 import { PixelMap } from '../pixelmap/PixelMap'
 import { positionToXY, xyToPosition } from '../utils'
+import { PixelArea } from '../types'
 
 import { Bomb } from './Bomb'
 import { BombNetwork } from './BombNetwork'
 import { Explosion } from './Explosion'
 import { MapItem } from './MapItem'
-import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
+import { BombState, BombType, CaughtItem, GameState, ItemState, PlayerState } from './types'
 import { AtomicBomb } from './AtomicBomb'
+import { BOMB_COLORS } from './constant'
 
 sound.add('explosion', '/sounds/bomb/explosion3.mp3')
 sound.add('explosion2', '/sounds/bomb/explosion2.mp3')
@@ -30,12 +33,16 @@ export class BombMap {
 
   private bombTicking: Promise<IMediaInstance> | undefined
 
-  private gameState: GameState = { timeLeft: 0, round: 0, pausing: true }
+  private gameState: GameState = { gameId: 0, timeLeft: 0, round: 0, pausing: true, roundEnded: true }
 
   private bombType = BombType.Standard
 
   onPlayersUpdated?: (players: PlayerState[]) => void
   onGameStateUpdated?: (state: GameState) => void
+
+  get pausing() {
+    return this.gameState.pausing
+  }
 
   constructor(
     public map: PixelMap,
@@ -75,22 +82,57 @@ export class BombMap {
 
       view.markDirty()
     })
+
+    view.subscribe('viewchanged', (e: CustomEvent<{x: number, y: number, w: number, h: number}>) => {
+      if (!this.playerId) return
+
+      const { x, y, w, h } = e.detail
+      this.bombNetwork.myViewChange({
+        x: Math.round(x),
+        y: Math.round(y),
+        w: Math.round(w),
+        h: Math.round(h),
+      })
+    })
   }
 
+  // Called from Network
   updateGameState(state: Partial<GameState>) {
     this.gameState = {...this.gameState, ...state}
     this.onGameStateUpdated?.(this.gameState)
   }
 
+  // Called from Network
   // Update or remove players
   updatePlayers(players: PlayerState[]) {
+    console.log('Updating players', players)
     for (const player of players) {
+      const playerViewContainer = this.playersViewGraphics.get(player.id)
       if (player.score < 0) {
         // remove player
         this.players.delete(player.id)
+        // clear view graphics
+        if (playerViewContainer) {
+          playerViewContainer.destroy()
+          this.playersViewGraphics.delete(player.id)
+        }
       } else {
         // add or update player
         this.players.set(player.id, player)
+        const color = BOMB_COLORS[(player.id - 1) % BOMB_COLORS.length]
+        // create view graphics if not exist
+        if (!playerViewContainer) {
+          const mainScene = this.map.getView()?.getScene('main')
+          if (!mainScene) continue
+          const c = new Container()
+          const g = new Graphics()
+          const t = new Text({ text: player.name, style: { fontSize: 40, fill: color } })
+          t.x = 5
+          c.addChild(g)
+          c.addChild(t)
+          mainScene.container.addChild(c)
+          this.playersViewGraphics.set(player.id, c)
+        }
       }
     }
     this.onPlayersUpdated?.(this.playersArray)
@@ -109,25 +151,71 @@ export class BombMap {
     this.bombType = type
   }
 
+  // Reset game state
+  resetGame() {
+    // remove all bombs
+    for (const bomb of this.bombMap.values()) {
+      bomb.remove()
+    }
+    this.bombMap.clear()
+
+    // remove all items
+    for (const item of this.itemMap.values()) {
+      item.remove(0)
+    }
+    this.itemMap.clear()
+
+    this.players.clear()
+  }
+
+  private playersViewGraphics: Map<number, Container> = new Map()
+
+  // Called from Network, draw view change
+  viewChange(playerId: number, area: PixelArea) {
+    const color = BOMB_COLORS[(playerId - 1) % BOMB_COLORS.length]
+    const c = this.playersViewGraphics.get(playerId)
+    if (!c) return
+
+    c.x = area.x
+    c.y = area.y
+
+    const g = c.getChildAt(0) as Graphics
+
+    g.clear()
+    g
+      .rect(0, 0, area.w, area.h)
+      .fill({ color, alpha: 0.1 })
+      .stroke({ width: 1, color })
+
+    // inform minimap
+    const view = this.map.getView()
+    view.eventTarget.dispatchEvent(new Event('updated'))
+  }
+
   // Called from Network
   updateBombs(bombStates: BombState[]) {
-    let atomicBombExploded = 0
+    console.log('Updating bombs', bombStates)
+    // let atomicBombExploded = 0
     for (const { ownerId, pos, live, type } of bombStates) {
       if (live > 0) {
         const { x, y } = positionToXY(pos)
-        this.addBomb(x, y, ownerId, type)
+        if (type === BombType.Star) {
+          this.activateBombStar(pos)
+        } else {
+          this.addBomb(x, y, ownerId, type)
+        }
       } else {
         const bomb = this.removeBomb(pos, ownerId)
-        if (bomb && type === BombType.Atomic) {
-          atomicBombExploded++
-        }
+        // if (bomb && type === BombType.Atomic) {
+        //   atomicBombExploded++
+        // }
       }
     }
 
     // atomic bomb explosion sound
-    if (atomicBombExploded) {
-      sound.play('laser', { volume: 0.1 * atomicBombExploded })
-    }
+    // if (atomicBombExploded) {
+    //   sound.play('laser', { volume: 0.1 * atomicBombExploded })
+    // }
 
     // ticking sound
     if (this.bombMap.size > 0) {
@@ -149,8 +237,12 @@ export class BombMap {
 
   // Called from Network
   addExplosions(explosions: number[]) {
+    const view = this.map.getView()
     for (const pos of explosions) {
       const { x, y } = positionToXY(pos)
+      // not rendering explosion out of view
+      if (!view.isPixelInView(x, y)) continue
+
       const old = this.explosionMap.get(pos)
       if (old) {
         // erase old explosion
@@ -163,8 +255,7 @@ export class BombMap {
 
   // Called from Network
   addItem(pos: number, item: ItemState) {
-    const { x, y } = positionToXY(pos)
-    this.itemMap.set(pos, new MapItem(this, x, y, item.points))
+    this.itemMap.set(pos, new MapItem(this, item))
 
     // update minimap
     const view = this.map.getView()
@@ -172,14 +263,20 @@ export class BombMap {
   }
 
   // Called from Network
-  removeItems(positions: number[]) {
-    for (const pos of positions) {
-      const item = this.itemMap.get(pos)
-      if (item) {
-        this.itemMap.delete(pos)
-        item.remove()
+  removeItems(items: CaughtItem[]) {
+    for (const item of items) {
+      const itemOnMap = this.itemMap.get(item.pos)
+      if (itemOnMap) {
+        this.itemMap.delete(item.pos)
+        itemOnMap.remove(item.point)
       }
     }
+  }
+
+  private activateBombStar(pos: number) {
+    // activate the star into a bomb, if star type is bomb
+    const item = this.itemMap.get(pos)
+    item?.activate()
   }
 
   private addBomb(x: number, y: number, playerId: number, type: BombType) {

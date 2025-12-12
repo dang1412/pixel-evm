@@ -1,11 +1,10 @@
-import { Container, Graphics, type Renderer, Sprite, Texture, WebGLRenderer } from 'pixi.js'
+import { Container, type Renderer, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
 import { Minimap } from './Minimap'
 import { MAP_H, MAP_W, PIXEL_SIZE } from './utils'
 import { ViewportScene } from './ViewportScene'
 import { PixelArea } from './types'
-import { initialize } from 'next/dist/server/lib/render-server'
 
 const WORLD_HEIGHT = PIXEL_SIZE * MAP_H
 const WORLD_WIDTH = PIXEL_SIZE * MAP_W
@@ -13,6 +12,7 @@ const WORLD_WIDTH = PIXEL_SIZE * MAP_W
 export interface ViewportMapOptions {
   selectable?: boolean
   onDrop?: (data: DataTransfer, px: number, py: number) => void
+  backgroundColor?: number
 }
 
 export interface DragOptions {
@@ -123,10 +123,26 @@ export class ViewportMap {
     // this.updateMinimap()
   }
 
+  isPixelInView(px: number, py: number): boolean {
+    if (!this.viewport) return false
+
+    const worldX = px * PIXEL_SIZE
+    const worldY = py * PIXEL_SIZE
+
+    const { left, top, worldScreenWidth, worldScreenHeight } = this.viewport
+
+    // the pixel is at worldX ~ worldX + PIXEL_SIZE, worldY ~ worldY + PIXEL_SIZE
+    const inX = worldX + 2 * PIXEL_SIZE >= left && worldX - PIXEL_SIZE <= left + worldScreenWidth
+    const inY = worldY + 2 * PIXEL_SIZE >= top && worldY - PIXEL_SIZE <= top + worldScreenHeight
+
+    return inX && inY
+  }
+
   async init(w: number, h: number) {
     const canvas = this.canvas
+    const backgroundColor = this.options.backgroundColor ?? 0xffffff
 
-    await this.renderer.init({ canvas, width: w, height: h, antialias: true, backgroundColor: 0xffffff })
+    await this.renderer.init({ canvas, width: w, height: h, antialias: true, backgroundColor })
 
     const viewport = this.viewport = new Viewport({
       screenWidth: w,
@@ -230,6 +246,22 @@ export class ViewportMap {
 
     this.addScene('main', 100, 100)
     this.moveCenter()
+
+    let viewChanged = false
+    const onViewChanged = () => {
+      if (!viewChanged) return
+
+      viewChanged = false
+      const { top, left, worldScreenWidth, worldScreenHeight } = viewport
+      this.eventTarget.dispatchEvent(new CustomEvent('viewchanged', { detail: { 
+        x: left, y: top, w: worldScreenWidth, h: worldScreenHeight 
+      } }))
+    }
+
+    setInterval(onViewChanged, 800)
+
+    viewport.on('zoomed', () => viewChanged = true)
+    viewport.on('moved', () => viewChanged = true)
 
     this.resolveInitialize()
 

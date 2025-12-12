@@ -6,8 +6,8 @@ import { ViewportMap } from '../ViewportMap'
  * @param c HTMLCanvasElement
  * @returns vpmap: ViewportMap
  */
-export function createViewportMap(c: HTMLCanvasElement) {
-  const view = new ViewportMap(c)
+export function createViewportMap(c: HTMLCanvasElement, backgroundColor?: number) {
+  const view = new ViewportMap(c, { backgroundColor })
   // Create an instance of ResizeObserver
   const resizeObserver = new ResizeObserver(entries => {
     for (let entry of entries) {

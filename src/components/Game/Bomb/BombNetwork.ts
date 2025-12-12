@@ -1,36 +1,26 @@
 import { ClientMessage } from '@/providers/types'
+
 import { BombGame } from './BombGame'
 import { BombMap } from './BombMap'
-import { BombState, BombType, GameState, ItemState, PlayerState } from './types'
-
-type GameMessage = 
-  // client to host
-  | { type: 'join', name: string }
-  | { type: 'addBomb', playerId: number, x: number, y: number, bombType: BombType }
-  | { type: 'buyBomb', bombType: BombType }
-
-  // host to client
-  | { type: 'joinSuccess', players: PlayerState[], playerId: number }
-  | { type: 'bombs', bombs: BombState[] }
-  | { type: 'explosions', explosions: number[] }
-  | { type: 'addItems', items: ItemState[] }
-  | { type: 'removeItems', positions: number[] }
-  | { type: 'players', players: PlayerState[] }
-
-  | { type: 'gameState', state: Partial<GameState> }
+import { BombType, GameMessage } from './types'
+import { BombGameReplay } from './BombGameReplay'
 
 export class BombNetwork {
 
   sendTo?: (addr: string, data: string) => void
-  sendAll?: (data: string) => void
+  sendAll?: (data: string, except?: string) => void
   notify?: (message: string, type?: 'success' | 'error' | 'info') => void
 
   private bombGame?: BombGame
   hostWsName?: string
   myWsName?: string
 
+  gameId = 0
+
   // for host
   private wsNameToPlayerId: { [wsName: string]: number } = {}
+
+  private gameReplay?: BombGameReplay
 
   constructor(private bombMap: BombMap) {
     // This is a mock network layer. In a real application,
@@ -46,6 +36,13 @@ export class BombNetwork {
   createGame(sendServer: (msg: ClientMessage) => void) {
     this.hostWsName = this.myWsName
     this.bombGame = new BombGame(this, this.myWsName || '', sendServer)
+  }
+
+  createGameReplay() {
+    const gameReplay = new BombGameReplay(this)
+    this.gameReplay = gameReplay
+
+    return gameReplay
   }
 
   getBombGame() {
@@ -68,15 +65,25 @@ export class BombNetwork {
   joinGame(name: string) {
     if (this.bombGame) {
       // self hosted
-      const newPlayer = this.bombGame.addPlayer(this.myWsName || '', name)
-      if (!newPlayer) return
+      // const newPlayer = this.bombGame.addPlayer(this.myWsName || '', name)
+      // if (!newPlayer) return
 
-      const players = this.bombGame.getPlayerStates()
-      this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
-      this.wsNameToPlayerId['host'] = newPlayer.id
+      // const players = this.bombGame.getPlayerStates()
+      // this.handleGameUpdate({ type: 'joinSuccess', players, playerId: newPlayer.id })
+      // this.wsNameToPlayerId['host'] = newPlayer.id
+      this.receiveGameMsg(this.myWsName || '', { type: 'join', name })
     } else if (this.hostWsName) {
       // send join request to host
       this.sendToAddr(this.hostWsName, { type: 'join', name })
+    }
+  }
+
+  // action: view change
+  myViewChange(area: { x: number, y: number, w: number, h: number }) {
+    if (this.bombGame) {
+      this.receiveGameMsg(this.myWsName || '', { type: 'myViewChange', area })
+    } else {
+      this.sendToHost({ type: 'myViewChange', area })
     }
   }
 
@@ -94,14 +101,14 @@ export class BombNetwork {
     }
   }
 
-  buyBomb(bombType: BombType) {
+  buyBomb(bombType: BombType, quantity: number) {
     if (this.bombGame) {
       // host
       if (!this.bombMap.playerId) return
-      this.bombGame.buyBomb(this.bombMap.playerId, bombType)
+      this.bombGame.buyBomb(this.bombMap.playerId, bombType, quantity)
     } else {
       // send buy bomb request to host
-      this.sendToHost({ type: 'buyBomb', bombType })
+      this.sendToHost({ type: 'buyBomb', bombType, quantity })
     }
   }
 
@@ -112,7 +119,12 @@ export class BombNetwork {
   }
 
   private sendToAddr(addr: string, msg: GameMessage) {
-    this.sendTo?.(addr, JSON.stringify(msg))
+    console.log('Sending message to', addr, msg)
+    if (addr === this.myWsName) {
+      this.receiveGameMsg(addr, msg)
+    } else {
+      this.sendTo?.(addr, JSON.stringify(msg))
+    }
   }
 
   // for host
@@ -168,6 +180,7 @@ export class BombNetwork {
       // host
       case 'join':
         if (this.bombGame) {
+          console.log('Player joining:', from, msg.name)
           const id = this.wsNameToPlayerId[from]
           const newPlayer = this.bombGame.addPlayer(from, msg.name, id)
           if (!newPlayer) return
@@ -191,7 +204,22 @@ export class BombNetwork {
       case 'buyBomb':
         if (this.bombGame) {
           const playerId = this.wsNameToPlayerId[from]
-          this.bombGame.buyBomb(playerId, msg.bombType)
+          this.bombGame.buyBomb(playerId, msg.bombType, msg.quantity)
+        }
+        break
+      case 'myViewChange':
+        if (this.bombGame) {
+          const playerId = this.wsNameToPlayerId[from]
+          console.log('Received view change from player', playerId, msg.area)
+          const message = { type: 'viewChange', playerId, area: msg.area } as GameMessage
+          this.sendAll?.(JSON.stringify(message), from)
+          if (from !== this.myWsName) {
+            // host handle view change from others
+            this.handleGameUpdate(message)
+          }
+
+          // save to recorded game
+          this.bombGame.recordViewChange(message)
         }
         break
       // client
@@ -223,10 +251,19 @@ export class BombNetwork {
         }
         break
       case 'removeItems':
-        this.bombMap.removeItems(msg.positions)
+        this.bombMap.removeItems(msg.items)
         break
       case 'gameState':
         this.bombMap.updateGameState(msg.state)
+        break
+      case 'viewChange':
+        // update view rectangle on map
+        // if (this.bombMap.playerId === msg.playerId) break
+        this.bombMap.viewChange(msg.playerId, msg.area)
+        break
+
+      case 'reset':
+        this.bombMap.resetGame()
         break
     }
   }
