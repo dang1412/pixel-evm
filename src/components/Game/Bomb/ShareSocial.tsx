@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { FaTimes, FaFacebook, FaTelegram, FaCopy, FaSpinner } from 'react-icons/fa'
+import { FaTimes, FaFacebook, FaTelegram, FaCopy, FaSpinner, FaLink } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 
 import { useNotification } from '@/providers/NotificationProvider'
@@ -26,10 +26,10 @@ function generateShareContent(players: PlayerState[], round: number, playerId = 
   const names = players.filter(p => p.id !== playerId).map(p => p.name || `Player ${p.id}`).join(', ')
   if (player) {
     const { name, score } = player
-    return `🎮 ${name} scored ${score} (round ${round}), in a Bomb game with ${names} 💣\n (${timeStr}) Watch the full recorded game here!`
+    return `🎮 ${name} scored ${score} (round ${round}) in a Bomb game ${names ? 'with ' + names : ''} 💣\n(${timeStr}) Watch the full recorded game here!`
   }
 
-  return `🎮 (${timeStr}) Bomb Game Results ${names}- round ${round} 💣\n Watch the full recorded game here!`
+  return `🎮 Bomb game results (${names}) - round ${round} 💣\n(${timeStr}) Watch the full recorded game here!`
 }
 
 export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playerId = 1, onClose }) => {
@@ -100,7 +100,8 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     return `https://api.pixelonbase.com/bombshare/${gameId}?img=${name}&round=${round}&playerId=${playerId}`
   }, [gameId, round, playerId])
 
-  const handleShareFacebook = useCallback(async () => {
+  // Get share link
+  const handleGetLink = useCallback(async () => {
     if (!imageDataUrl) {
       notify('Please wait for the image to generate', 'error')
       return
@@ -110,6 +111,14 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     if (!name) return
     const shareUrl = getShareUrl(name)
     setShareUrl(shareUrl)
+
+    return shareUrl
+  }, [imageDataUrl, getOrUploadImage, getShareUrl])
+
+  // Share to Facebook
+  const handleShareFacebook = useCallback(async () => {
+    const shareUrl = await handleGetLink()
+    if (!shareUrl) return
     const url = encodeURIComponent(shareUrl)
 
     // Copy text to clipboard since Facebook doesn't support pre-filling quote anymore
@@ -121,49 +130,24 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
     }
 
     console.log('Opening Facebook share dialog with URL:', shareUrl)
-    
+
     setTimeout(() => {
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
     }, 500)
-  }, [imageDataUrl, shareContent, getOrUploadImage, getShareUrl])
+  }, [handleGetLink, shareContent])
 
+  // Share to X (Twitter)
   const handleShareX = useCallback(async () => {
-    if (!imageDataUrl) {
-      notify('Please wait for the image to generate', 'error')
-      return
-    }
-
-    // X (Twitter) doesn't support direct image upload via URL
-    // Download the image first, then open Twitter share
-    // const name = `${gameId}-${round}-${playerId}.png`
-    const name = await getOrUploadImage()
-    if (!name) return
-    const shareUrl = getShareUrl(name)
-    setShareUrl(shareUrl)
+    const shareUrl = await handleGetLink()
+    if (!shareUrl) return
     const text = encodeURIComponent(shareContent + '\n\n' + shareUrl)
     
     setTimeout(() => {
       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
     }, 500)
-  }, [imageDataUrl, shareContent, getOrUploadImage, getShareUrl])
+  }, [handleGetLink, shareContent])
 
-  const handleShareTelegram = async () => {
-    if (!imageDataUrl) {
-      notify('Please wait for the image to generate', 'error')
-      return
-    }
-
-    // Telegram doesn't support direct image upload via URL
-    // Download the image first
-    getOrUploadImage()
-    const url = encodeURIComponent(window.location.href)
-    const text = encodeURIComponent(shareContent)
-    
-    setTimeout(() => {
-      window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank')
-    }, 500)
-  }
-
+  // Copy link to clipboard
   const handleCopyUrl = useCallback(async () => {
     if (!shareUrl) return
     try {
@@ -232,14 +216,17 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
 
           {/* Social Media Share Buttons */}
           <div className="flex gap-3 w-full">
+            {/* Facebook */}
             <button
               onClick={handleShareFacebook}
               disabled={loading}
               className="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Facebook"
             >
-              <FaFacebook />
+              <FaFacebook size={20} />
             </button>
+
+            {/* X */}
             <button
               onClick={handleShareX}
               disabled={loading}
@@ -248,13 +235,15 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
             >
               <FaXTwitter />
             </button>
+
+            {/* Link */}
             <button
-              onClick={handleShareTelegram}
+              onClick={handleGetLink}
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition-colors flex items-center justify-center gap-2"
               aria-label="Share on Telegram"
             >
-              <FaTelegram />
+              <FaLink /> Link
             </button>
           </div>
 

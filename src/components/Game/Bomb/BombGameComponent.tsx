@@ -103,6 +103,7 @@ const BombGameComponent: React.FC<Props> = (props) => {
           players={players}
           playerId={playerId}
           gameState={gameState}
+          replayGameId={ replayGameId || undefined }
           onClose={() => setIsScoreboardModalOpen(false)}
         />
       )}

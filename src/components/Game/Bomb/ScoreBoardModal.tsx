@@ -13,11 +13,11 @@ import { ShareSocialModal } from './ShareSocial'
 import { CountDown } from './CountDown'
 
 interface ScoreboardModalProps {
-  // hostName: string;
   bombMap: BombMap
   players: PlayerState[];
   playerId?: number;
   gameState: GameState;
+  replayGameId?: string;
   onClose: () => void;
 }
 
@@ -30,7 +30,7 @@ interface ScoreboardModalProps {
  */
 export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
   {
-    bombMap, players, playerId, gameState, onClose,
+    bombMap, players, playerId, gameState, replayGameId, onClose,
   }
 ) => {
   const [playerName, setPlayerName] = useState('')
@@ -45,7 +45,6 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
 
   const hostWsName = bombMap.bombNetwork.hostWsName
   const myWsName = bombMap.bombNetwork.myWsName
-  // const shareHostUrl = `https://pixelonbase.com/bomb?connectTo=${hostWsName}`
 
   const { send, subscribe } = useWebSocket()
   const { toggleMicrophone, isMicOn } = useWebRTC()
@@ -240,22 +239,24 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                  My highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
+            {!replayGameId && (
+              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    My highscore: <span className="font-bold text-blue-600 dark:text-blue-400">{highScore}</span>
+                  </p>
+                  <CountInput min={0} max={5} defaultValue={highScoreRound} onChange={setHighScoreRound} />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {highScoreTime}
                 </p>
-                <CountInput min={0} max={5} defaultValue={highScoreRound} onChange={setHighScoreRound} />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {highScoreTime}
-              </p>
-            </div>
+            )}
           </div>
 
           {/* <!-- Modal Footer --> */}
           {/* <div className="flex justify-between items-center p-5 border-t border-gray-200 dark:border-gray-700"> */}
-            {!playerId && <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
+            {!replayGameId && !playerId && <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
               <input
                 type="text"
                 value={playerName}
@@ -295,7 +296,7 @@ export const ScoreboardModal: React.FC<ScoreboardModalProps> = (
 
         </div>
       </div>
-      {showHostQr && <ShareHostQr host={hostWsName || ''} onClose={() => setShowHostQr(false)} />}
+      {showHostQr && <ShareHostQr host={hostWsName} replayGameId={replayGameId} onClose={() => setShowHostQr(false)} />}
       {showShareSocial && (
         <ShareSocialModal
           players={players}

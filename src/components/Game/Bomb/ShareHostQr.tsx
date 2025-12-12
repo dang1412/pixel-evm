@@ -3,8 +3,22 @@ import { FaTimes, FaCopy, FaCheck } from 'react-icons/fa'
 import QRCode from 'qrcode'
 
 interface HostQrProps {
-  host: string
+  host?: string
+  replayGameId?: string
   onClose: () => void
+}
+
+const baseUrl = 'https://pixelonbase.com/bomb'
+
+function getUrl(host?: string, replayGameId?: string): string {
+  console.log('Generating URL with', { host, replayGameId })
+  if (host) {
+    return `${baseUrl}?connectTo=${host}`
+  } else if (replayGameId) {
+    return `${baseUrl}?replayGameId=${replayGameId}`
+  }
+
+  return ''
 }
 
 /**
@@ -13,11 +27,11 @@ interface HostQrProps {
  * @param {string} props.host - The URL to generate QR code for
  * @param {function} props.onClose - Function to call when the modal should be closed
  */
-export const ShareHostQr: React.FC<HostQrProps> = ({ host, onClose }) => {
+export const ShareHostQr: React.FC<HostQrProps> = ({ host, replayGameId, onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [copied, setCopied] = useState(false)
 
-  const url = useMemo(() => `https://pixelonbase.com/bomb?connectTo=${host}`, [host])
+  const url = useMemo(() => getUrl(host, replayGameId), [host, replayGameId])
 
   useEffect(() => {
     if (canvasRef.current && url) {
@@ -49,6 +63,13 @@ export const ShareHostQr: React.FC<HostQrProps> = ({ host, onClose }) => {
     }
   }
 
+  const title = useMemo(() => {
+    if (host) return host
+    // first 8 and last 8 chars of replay id
+    if (replayGameId) return `${replayGameId.substring(0, 8)}...${replayGameId.substring(replayGameId.length - 6)}`
+    return 'No Host Provided'
+  }, [host, replayGameId])
+
   return (
     // Modal Overlay
     <div
@@ -63,7 +84,7 @@ export const ShareHostQr: React.FC<HostQrProps> = ({ host, onClose }) => {
         {/* Modal Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Share - {host}
+            {title}
           </h2>
           <button
             onClick={onClose}
