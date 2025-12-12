@@ -4,9 +4,10 @@ import { positionToXY, xyToPosition } from '../utils'
 import { BombNetwork } from './BombNetwork'
 import { bombPrices, GameLoop, starColorSchemes } from './constant'
 
+import { IPFSService } from '@/lib/webRTC/IPFSService'
 import { BombState, BombType, CaughtItem, GameMessage, GameState, ItemState, ItemType, PlayerState, RecordedGame } from './types'
 import { clonePlayerState } from './utils'
-import { IPFSService } from '@/lib/webRTC/IPFSService'
+import { getLocalTimeString } from './utils/localTimeString'
 
 let playerId = 1
 
@@ -477,24 +478,6 @@ export class BombGame {
         update.pausing = true
 
         // finalize recorded game data for the round
-
-        // upload recorded game data to IPFS
-        const ipfsService = IPFSService.getInstance()
-        ipfsService.add(JSON.stringify(this.recordedGame)).then((cid) => {
-          // QmXiQxsYMVZJVThBMWcuac7R5qH1K5aXyipqcHHkspGRMH
-          // QmZnbEjjYPCuJofWPiE6kajixN89VGnDSoZbStXx5vZhH2
-          console.log('Recorded game data uploaded to IPFS with CID:', cid)
-          this.sendServer({
-            action: 'bomb_game',
-            msg: {
-              type: 'add_recorded_game',
-              payload: {
-                gameId: this.state.gameId,
-                gameDataCid: cid,
-              }
-            }
-          })
-        })
       }
     }
 
@@ -504,6 +487,27 @@ export class BombGame {
       update.timeLeft = this.state.timeLeft
       this.gameUpdateAt(ts, { type: 'gameState', state: update })
     }
+  }
+
+  async uploadRecordedGame() {
+    // upload recorded game data to IPFS
+    const ipfsService = IPFSService.getInstance()
+    const time = getLocalTimeString()
+    const name = `game_${this.recordedGame.gameId}_r${this.state.round}_${time}`
+    const cid = await ipfsService.add(JSON.stringify(this.recordedGame), name)
+    console.log('Recorded game data uploaded to IPFS with CID:', cid)
+    this.sendServer({
+      action: 'bomb_game',
+      msg: {
+        type: 'add_recorded_game',
+        payload: {
+          gameId: this.state.gameId,
+          gameDataCid: cid,
+        }
+      }
+    })
+
+    return cid
   }
 
   recordViewChange(msg: GameMessage) {

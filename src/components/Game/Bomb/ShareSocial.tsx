@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { FaTimes, FaFacebook, FaTelegram, FaCopy, FaSpinner } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 
+import { useNotification } from '@/providers/NotificationProvider'
 import { PlayerState } from './types'
 import { createShareImage } from './utils/createShareImage'
+import { getLocalTimeString } from './utils/localTimeString'
 import { generateUploadUrl } from './api/generateUploadUrl'
-import { useNotification } from '@/providers/NotificationProvider'
 
 interface Prop {
   players: PlayerState[]
@@ -18,11 +19,6 @@ interface Prop {
 const shareImageMemo: { [key: string]: string } = {}
 
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-function getLocalTimeString(): string {
-  const now = new Date()
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`
-}
 
 function generateShareContent(players: PlayerState[], round: number, playerId = 1): string {
   const timeStr = new Date().toLocaleString('en-US')
@@ -194,7 +190,7 @@ export const ShareSocialModal: React.FC<Prop> = ({ players, gameId, round, playe
         <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             Game #{`${gameId} (Round ${round})`}
-            {loading && <FaSpinner size={24} className='animate-spin text-blue-500 mr-1 inline' /> }
+            {loading && <FaSpinner className='animate-spin text-blue-500 mr-1 inline' /> }
           </h2>
           <button
             onClick={onClose}
